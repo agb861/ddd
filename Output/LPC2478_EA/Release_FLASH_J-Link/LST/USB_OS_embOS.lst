@@ -1,0 +1,3900 @@
+L 1 "USB\USB_OS_embOS.c"
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : USB_OS_embOS.c
+NPurpose : Kernel abstraction for embOS
+N          Do not modify to allow easy updates !
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N
+N#include "USB_Private.h"
+L 1 "USB\USB_Private.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : USB_Private.h
+NPurpose : Private include file.
+N          Do not modify to allow easy updates !
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N
+N#ifndef USB_INTERN_H
+N#define USB_INTERN_H
+N
+N#include "USB_Conf.h"
+L 1 "Config\USB_Conf.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : USB_Conf.h
+NPurpose : Config file. Modify to reflect your configuration
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N
+N#ifndef USB_CONF_H           /* Avoid multiple inclusion */
+N#define USB_CONF_H
+N
+N// #ifdef USB_IS_HIGH_SPEED
+N//   #define USB_SUPPORT_HIGH_SPEED           1
+N// #else
+N//   #define USB_SUPPORT_HIGH_SPEED           0
+N// #endif
+N
+N#define USB_MSD_MAX_UNIT                  2
+N
+N#ifdef DEBUG
+S  #if DEBUG
+S    #define USB_DEBUG_LEVEL        2   // Debug level: 1: Support "Panic" checks, 2: Support warn & log
+S  #endif
+N#endif
+N
+N//
+N// IAR ARM compiler related macros
+N//
+N#ifdef __ICCARM__
+S  #if ((__TID__ >> 4) & 0x0F) < 6   // For any ARM CPU core < v7, we will use optimized routines
+S    #include "SEGGER.h"
+S    #define USB_MEMCPY(pDest, pSrc, NumBytes) SEGGER_ARM_memcpy(pDest, pSrc, NumBytes)    // Speed optimization: Our memcpy is much faster!
+S  #endif
+N#endif
+N
+N
+N#endif     /* Avoid multiple inclusion */
+L 24 "USB\USB_Private.h" 2
+N#include "USB.h"
+L 1 "USB\USB.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : USB.h
+NPurpose : USB stack API
+N          Do not modify to allow easy updates !
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N#ifndef USB_H     /* Avoid multiple inclusion */
+N#define USB_H
+N
+N#include "Global.h"
+L 1 "GUI\Global.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : GLOBAL.h
+NPurpose : Global types etc.
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef GLOBAL_H            // Guard against multiple inclusion
+N#define GLOBAL_H
+N
+N/*********************************************************************
+N*
+N*       Macros
+N*
+N**********************************************************************
+N*/
+N#define U8    unsigned char
+N#define U16   unsigned short
+N#define U32   unsigned long
+N#define I8    signed char
+N#define I16   signed short
+N#define I32   signed long
+N
+N#endif                      // Avoid multiple inclusion
+N
+N/*************************** End of file ****************************/
+L 23 "USB\USB.h" 2
+N#include "USB_Conf.h"
+N#include <string.h>
+L 1 "C:\Program Files (x86)\Keil\V473\ARM\ARMCC\bin\..\include\string.h" 1
+N/* string.h: ANSI 'C' (X3J11 Oct 88) library header, section 4.11 */
+N/* Copyright (C) Codemist Ltd., 1988-1993.                        */
+N/* Copyright 1991-1993 ARM Limited. All rights reserved.          */
+N/* version 0.04 */
+N
+N/*
+N * RCS $Revision: 178085 $
+N * Checkin $Date: 2012-12-11 14:54:17 +0000 (Tue, 11 Dec 2012) $
+N */
+N
+N/*
+N * string.h declares one type and several functions, and defines one macro
+N * useful for manipulating character arrays and other objects treated as
+N * character arrays. Various methods are used for determining the lengths of
+N * the arrays, but in all cases a char * or void * argument points to the
+N * initial (lowest addresses) character of the array. If an array is written
+N * beyond the end of an object, the behaviour is undefined.
+N */
+N
+N#ifndef __string_h
+N#define __string_h
+N#define __ARMCLIB_VERSION 5030076
+N
+N#define _ARMABI __declspec(__nothrow)
+N
+N  #ifndef __STRING_DECLS
+N  #define __STRING_DECLS
+N
+N    #undef __CLIBNS
+N
+N    #ifdef __cplusplus
+S        namespace std {
+S        #define __CLIBNS std::
+S        extern "C" {
+N    #else
+N      #define __CLIBNS
+N    #endif  /* __cplusplus */
+N
+N#if defined(__cplusplus) || !defined(__STRICT_ANSI__)
+X#if 0L || !0L
+N /* unconditional in C++ and non-strict C for consistency of debug info */
+N  typedef unsigned int size_t;
+N#elif !defined(__size_t)
+S  #define __size_t 1
+S  typedef unsigned int size_t;   /* see <stddef.h> */
+N#endif
+N
+N#undef NULL
+N#define NULL 0                   /* see <stddef.h> */
+N
+Nextern _ARMABI void *memcpy(void * __restrict /*s1*/,
+Xextern __declspec(__nothrow) void *memcpy(void * __restrict  ,
+N                    const void * __restrict /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * copies n characters from the object pointed to by s2 into the object
+N    * pointed to by s1. If copying takes place between objects that overlap,
+N    * the behaviour is undefined.
+N    * Returns: the value of s1.
+N    */
+Nextern _ARMABI void *memmove(void * /*s1*/,
+Xextern __declspec(__nothrow) void *memmove(void *  ,
+N                    const void * /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * copies n characters from the object pointed to by s2 into the object
+N    * pointed to by s1. Copying takes place as if the n characters from the
+N    * object pointed to by s2 are first copied into a temporary array of n
+N    * characters that does not overlap the objects pointed to by s1 and s2,
+N    * and then the n characters from the temporary array are copied into the
+N    * object pointed to by s1.
+N    * Returns: the value of s1.
+N    */
+Nextern _ARMABI char *strcpy(char * __restrict /*s1*/, const char * __restrict /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strcpy(char * __restrict  , const char * __restrict  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * copies the string pointed to by s2 (including the terminating nul
+N    * character) into the array pointed to by s1. If copying takes place
+N    * between objects that overlap, the behaviour is undefined.
+N    * Returns: the value of s1.
+N    */
+Nextern _ARMABI char *strncpy(char * __restrict /*s1*/, const char * __restrict /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strncpy(char * __restrict  , const char * __restrict  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * copies not more than n characters (characters that follow a null
+N    * character are not copied) from the array pointed to by s2 into the array
+N    * pointed to by s1. If copying takes place between objects that overlap,
+N    * the behaviour is undefined.
+N    * Returns: the value of s1.
+N    */
+N
+Nextern _ARMABI char *strcat(char * __restrict /*s1*/, const char * __restrict /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strcat(char * __restrict  , const char * __restrict  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * appends a copy of the string pointed to by s2 (including the terminating
+N    * null character) to the end of the string pointed to by s1. The initial
+N    * character of s2 overwrites the null character at the end of s1.
+N    * Returns: the value of s1.
+N    */
+Nextern _ARMABI char *strncat(char * __restrict /*s1*/, const char * __restrict /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strncat(char * __restrict  , const char * __restrict  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * appends not more than n characters (a null character and characters that
+N    * follow it are not appended) from the array pointed to by s2 to the end of
+N    * the string pointed to by s1. The initial character of s2 overwrites the
+N    * null character at the end of s1. A terminating null character is always
+N    * appended to the result.
+N    * Returns: the value of s1.
+N    */
+N
+N/*
+N * The sign of a nonzero value returned by the comparison functions is
+N * determined by the sign of the difference between the values of the first
+N * pair of characters (both interpreted as unsigned char) that differ in the
+N * objects being compared.
+N */
+N
+Nextern _ARMABI int memcmp(const void * /*s1*/, const void * /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int memcmp(const void *  , const void *  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares the first n characters of the object pointed to by s1 to the
+N    * first n characters of the object pointed to by s2.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the object pointed to by s1 is greater than, equal to, or
+N    *          less than the object pointed to by s2.
+N    */
+Nextern _ARMABI int strcmp(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int strcmp(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares the string pointed to by s1 to the string pointed to by s2.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the string pointed to by s1 is greater than, equal to, or
+N    *          less than the string pointed to by s2.
+N    */
+Nextern _ARMABI int strncmp(const char * /*s1*/, const char * /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int strncmp(const char *  , const char *  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares not more than n characters (characters that follow a null
+N    * character are not compared) from the array pointed to by s1 to the array
+N    * pointed to by s2.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the string pointed to by s1 is greater than, equal to, or
+N    *          less than the string pointed to by s2.
+N    */
+Nextern _ARMABI int strcasecmp(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int strcasecmp(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares the string pointed to by s1 to the string pointed to by s2,
+N    * case-insensitively as defined by the current locale.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the string pointed to by s1 is greater than, equal to, or
+N    *          less than the string pointed to by s2.
+N    */
+Nextern _ARMABI int strncasecmp(const char * /*s1*/, const char * /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int strncasecmp(const char *  , const char *  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares not more than n characters (characters that follow a null
+N    * character are not compared) from the array pointed to by s1 to the array
+N    * pointed to by s2, case-insensitively as defined by the current locale.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the string pointed to by s1 is greater than, equal to, or
+N    *          less than the string pointed to by s2.
+N    */
+Nextern _ARMABI int strcoll(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int strcoll(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares the string pointed to by s1 to the string pointed to by s2, both
+N    * interpreted as appropriate to the LC_COLLATE category of the current
+N    * locale.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the string pointed to by s1 is greater than, equal to, or
+N    *          less than the string pointed to by s2 when both are interpreted
+N    *          as appropriate to the current locale.
+N    */
+N
+Nextern _ARMABI size_t strxfrm(char * __restrict /*s1*/, const char * __restrict /*s2*/, size_t /*n*/) __attribute__((__nonnull__(2)));
+Xextern __declspec(__nothrow) size_t strxfrm(char * __restrict  , const char * __restrict  , size_t  ) __attribute__((__nonnull__(2)));
+N   /*
+N    * transforms the string pointed to by s2 and places the resulting string
+N    * into the array pointed to by s1. The transformation function is such that
+N    * if the strcmp function is applied to two transformed strings, it returns
+N    * a value greater than, equal to or less than zero, corresponding to the
+N    * result of the strcoll function applied to the same two original strings.
+N    * No more than n characters are placed into the resulting array pointed to
+N    * by s1, including the terminating null character. If n is zero, s1 is
+N    * permitted to be a null pointer. If copying takes place between objects
+N    * that overlap, the behaviour is undefined.
+N    * Returns: The length of the transformed string is returned (not including
+N    *          the terminating null character). If the value returned is n or
+N    *          more, the contents of the array pointed to by s1 are
+N    *          indeterminate.
+N    */
+N
+N
+N#ifdef __cplusplus
+Sextern _ARMABI const void *memchr(const void * /*s*/, int /*c*/, size_t /*n*/) __attribute__((__nonnull__(1)));
+Sextern "C++" void *memchr(void * __s, int __c, size_t __n) __attribute__((__nonnull__(1)));
+Sextern "C++" inline void *memchr(void * __s, int __c, size_t __n)
+S    { return const_cast<void *>(memchr(const_cast<const void *>(__s), __c, __n)); }
+N#else
+Nextern _ARMABI void *memchr(const void * /*s*/, int /*c*/, size_t /*n*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) void *memchr(const void *  , int  , size_t  ) __attribute__((__nonnull__(1)));
+N#endif
+N   /*
+N    * locates the first occurence of c (converted to an unsigned char) in the
+N    * initial n characters (each interpreted as unsigned char) of the object
+N    * pointed to by s.
+N    * Returns: a pointer to the located character, or a null pointer if the
+N    *          character does not occur in the object.
+N    */
+N
+N#ifdef __cplusplus
+Sextern _ARMABI const char *strchr(const char * /*s*/, int /*c*/) __attribute__((__nonnull__(1)));
+Sextern "C++" char *strchr(char * __s, int __c) __attribute__((__nonnull__(1)));
+Sextern "C++" inline char *strchr(char * __s, int __c)
+S    { return const_cast<char *>(strchr(const_cast<const char *>(__s), __c)); }
+N#else
+Nextern _ARMABI char *strchr(const char * /*s*/, int /*c*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) char *strchr(const char *  , int  ) __attribute__((__nonnull__(1)));
+N#endif
+N   /*
+N    * locates the first occurence of c (converted to an char) in the string
+N    * pointed to by s (including the terminating null character).
+N    * Returns: a pointer to the located character, or a null pointer if the
+N    *          character does not occur in the string.
+N    */
+N
+Nextern _ARMABI size_t strcspn(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) size_t strcspn(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * computes the length of the initial segment of the string pointed to by s1
+N    * which consists entirely of characters not from the string pointed to by
+N    * s2. The terminating null character is not considered part of s2.
+N    * Returns: the length of the segment.
+N    */
+N
+N#ifdef __cplusplus
+Sextern _ARMABI const char *strpbrk(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Sextern "C++" char *strpbrk(char * __s1, const char * __s2) __attribute__((__nonnull__(1,2)));
+Sextern "C++" inline char *strpbrk(char * __s1, const char * __s2)
+S    { return const_cast<char *>(strpbrk(const_cast<const char *>(__s1), __s2)); }
+N#else
+Nextern _ARMABI char *strpbrk(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strpbrk(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N#endif
+N   /*
+N    * locates the first occurence in the string pointed to by s1 of any
+N    * character from the string pointed to by s2.
+N    * Returns: returns a pointer to the character, or a null pointer if no
+N    *          character form s2 occurs in s1.
+N    */
+N
+N#ifdef __cplusplus
+Sextern _ARMABI const char *strrchr(const char * /*s*/, int /*c*/) __attribute__((__nonnull__(1)));
+Sextern "C++" char *strrchr(char * __s, int __c) __attribute__((__nonnull__(1)));
+Sextern "C++" inline char *strrchr(char * __s, int __c)
+S    { return const_cast<char *>(strrchr(const_cast<const char *>(__s), __c)); }
+N#else
+Nextern _ARMABI char *strrchr(const char * /*s*/, int /*c*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) char *strrchr(const char *  , int  ) __attribute__((__nonnull__(1)));
+N#endif
+N   /*
+N    * locates the last occurence of c (converted to a char) in the string
+N    * pointed to by s. The terminating null character is considered part of
+N    * the string.
+N    * Returns: returns a pointer to the character, or a null pointer if c does
+N    *          not occur in the string.
+N    */
+N
+Nextern _ARMABI size_t strspn(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) size_t strspn(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * computes the length of the initial segment of the string pointed to by s1
+N    * which consists entirely of characters from the string pointed to by S2
+N    * Returns: the length of the segment.
+N    */
+N
+N#ifdef __cplusplus
+Sextern _ARMABI const char *strstr(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Sextern "C++" char *strstr(char * __s1, const char * __s2) __attribute__((__nonnull__(1,2)));
+Sextern "C++" inline char *strstr(char * __s1, const char * __s2)
+S    { return const_cast<char *>(strstr(const_cast<const char *>(__s1), __s2)); }
+N#else
+Nextern _ARMABI char *strstr(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strstr(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N#endif
+N   /*
+N    * locates the first occurence in the string pointed to by s1 of the
+N    * sequence of characters (excluding the terminating null character) in the
+N    * string pointed to by s2.
+N    * Returns: a pointer to the located string, or a null pointer if the string
+N    *          is not found.
+N    */
+N
+Nextern _ARMABI char *strtok(char * __restrict /*s1*/, const char * __restrict /*s2*/) __attribute__((__nonnull__(2)));
+Xextern __declspec(__nothrow) char *strtok(char * __restrict  , const char * __restrict  ) __attribute__((__nonnull__(2)));
+Nextern _ARMABI char *_strtok_r(char * /*s1*/, const char * /*s2*/, char ** /*ptr*/) __attribute__((__nonnull__(2,3)));
+Xextern __declspec(__nothrow) char *_strtok_r(char *  , const char *  , char **  ) __attribute__((__nonnull__(2,3)));
+N#ifndef __STRICT_ANSI__
+Nextern _ARMABI char *strtok_r(char * /*s1*/, const char * /*s2*/, char ** /*ptr*/) __attribute__((__nonnull__(2,3)));
+Xextern __declspec(__nothrow) char *strtok_r(char *  , const char *  , char **  ) __attribute__((__nonnull__(2,3)));
+N#endif
+N   /*
+N    * A sequence of calls to the strtok function breaks the string pointed to
+N    * by s1 into a sequence of tokens, each of which is delimited by a
+N    * character from the string pointed to by s2. The first call in the
+N    * sequence has s1 as its first argument, and is followed by calls with a
+N    * null pointer as their first argument. The separator string pointed to by
+N    * s2 may be different from call to call.
+N    * The first call in the sequence searches for the first character that is
+N    * not contained in the current separator string s2. If no such character
+N    * is found, then there are no tokens in s1 and the strtok function returns
+N    * a null pointer. If such a character is found, it is the start of the
+N    * first token.
+N    * The strtok function then searches from there for a character that is
+N    * contained in the current separator string. If no such character is found,
+N    * the current token extends to the end of the string pointed to by s1, and
+N    * subsequent searches for a token will fail. If such a character is found,
+N    * it is overwritten by a null character, which terminates the current
+N    * token. The strtok function saves a pointer to the following character,
+N    * from which the next search for a token will start.
+N    * Each subsequent call, with a null pointer as the value for the first
+N    * argument, starts searching from the saved pointer and behaves as
+N    * described above.
+N    * Returns: pointer to the first character of a token, or a null pointer if
+N    *          there is no token.
+N    *
+N    * strtok_r() is a common extension which works exactly like
+N    * strtok(), but instead of storing its state in a hidden
+N    * library variable, requires the user to pass in a pointer to a
+N    * char * variable which will be used instead. Any sequence of
+N    * calls to strtok_r() passing the same char ** pointer should
+N    * behave exactly like the corresponding sequence of calls to
+N    * strtok(). This means that strtok_r() can safely be used in
+N    * multi-threaded programs, and also that you can tokenise two
+N    * strings in parallel.
+N    */
+N
+Nextern _ARMABI void *memset(void * /*s*/, int /*c*/, size_t /*n*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) void *memset(void *  , int  , size_t  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * copies the value of c (converted to an unsigned char) into each of the
+N    * first n charactes of the object pointed to by s.
+N    * Returns: the value of s.
+N    */
+Nextern _ARMABI char *strerror(int /*errnum*/);
+Xextern __declspec(__nothrow) char *strerror(int  );
+N   /*
+N    * maps the error number in errnum to an error message string.
+N    * Returns: a pointer to the string, the contents of which are
+N    *          implementation-defined. The array pointed to shall not be
+N    *          modified by the program, but may be overwritten by a
+N    *          subsequent call to the strerror function.
+N    */
+Nextern _ARMABI size_t strlen(const char * /*s*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) size_t strlen(const char *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * computes the length of the string pointed to by s.
+N    * Returns: the number of characters that precede the terminating null
+N    *          character.
+N    */
+N
+Nextern _ARMABI size_t strlcpy(char * /*dst*/, const char * /*src*/, size_t /*len*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) size_t strlcpy(char *  , const char *  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * copies the string src into the string dst, using no more than
+N    * len bytes of dst. Always null-terminates dst _within the
+N    * length len (i.e. will copy at most len-1 bytes of string plus
+N    * a NUL), unless len is actually zero.
+N    * 
+N    * Return value is the length of the string that _would_ have
+N    * been written, i.e. the length of src. Thus, the operation
+N    * succeeded without truncation if and only if ret < len;
+N    * otherwise, the value in ret tells you how big to make dst if
+N    * you decide to reallocate it. (That value does _not_ include
+N    * the NUL.)
+N    * 
+N    * This is a BSD-derived library extension, which we are
+N    * permitted to declare in a standard header because ISO defines
+N    * function names beginning with 'str' as reserved for future
+N    * expansion of <string.h>.
+N    */
+N
+Nextern _ARMABI size_t strlcat(char * /*dst*/, const char * /*src*/, size_t /*len*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) size_t strlcat(char *  , const char *  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * concatenates the string src to the string dst, using no more
+N    * than len bytes of dst. Always null-terminates dst _within the
+N    * length len (i.e. will copy at most len-1 bytes of string plus
+N    * a NUL), unless len is actually zero.
+N    * 
+N    * Return value is the length of the string that _would_ have
+N    * been written, i.e. the length of src plus the original length
+N    * of dst. Thus, the operation succeeded without truncation if
+N    * and only if ret < len; otherwise, the value in ret tells you
+N    * how big to make dst if you decide to reallocate it. (That
+N    * value does _not_ include the NUL.)
+N    * 
+N    * If no NUL is encountered within the first len bytes of dst,
+N    * then the length of dst is considered to have been equal to
+N    * len for the purposes of the return value (as if there were a
+N    * NUL at dst[len]). Thus, the return value in this case is len
+N    * + strlen(src).
+N    * 
+N    * This is a BSD-derived library extension, which we are
+N    * permitted to declare in a standard header because ISO defines
+N    * function names beginning with 'str' as reserved for future
+N    * expansion of <string.h>.
+N    */
+N
+Nextern _ARMABI void _membitcpybl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpybl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitcpybb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpybb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitcpyhl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpyhl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitcpyhb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpyhb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitcpywl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpywl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitcpywb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpywb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovebl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovebl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovebb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovebb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovehl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovehl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovehb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovehb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovewl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovewl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovewb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovewb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+N    /*
+N     * Copies or moves a piece of memory from one place to another,
+N     * with one-bit granularity. So you can start or finish a copy
+N     * part way through a byte, and you can copy between regions
+N     * with different alignment within a byte.
+N     * 
+N     * All these functions have the same prototype: two void *
+N     * pointers for destination and source, then two integers
+N     * giving the bit offset from those pointers, and finally the
+N     * number of bits to copy.
+N     * 
+N     * Just like memcpy and memmove, the "cpy" functions copy as
+N     * fast as they can in the assumption that the memory regions
+N     * do not overlap, while the "move" functions cope correctly
+N     * with overlap.
+N     *
+N     * Treating memory as a stream of individual bits requires
+N     * defining a convention about what order those bits are
+N     * considered to be arranged in. The above functions support
+N     * multiple conventions:
+N     * 
+N     *  - the "bl" functions consider the unit of memory to be the
+N     *    byte, and consider the bits within each byte to be
+N     *    arranged in little-endian fashion, so that the LSB comes
+N     *    first. (For example, membitcpybl(a,b,0,7,1) would copy
+N     *    the MSB of the byte at b to the LSB of the byte at a.)
+N     * 
+N     *  - the "bb" functions consider the unit of memory to be the
+N     *    byte, and consider the bits within each byte to be
+N     *    arranged in big-endian fashion, so that the MSB comes
+N     *    first.
+N     * 
+N     *  - the "hl" functions consider the unit of memory to be the
+N     *    16-bit halfword, and consider the bits within each word
+N     *    to be arranged in little-endian fashion.
+N     * 
+N     *  - the "hb" functions consider the unit of memory to be the
+N     *    16-bit halfword, and consider the bits within each word
+N     *    to be arranged in big-endian fashion.
+N     * 
+N     *  - the "wl" functions consider the unit of memory to be the
+N     *    32-bit word, and consider the bits within each word to be
+N     *    arranged in little-endian fashion.
+N     * 
+N     *  - the "wb" functions consider the unit of memory to be the
+N     *    32-bit word, and consider the bits within each word to be
+N     *    arranged in big-endian fashion.
+N     */
+N
+N    #ifdef __cplusplus
+S         }  /* extern "C" */
+S      }  /* namespace std */
+N    #endif /* __cplusplus */
+N  #endif /* __STRING_DECLS */
+N
+N  #ifdef __cplusplus
+S    #ifndef __STRING_NO_EXPORTS
+S      using ::std::size_t;
+S      using ::std::memcpy;
+S      using ::std::memmove;
+S      using ::std::strcpy;
+S      using ::std::strncpy;
+S      using ::std::strcat;
+S      using ::std::strncat;
+S      using ::std::memcmp;
+S      using ::std::strcmp;
+S      using ::std::strncmp;
+S      using ::std::strcasecmp;
+S      using ::std::strncasecmp;
+S      using ::std::strcoll;
+S      using ::std::strxfrm;
+S      using ::std::memchr;
+S      using ::std::strchr;
+S      using ::std::strcspn;
+S      using ::std::strpbrk;
+S      using ::std::strrchr;
+S      using ::std::strspn;
+S      using ::std::strstr;
+S      using ::std::strtok;
+S#ifndef __STRICT_ANSI__
+S      using ::std::strtok_r;
+S#endif
+S      using ::std::_strtok_r;
+S      using ::std::memset;
+S      using ::std::strerror;
+S      using ::std::strlen;
+S      using ::std::strlcpy;
+S      using ::std::strlcat;
+S      using ::std::_membitcpybl;
+S      using ::std::_membitcpybb;
+S      using ::std::_membitcpyhl;
+S      using ::std::_membitcpyhb;
+S      using ::std::_membitcpywl;
+S      using ::std::_membitcpywb;
+S      using ::std::_membitmovebl;
+S      using ::std::_membitmovebb;
+S      using ::std::_membitmovehl;
+S      using ::std::_membitmovehb;
+S      using ::std::_membitmovewl;
+S      using ::std::_membitmovewb;
+S    #endif /* __STRING_NO_EXPORTS */
+N  #endif /* __cplusplus */
+N
+N#endif
+N
+N/* end of string.h */
+N
+L 25 "USB\USB.h" 2
+N
+N#if defined(__cplusplus)
+X#if 0L
+Sextern "C" {     /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Defines, fixed
+N*
+N**********************************************************************
+N*/
+N
+N/* USB system version */
+N#define USB_VERSION                23001UL
+N
+N/*********************************************************************
+N*
+N*       Default values
+N*
+N*/
+N#ifndef   USB_SUPPORT_HIGH_SPEED
+N  #define USB_SUPPORT_HIGH_SPEED 1
+N#endif
+N
+N#ifndef   USB_MAX_PACKET_SIZE
+N  #if USB_SUPPORT_HIGH_SPEED
+X  #if 1
+N    #define USB_MAX_PACKET_SIZE   512
+N  #else
+S    #define USB_MAX_PACKET_SIZE    64
+N  #endif
+N#endif
+N
+N#ifndef   USB_DEBUG_LEVEL
+N  #define USB_DEBUG_LEVEL  1
+N#endif
+N
+N#ifndef    USB_DRIVER_OPTIMIZE
+N  #define  USB_DRIVER_OPTIMIZE
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Defines, fixed
+N*
+N**********************************************************************
+N*/
+N#define USB_Driver_NEC_70F377x    USB_Driver_NEC_70F376x
+N
+N/*********************************************************************
+N*
+N*       Transfer types
+N*/
+N#define USB_TRANSFER_TYPE_CONTROL   0     // Refer to 9.6.6, table 9-13
+N#define USB_TRANSFER_TYPE_ISO       1
+N#define USB_TRANSFER_TYPE_BULK      2
+N#define USB_TRANSFER_TYPE_INT       3
+N
+N/*********************************************************************
+N*
+N*       Endpoint direction
+N*/
+N#define USB_DIR_IN  1
+N#define USB_DIR_OUT 0
+N
+N/*********************************************************************
+N*
+N*       Status flags
+N*/
+N#define USB_STAT_ATTACHED   (1 << 4)
+N#define USB_STAT_READY      (1 << 3)      // Set by any bus reset. Is required to go from "Powered" to "Addressed"
+N#define USB_STAT_ADDRESSED  (1 << 2)
+N#define USB_STAT_CONFIGURED (1 << 1)
+N#define USB_STAT_SUSPENDED  (1 << 0)
+N
+N/*********************************************************************
+N*
+N*       Driver commands
+N*/
+N#define USB_DRIVER_CMD_SET_CONFIGURATION        0
+N#define USB_DRIVER_CMD_GET_TX_BEHAVIOR          1
+N#define USB_DRIVER_CMD_GET_SETADDRESS_BEHAVIOR  2
+N
+N/*********************************************************************
+N*
+N*       Types / structures
+N*/
+Ntypedef struct USB_INFO_BUFFER USB_INFO_BUFFER;
+Ntypedef struct EP_STAT EP_STAT;
+N
+Ntypedef struct {
+N  U8 bmRequestType;
+X  unsigned char bmRequestType;
+N  U8 bRequest;
+X  unsigned char bRequest;
+N  U8 wValueLow;
+X  unsigned char wValueLow;
+N  U8 wValueHigh;
+X  unsigned char wValueHigh;
+N  U8 wIndexLow;
+X  unsigned char wIndexLow;
+N  U8 wIndexHigh;
+X  unsigned char wIndexHigh;
+N  U8 wLengthLow;
+X  unsigned char wLengthLow;
+N  U8 wLengthHigh;
+X  unsigned char wLengthHigh;
+N} USB_SETUP_PACKET;
+N
+Ntypedef struct {
+N  U8 EPIn;
+X  unsigned char EPIn;
+N  U8 EPOut;
+X  unsigned char EPOut;
+N} USB_BULK_INIT_DATA;
+N
+Ntypedef struct USB_HOOK {
+N  struct USB_HOOK * pNext;
+N  void    (*cb) (void* pContext);
+N  void     * pContext;
+N  unsigned   SizeOfContext;
+N} USB_HOOK;
+N
+Ntypedef struct USB_HW_DRIVER {
+N  void     (*pfInit)                (void);
+N  U8       (*pfAllocEP)             (U8  InDir, U8 TransferType);
+X  unsigned char       (*pfAllocEP)             (unsigned char  InDir, unsigned char TransferType);
+N  void     (*pfUpdateEP)            (EP_STAT * pEPStat);
+N  void     (*pfEnable)              (void);
+N  void     (*pfAttach)              (void);
+N  unsigned (*pfGetMaxPacketSize)    (U8  EPIndex);
+X  unsigned (*pfGetMaxPacketSize)    (unsigned char  EPIndex);
+N  int      (*pfIsInHighSpeedMode)   (void);
+N  void     (*pfSetAddress)          (U8  Addr);
+X  void     (*pfSetAddress)          (unsigned char  Addr);
+N  void     (*pfSetClrStallEP)       (U8  EPIndex, int OnOnff);
+X  void     (*pfSetClrStallEP)       (unsigned char  EPIndex, int OnOnff);
+N  void     (*pfStallEP0)            (void);
+N  void     (*pfDisableRxInterruptEP)(U8  EPIndex);
+X  void     (*pfDisableRxInterruptEP)(unsigned char  EPIndex);
+N  void     (*pfEnableRxInterruptEP) (U8  EPIndex);
+X  void     (*pfEnableRxInterruptEP) (unsigned char  EPIndex);
+N  void     (*pfStartTx)             (U8  EPIndex);
+X  void     (*pfStartTx)             (unsigned char  EPIndex);
+N  void     (*pfSendEP)              (U8  EPIndex, const U8 * p, unsigned NumBytes);
+X  void     (*pfSendEP)              (unsigned char  EPIndex, const unsigned char * p, unsigned NumBytes);
+N  void     (*pfDisableTx)           (U8  EPIndex);
+X  void     (*pfDisableTx)           (unsigned char  EPIndex);
+N  void     (*pfResetEP)             (U8  EPIndex);
+X  void     (*pfResetEP)             (unsigned char  EPIndex);
+N  int      (*pfControl)             (int Cmd, void * p);
+N} USB_HW_DRIVER;
+N
+Ntypedef int  USB_ON_CLASS_REQUEST(const USB_SETUP_PACKET * pSetupPacket);
+Ntypedef int  USB_ON_SETUP        (const USB_SETUP_PACKET * pSetupPacket);
+Ntypedef void USB_ADD_FUNC_DESC   (USB_INFO_BUFFER * pInfoBuffer);
+Ntypedef void USB_ON_RX_FUNC      (const U8 * pData, unsigned NumBytes);
+Xtypedef void USB_ON_RX_FUNC      (const unsigned char * pData, unsigned NumBytes);
+Ntypedef void USB_ISR_HANDLER     (void);
+N
+N
+N/*********************************************************************
+N*
+N*       Public API functions
+N*
+N*/
+Nunsigned USB_AddEP                   (U8 InDir, U8 TransferType, U16 Interval, U8 * pBuffer, unsigned BufferSize);
+Xunsigned USB_AddEP                   (unsigned char InDir, unsigned char TransferType, unsigned short Interval, unsigned char * pBuffer, unsigned BufferSize);
+Nvoid     USB_EnableIAD               (void);
+Nint      USB_GetState                (void);
+Nvoid     USB_Init                    (void);
+Nchar     USB_IsConfigured            (void);
+Nvoid     USB_Start                   (void);
+Nvoid     USB_SetMaxPower             (U8 MaxPower);
+Xvoid     USB_SetMaxPower             (unsigned char MaxPower);
+Nint      USB_RegisterSCHook          (USB_HOOK * pHook, void (*cb) (void* pContext), void * pContext, unsigned SizeOfContext);
+Nint      USB_UnregisterSCHook        (USB_HOOK * pHook);
+N
+Nvoid     USB_CancelIO                (U8 EPIndex);
+Xvoid     USB_CancelIO                (unsigned char EPIndex);
+Nunsigned USB_GetNumBytesInBuffer     (U8 EPIndex);
+Xunsigned USB_GetNumBytesInBuffer     (unsigned char EPIndex);
+Nint      USB_ReadEP                  (U8 EPOut, void * pData, unsigned NumBytesReq);
+Xint      USB_ReadEP                  (unsigned char EPOut, void * pData, unsigned NumBytesReq);
+Nint      USB_ReadEPOverlapped        (U8 EPOut, void * pData, unsigned NumBytesReq);
+Xint      USB_ReadEPOverlapped        (unsigned char EPOut, void * pData, unsigned NumBytesReq);
+Nint      USB_ReadEPTimed             (U8 EPOut, void * pData, unsigned NumBytesReq, unsigned ms);
+Xint      USB_ReadEPTimed             (unsigned char EPOut, void * pData, unsigned NumBytesReq, unsigned ms);
+Nint      USB_ReceiveEP               (U8 EPOut, void * pData, unsigned NumBytesReq);
+Xint      USB_ReceiveEP               (unsigned char EPOut, void * pData, unsigned NumBytesReq);
+Nint      USB_ReceiveEPTimed          (U8 EPOut, void* pData, unsigned NumBytesReq, unsigned ms);
+Xint      USB_ReceiveEPTimed          (unsigned char EPOut, void* pData, unsigned NumBytesReq, unsigned ms);
+Nvoid     USB_SetOnRXHookEP           (U8 EPIndex, USB_ON_RX_FUNC * pfOnRx);
+Xvoid     USB_SetOnRXHookEP           (unsigned char EPIndex, USB_ON_RX_FUNC * pfOnRx);
+Nvoid     USB_SetClrStallEP           (U8 EPIndex, int OnOff);
+Xvoid     USB_SetClrStallEP           (unsigned char EPIndex, int OnOff);
+Nvoid     USB_StallEP                 (U8 EPIndex);
+Xvoid     USB_StallEP                 (unsigned char EPIndex);
+Nvoid     USB_WaitForEndOfTransfer    (U8 EPIndex);
+Xvoid     USB_WaitForEndOfTransfer    (unsigned char EPIndex);
+Nint      USB_WriteEP                 (U8 EPIndex, const void* pData, unsigned NumBytes, char Send0PacketIfRequired);
+Xint      USB_WriteEP                 (unsigned char EPIndex, const void* pData, unsigned NumBytes, char Send0PacketIfRequired);
+Nint      USB_WriteEPOverlapped       (U8 EPIndex, const void* pData, unsigned NumBytes, char Send0PacketIfRequired);
+Xint      USB_WriteEPOverlapped       (unsigned char EPIndex, const void* pData, unsigned NumBytes, char Send0PacketIfRequired);
+Nint      USB_WriteEPTimed            (U8 EPIndex, const void* pData, unsigned NumBytes, char Send0PacketIfRequired, unsigned ms);
+Xint      USB_WriteEPTimed            (unsigned char EPIndex, const void* pData, unsigned NumBytes, char Send0PacketIfRequired, unsigned ms);
+N
+Nvoid     USB_SetAddFuncDesc          (USB_ADD_FUNC_DESC    * pfAddDescFunc);
+Nvoid     USB_SetClassRequestHook     (unsigned InterfaceNum, USB_ON_CLASS_REQUEST * pfOnClassrequest);
+Nvoid     USB_SetOnSetupHook          (unsigned InterfaceNum, USB_ON_SETUP         * pfOnSetup);
+Nvoid     USB_SetOnRxEP0              (USB_ON_RX_FUNC       * pfOnRx);
+N
+N/*********************************************************************
+N*
+N*       Public BULK API functions
+N*
+N*/
+Nvoid     USB_BULK_Add                 (const USB_BULK_INIT_DATA * pInitData);
+Nvoid     USB_BULK_CancelRead          (void);
+Nvoid     USB_BULK_CancelWrite         (void);
+Nunsigned USB_BULK_GetNumBytesInBuffer (void);
+Nunsigned USB_BULK_GetNumBytesRemToRead(void);
+Nunsigned USB_BULK_GetNumBytesToWrite  (void);
+Nint      USB_BULK_Read                (      void * pData, unsigned NumBytes);
+Nint      USB_BULK_ReadOverlapped      (      void * pData, unsigned NumBytes);
+Nint      USB_BULK_ReadTimed           (      void * pData, unsigned NumBytes, unsigned ms);
+Nint      USB_BULK_Receive             (      void * pData, unsigned NumBytes);
+Nint      USB_BULK_ReceiveTimed        (      void * pData, unsigned NumBytes, unsigned ms);
+Nvoid     USB_BULK_SetOnRXHook         (USB_ON_RX_FUNC * pfOnRx);
+Nvoid     USB_BULK_WaitForRX           (void);
+Nvoid     USB_BULK_WaitForTX           (void);
+Nint      USB_BULK_Write               (const void * pData, unsigned NumBytes);
+Nint      USB_BULK_WriteEx             (const void * pData, unsigned NumBytes, char Send0PacketIfRequired);
+Nint      USB_BULK_WriteExTimed        (const void * pData, unsigned NumBytes, char Send0PacketIfRequired, unsigned ms);
+Nint      USB_BULK_WriteOverlapped     (const void * pData, unsigned NumBytes);
+Nint      USB_BULK_WriteOverlappedEx   (const void * pData, unsigned NumBytes, char Send0PacketIfRequired);
+Nint      USB_BULK_WriteTimed          (const void * pData, unsigned NumBytes, unsigned ms);
+Nvoid     USB_BULK_WriteNULLPacket     (void);
+N
+N/*********************************************************************
+N*
+N*       Kernel interface routines (also for polled mode without kernel
+N*
+N*/
+Nvoid     USB_OS_Init                   (void);
+Nvoid     USB_OS_Delay                  (int ms);
+Nvoid     USB_OS_DecRI                  (void);
+NU32      USB_OS_GetTickCnt             (void);
+Xunsigned long      USB_OS_GetTickCnt             (void);
+Nvoid     USB_OS_IncDI                  (void);
+Nvoid     USB_OS_Panic                  (unsigned ErrCode);
+Nvoid     USB_OS_Signal                 (unsigned EPIndex);
+Nvoid     USB_OS_Wait                   (unsigned EPIndex);
+Nint      USB_OS_WaitTimed              (unsigned EPIndex, unsigned ms);
+N
+N/*********************************************************************
+N*
+N*       Get String functions during enumeration
+N*
+N*/
+Nconst char * USB_GetVendorName  (void);
+Nconst char * USB_GetProductName (void);
+Nconst char * USB_GetSerialNumber(void);
+N
+N/*********************************************************************
+N*
+N*       Get Vendor/Product Ids during enumeration
+N*
+N*/
+NU16  USB_GetVendorId(void);
+Xunsigned short  USB_GetVendorId(void);
+NU16  USB_GetProductId(void);
+Xunsigned short  USB_GetProductId(void);
+N
+N
+N/*********************************************************************
+N*
+N*       Setting USB target driver
+N*
+N*/
+Nvoid USB_AddDriver(const USB_HW_DRIVER * pDriver);
+N
+N
+N/*********************************************************************
+N*
+N*       Function that has to be supplied by the customer
+N*
+N*/
+Nvoid USB_X_AddDriver(void);
+Nvoid USB_X_HWAttach(void);
+Nvoid USB_X_EnableISR(USB_ISR_HANDLER * pfISRHandler);
+N
+N/*********************************************************************
+N*
+N*       Available target USB drivers
+N*
+N*/
+Nextern const USB_HW_DRIVER USB_Driver_AtmelCAP9;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM3U;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelRM9200;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM7A3;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM7S;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM7SE;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM7X;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM9260;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM9261;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM9263;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM9G20;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM9Rx64;
+Nextern const USB_HW_DRIVER USB_Driver_AtmelSAM9XE;
+Nextern const USB_HW_DRIVER USB_Driver_NEC_uPD720150;
+Nextern const USB_HW_DRIVER USB_Driver_NXPLPC17xx;
+Nextern const USB_HW_DRIVER USB_Driver_NXPLPC214x;
+Nextern const USB_HW_DRIVER USB_Driver_NXPLPC23xx;
+Nextern const USB_HW_DRIVER USB_Driver_NXPLPC24xx;
+Nextern const USB_HW_DRIVER USB_Driver_NXPLPC318x;
+Nextern const USB_HW_DRIVER USB_Driver_OKI69Q62;
+Nextern const USB_HW_DRIVER USB_Driver_SharpLH79524;
+Nextern const USB_HW_DRIVER USB_Driver_SharpLH7A40x;
+Nextern const USB_HW_DRIVER USB_Driver_STSTM32;
+Nextern const USB_HW_DRIVER USB_Driver_STSTR71x;
+Nextern const USB_HW_DRIVER USB_Driver_STSTR750;
+Nextern const USB_HW_DRIVER USB_Driver_STSTR91x;
+Nextern const USB_HW_DRIVER USB_Driver_H8SX1668R;
+Nextern const USB_HW_DRIVER USB_Driver_H8S2472;
+Nextern const USB_HW_DRIVER USB_Driver_TMPA910;
+Nextern const USB_HW_DRIVER USB_Driver_TMPA900;
+Nextern const USB_HW_DRIVER USB_Driver_NEC_70F376x;
+Nextern const USB_HW_DRIVER USB_Driver_SH7203;
+Nextern const USB_HW_DRIVER USB_Driver_TI_MSP430;
+N
+N#if defined(__cplusplus)
+X#if 0L
+S  }              /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N#endif
+L 25 "USB\USB_Private.h" 2
+N#include <string.h>
+N
+N#if defined(__cplusplus)
+X#if 0L
+Sextern "C" {     /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Config defaults
+N*
+N**********************************************************************
+N*/
+N#ifndef USB_DEBUGOUT
+N  #define USB_DEBUGOUT(para)
+N#endif
+N
+N#ifndef   USB_NUM_EPS
+N  #define USB_NUM_EPS    8
+N#endif
+N
+N#ifndef   USB_MAX_NUM_IF
+N  #define USB_MAX_NUM_IF 4
+N#endif
+N
+N#ifndef   USB_SUPPORT_TRANSFER_INT
+N  #define USB_SUPPORT_TRANSFER_INT 1
+N#endif
+N
+N#ifndef   USB_SUPPORT_TRANSFER_ISO
+N  #define USB_SUPPORT_TRANSFER_ISO 1
+N#endif
+N
+N#ifndef    USB_MAX_NUM_IAD
+N  #define  USB_MAX_NUM_IAD      1
+N#endif
+N
+N#ifndef   USB_MEMCPY
+N  #include <string.h>
+N  #define USB_MEMCPY(pD, pS, NumBytes)  memcpy(pD, pS, NumBytes)
+N#endif
+N
+N
+N/* In order to avoid warnings for undefined parameters */
+N#ifndef USB_USE_PARA
+N  #if defined (__BORLANDC__) || defined(NC30) || defined(NC308)
+X  #if 0L || 0L || 0L
+S    #define USB_USE_PARA(para)
+N  #else
+N    #define USB_USE_PARA(para) para=para;
+N  #endif
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Defines, fixed
+N*
+N**********************************************************************
+N*/
+N#define USB_ERROR_RX_OVERFLOW                1
+N#define USB_ERROR_ILLEGAL_MAX_PACKET_SIZE    2  // typically a configuration error: There is no valid packet size
+N#define USB_ERROR_ILLEGAL_EPADDR             3  // Illegal end point accessed
+N#define USB_ERROR_IBUFFER_SIZE_TOO_SMALL     4  // Info buffer size too small
+N#define USB_ERROR_DRIVER_ERROR               5  // general driver error
+N#define USB_ERROR_IAD_DESCRIPTORS_EXCEED     6
+N#define USB_ERROR_INVALID_INTERFACE_NO       7
+N
+N/*********************************************************************
+N*
+N*       Function-like macros
+N*
+N**********************************************************************
+N*/
+N#define COUNTOF(a)          (sizeof(a)/sizeof(a[0]))
+N#define MIN(a,b)            (((a) < (b)) ? (a) : (b))
+N#define MAX(a,b)            (((a) > (b)) ? (a) : (b))
+N#define ZEROFILL(p, Size)   (memset(p, 0, Size))
+N
+N
+N/*********************************************************************
+N*
+N*       Types
+N*
+N**********************************************************************
+N*/
+N
+Nenum {
+N  STRING_INDEX_LANGUAGE = 0,  // Language index. MUST BE 0 acc. to spec.
+N  STRING_INDEX_MANUFACTURER,  // iManufacturer:      Index of String Desc (Manuf)    (variable, but needs to be unique)
+N  STRING_INDEX_PRODUCT,       // iProduct:           Index of String Desc (Product)  (variable, but needs to be unique)
+N  STRING_INDEX_SN             // iSerialNumber:      Index of String Desc (Serial #) (variable, but needs to be unique)
+N};
+N
+Nstruct USB_INFO_BUFFER {
+N  unsigned Cnt;
+N  unsigned Sizeof;
+N  U8 * pBuffer;
+X  unsigned char * pBuffer;
+N};
+N
+Ntypedef struct {
+N  U8       * pData;
+X  unsigned char       * pData;
+N  unsigned   Size;
+N  unsigned   NumBytesIn;
+N  unsigned   RdPos;
+N} BUFFER;
+N
+Nstruct EP_STAT {
+N  U16             MaxPacketSize;
+X  unsigned short             MaxPacketSize;
+N  U16             Interval;
+X  unsigned short             Interval;
+N  U8              EPType;
+X  unsigned char              EPType;
+N  U8              EPAddr;       // b[6:0]: EPAddr b7: Direction, 1: Device to Host (IN)
+X  unsigned char              EPAddr;       
+N  U8              AllowShortPacket;
+X  unsigned char              AllowShortPacket;
+N  volatile U8     IsHalted;
+X  volatile unsigned char     IsHalted;
+N  U8           *  pData;
+X  unsigned char           *  pData;
+N  volatile U32    NumBytesRem;
+X  volatile unsigned long    NumBytesRem;
+N  union {
+N    struct {
+N      volatile U8     TxIsPending;
+X      volatile unsigned char     TxIsPending;
+N      volatile U8     NextTransferPrepared;
+X      volatile unsigned char     NextTransferPrepared;
+N      U8              Send0PacketIfRequired;
+X      unsigned char              Send0PacketIfRequired;
+N    } TxInfo;
+N    USB_ON_RX_FUNC *  pfOnRx;
+N  } Dir;
+N  BUFFER          Buffer;
+N};
+N
+Ntypedef struct {
+N  void (*pfAdd)(U8 FirstInterFaceNo, U8 NumInterfaces, U8 ClassNo, U8 SubClassNo, U8 ProtocolNo);
+X  void (*pfAdd)(unsigned char FirstInterFaceNo, unsigned char NumInterfaces, unsigned char ClassNo, unsigned char SubClassNo, unsigned char ProtocolNo);
+N  void (*pfAddIadDesc)(int InterFaceNo, USB_INFO_BUFFER * pInfoBuffer);
+N} USB_IAD_API;
+N
+Ntypedef struct {
+N  U16                    EPs;
+X  unsigned short                    EPs;
+N  U8                     IFClass   ;    // Interface Class
+X  unsigned char                     IFClass   ;    
+N  U8                     IFSubClass;    // Interface Subclass
+X  unsigned char                     IFSubClass;    
+N  U8                     IFProtocol;    // Interface Protocol
+X  unsigned char                     IFProtocol;    
+N  USB_ADD_FUNC_DESC    * pfAddFuncDesc;
+N  USB_ON_CLASS_REQUEST * pfOnClassRequest;
+N  USB_ON_SETUP         * pfOnSetup;
+N} INTERFACE;
+N
+Ntypedef struct {
+N  U8                     NumEPs;
+X  unsigned char                     NumEPs;
+N  U8                     NumIFs;
+X  unsigned char                     NumIFs;
+N  U8                     Class   ;    // Interface Class
+X  unsigned char                     Class   ;    
+N  U8                     SubClass;    // Interface Subclass
+X  unsigned char                     SubClass;    
+N  U8                     Protocol;    // Interface Protocol
+X  unsigned char                     Protocol;    
+N  U8                     OnTxBehavior;
+X  unsigned char                     OnTxBehavior;
+N  U8                     SetAddressBehavior;
+X  unsigned char                     SetAddressBehavior;
+N  volatile U8            State;       // Global USB state, similar to 9.1.1. Bitwise combination of USB_STAT_ATTACHED, USB_STAT_READY, USB_STAT_ADDRESSED, USB_STAT_CONFIGURED, USB_STAT_SUSPENDED
+X  volatile unsigned char            State;       
+N  volatile U8            AllowRemoteWakeup;
+X  volatile unsigned char            AllowRemoteWakeup;
+N  volatile U8            Addr;
+X  volatile unsigned char            Addr;
+N  INTERFACE              aIF[USB_MAX_NUM_IF];
+X  INTERFACE              aIF[4];
+N  USB_ON_RX_FUNC       * pfOnRxEP0;
+N  const USB_HW_DRIVER  * pDriver;
+N  USB_IAD_API          * pIadAPI;
+N} GLOBAL;
+N
+N/*********************************************************************
+N*
+N*       Global data
+N*
+N**********************************************************************
+N*/
+N
+N#ifdef USB_MAIN_C
+S  #define EXTERN
+N#else
+N  #define EXTERN extern
+N#endif
+N
+NEXTERN EP_STAT USB_aEPStat[USB_NUM_EPS];
+Xextern EP_STAT USB_aEPStat[8];
+NEXTERN GLOBAL  USB_Global;
+Xextern GLOBAL  USB_Global;
+N#undef EXTERN
+N
+N/*********************************************************************
+N*
+N*       USB descriptor defines (refer to USB spec for details)
+N*
+N*/
+N#define USB_DESC_TYPE_DEVICE           1
+N#define USB_DESC_TYPE_CONFIG           2
+N#define USB_DESC_TYPE_STRING           3
+N#define USB_DESC_TYPE_INTERFACE        4
+N#define USB_DESC_TYPE_ENDPOINT         5
+N#define USB_DESC_TYPE_QUALIFIER        6
+N#define USB_DESC_TYPE_SPEED_CONFIG     7
+N#define USB_DESC_TYPE_INTERFACE_POWER  8
+N#define USB_DESC_TYPE_IAD             11
+N
+N#define USB_STORE_U16(u16) ((u16) & 255), ((u16) / 256)
+N
+N/*********************************************************************
+N*
+N*       USB__
+N*
+N**********************************************************************
+N*/
+Nunsigned USB__CalcMaxPacketSize (unsigned MaxPacketSize, U8 TransferType, U8 IsHighSpeedMode);
+Xunsigned USB__CalcMaxPacketSize (unsigned MaxPacketSize, unsigned char TransferType, unsigned char IsHighSpeedMode);
+NU8       USB__EPAddr2Index      (unsigned EPAddr);
+Xunsigned char       USB__EPAddr2Index      (unsigned EPAddr);
+NU8       USB__EPIndex2Addr      (U8 EPIndex);
+Xunsigned char       USB__EPIndex2Addr      (unsigned char EPIndex);
+Nvoid*    USB__GetpDest          (U8 EPIndex,    unsigned NumBytes);
+Xvoid*    USB__GetpDest          (unsigned char EPIndex,    unsigned NumBytes);
+NU16      USB__GetU16BE          (U8 * p);
+Xunsigned short      USB__GetU16BE          (unsigned char * p);
+NU16      USB__GetU16LE          (U8 * p);
+Xunsigned short      USB__GetU16LE          (unsigned char * p);
+NU32      USB__GetU32BE          (U8 * p);
+Xunsigned long      USB__GetU32BE          (unsigned char * p);
+NU32      USB__GetU32LE          (U8 * p);
+Xunsigned long      USB__GetU32LE          (unsigned char * p);
+Nvoid     USB__StoreU16BE        (U8 * p, unsigned v);
+Xvoid     USB__StoreU16BE        (unsigned char * p, unsigned v);
+Nvoid     USB__StoreU16LE        (U8 * p, unsigned v);
+Xvoid     USB__StoreU16LE        (unsigned char * p, unsigned v);
+Nvoid     USB__StoreU32LE        (U8 * p, U32 v);
+Xvoid     USB__StoreU32LE        (unsigned char * p, unsigned long v);
+Nvoid     USB__StoreU32BE        (U8 * p, U32 v);
+Xvoid     USB__StoreU32BE        (unsigned char * p, unsigned long v);
+Nvoid     USB__HandleSetup       (const USB_SETUP_PACKET * pSetupPacket);
+Nvoid     USB__OnBusReset        (void);
+Nvoid     USB__OnResume          (void);
+Nvoid     USB__OnRx              (U8 EPIndex, const U8 * pData, unsigned Len);
+Xvoid     USB__OnRx              (unsigned char EPIndex, const unsigned char * pData, unsigned Len);
+Nvoid     USB__OnRxZeroCopy      (U8 EpIndex, unsigned NumBytes);
+Xvoid     USB__OnRxZeroCopy      (unsigned char EpIndex, unsigned NumBytes);
+Nvoid     USB__OnSetupCancel     (void);
+Nvoid     USB__OnStatusChange    (U8 State);
+Xvoid     USB__OnStatusChange    (unsigned char State);
+Nvoid     USB__OnSuspend         (void);
+Nvoid     USB__OnTx              (U8 EPIndex);
+Xvoid     USB__OnTx              (unsigned char EPIndex);
+Nvoid     USB__OnTx0Done         (void);
+Nvoid     USB__Send              (U8 EPIndex);
+Xvoid     USB__Send              (unsigned char EPIndex);
+Nvoid     USB__UpdateEPHW        (void);
+Nvoid     USB__WriteEP0FromISR   (const void* pData, unsigned NumBytes, char Send0PacketIfRequired);
+Nint      USB__IsHighSpeedCapable(void);
+Nint      USB__IsHighSpeedMode   (void);
+NU8       USB__AllocIF           (void);
+Xunsigned char       USB__AllocIF           (void);
+Nvoid     USB__InvalidateEP      (U8 EPIndex);
+Xvoid     USB__InvalidateEP      (unsigned char EPIndex);
+Nvoid     USB__StallEP0          (void);
+N
+Nconst U8 * USB__BuildConfigDesc(void);
+Xconst unsigned char * USB__BuildConfigDesc(void);
+Nconst U8 * USB__BuildDeviceDesc(void);
+Xconst unsigned char * USB__BuildDeviceDesc(void);
+N
+N
+N/*********************************************************************
+N*
+N*       InfoBuffer routines
+N*
+N**********************************************************************
+N*/
+Nvoid USB_IB_Init  (USB_INFO_BUFFER * pInfoBuffer, U8 * pBuffer, unsigned SizeofBuffer);
+Xvoid USB_IB_Init  (USB_INFO_BUFFER * pInfoBuffer, unsigned char * pBuffer, unsigned SizeofBuffer);
+Nvoid USB_IB_AddU8 (USB_INFO_BUFFER * pInfoBuffer, U8  Data);
+Xvoid USB_IB_AddU8 (USB_INFO_BUFFER * pInfoBuffer, unsigned char  Data);
+Nvoid USB_IB_AddU16(USB_INFO_BUFFER * pInfoBuffer, U16 Data);
+Xvoid USB_IB_AddU16(USB_INFO_BUFFER * pInfoBuffer, unsigned short Data);
+Nvoid USB_IB_AddU32(USB_INFO_BUFFER * pInfoBuffer, U32 Data);
+Xvoid USB_IB_AddU32(USB_INFO_BUFFER * pInfoBuffer, unsigned long Data);
+N
+N/*********************************************************************
+N*
+N*       Buffer routines
+N*
+N**********************************************************************
+N*/
+Nunsigned BUFFER_Read (BUFFER * pBuffer,       U8 * pData, unsigned NumBytesReq);
+Xunsigned BUFFER_Read (BUFFER * pBuffer,       unsigned char * pData, unsigned NumBytesReq);
+Nvoid     BUFFER_Write(BUFFER * pBuffer, const U8 * pData, unsigned NumBytes);
+Xvoid     BUFFER_Write(BUFFER * pBuffer, const unsigned char * pData, unsigned NumBytes);
+N
+N#if defined(__cplusplus)
+X#if 0L
+S  }              /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N#endif
+N
+N/*************************** End of file ****************************/
+L 21 "USB\USB_OS_embOS.c" 2
+N#include "RTOS.h"
+L 1 "OS\RTOS.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : RTOS.h
+NPurpose : include file for embOS,
+N          to be included in every C-module accessing embOS-routines
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N#ifndef RTOS_H_INCLUDED        /* Avoid multiple inclusion          */
+N#define RTOS_H_INCLUDED
+N
+N/*********************************************************************
+N*
+N*       Chip specifics for ARM7TDMI / ARM9TDMI and KEIL ARM MDK
+N*
+N**********************************************************************
+N*/
+N
+N#include <string.h>                            /* req. for memset.h */
+N
+N/*********************************************************************
+N*
+N*     Specifics for ARM cores and KEIL-MDK compiler
+N*
+N**********************************************************************
+N*/
+N
+N#define OS_PORT_REVISION          (1)                // Port specific revision
+N#define OS_PTR_OP_IS_ATOMIC       (1)
+N#define OS_GetTime()              (OS_Time)
+N#define OS_GetTime32()            (OS_Time)
+N#define OS_I32                    int
+N#define OS_SIZEOF_INT             (4)                // Size of integer in bytes
+N#define OS_BIG_ENDIAN             (0)                
+N#define OS_SUPPORT_SYSSTACK_INFO  (1)                // Option to supply more info  to viewer
+N#define OS_SUPPORT_OS_ALLOC       (1)                // Define whether OS_Alloc is supported
+N#define OS_SP_ADJUST              (0)
+N#define OS_EnterIntStack()                           // Int stack is automatically used by ARM
+N#define OS_LeaveIntStack()                           // Int stack is automatically used by ARM
+N
+N/*****  Core specific configuration *********************************/
+N
+N#define OS_SUPPORT_INTSTACK_INFO            (1)      // Option to supply more info  to viewer
+N#define OS_SWITCH_FROM_INT_MODIFIES_STACK   (1)
+N#define OS_INTERRUPTS_ARE_NESTABLE_ON_ENTRY (0)
+N#define OS_SUPPORT_INT_PRIORITY             (0)              // No selectable interrupt priorities with ARM
+N
+N/*****  End of configuration settings *******************************/
+N
+N#ifdef __TARGET_ARCH_4T
+N  #define OS_CPU "ARM4/KEIL_MDK"
+N#else
+S  #define OS_CPU "ARM5/KEIL_MDK"
+N#endif
+N
+N#define OS_DI() __disable_irq()    /* We use the default intrinsic function */
+N#define OS_EI() __enable_irq()     /* We use the default intrinsic function */
+N
+N
+N/* Option to get Stack pointer information  */
+N#define OS_INIT_STACK_INFO()
+N
+N/*********************************************************************
+N*
+N*       Port specific (non OS generic) functions
+N*/
+N#ifdef __cplusplus
+S  extern "C" {
+N#endif
+N
+N  typedef void    OS_ISR_HANDLER(void);
+N  void            OS_irq_handler(void);     /* Declare function to make sure it is arm pcs */
+N  void            OS_IRQ_SERVICE(void);     /* embOS int handler in RTOSVect.asm  */
+N  void            OS_USER_irq_func(void);   /* User interrupt handler from UserIrq.c */
+N  OS_ISR_HANDLER* OS_ARM_InstallISRHandler (int ISRIndex, OS_ISR_HANDLER* pFunc);
+N  void            OS_ARM_EnableISR         (int ISRIndex);
+N  void            OS_ARM_DisableISR        (int ISRIndex);
+N  int             OS_ARM_ISRSetPrio        (int ISRIndex, int Prio);
+N  void            OS_ARM_AssignISRSource   (int ISRIndex, int Source);
+N  void            OS_ARM_EnableISRSource   (int SourceIndex);
+N  void            OS_ARM_DisableISRSource  (int SourceIndex);
+N  void            OS_StartTask             (void);
+N  void            OS_InitPLL               (void);
+N
+N/*********************************************************************
+N*
+N*       Core specific implementation
+N*/
+N
+N/****** Support for ARM VFP *****************************************/
+N  
+Nextern const struct OS_EXTEND_TASK_CONTEXT OS_VFP_ExtendContext;
+N
+N/****** Support for ARM MMU and caches ******************************/
+N
+Nvoid OS_ARM_ICACHE_Enable(void);
+Nvoid OS_ARM_DCACHE_Enable(void);
+Nvoid OS_ARM_DCACHE_CleanRange     (void* p, unsigned int NumBytes);
+Nvoid OS_ARM_DCACHE_InvalidateRange(void* p, unsigned int NumBytes);
+Nvoid OS_ARM_CACHE_Sync(void);
+N
+Nvoid OS_ARM_MMU_Enable(unsigned int* pTranslationTable);
+Nvoid OS_ARM_MMU_InitTT(unsigned int* pTranslationTable);
+Nvoid OS_ARM_MMU_AddTTEntries(unsigned int* pTranslationTable, unsigned int CacheMode, unsigned int VIndex, unsigned int PIndex, unsigned int NumEntries);
+N
+Nvoid OS_ARM720_CACHE_Enable(void);
+Nvoid OS_ARM720_CACHE_CleanRange(void* p, unsigned int NumBytes);
+Nvoid OS_ARM720_CACHE_InvalidateRange(void* p, unsigned int NumBytes);
+N
+Nvoid OS_ARM720_MMU_Enable(unsigned int* pTranslationTable);
+Nvoid OS_ARM720_MMU_InitTT(unsigned int* pTranslationTable);
+Nvoid OS_ARM720_MMU_AddTTEntries(unsigned int* pTranslationTable, unsigned int CacheMode, unsigned int VIndex, unsigned int PIndex, unsigned int NumEntries);
+N
+N#define OS_ARM_CACHEMODE_NC_NB    ((0 << 3) | (0 << 2))
+N#define OS_ARM_CACHEMODE_C_NB     ((1 << 3) | (0 << 2))
+N#define OS_ARM_CACHEMODE_NC_B     ((0 << 3) | (1 << 2))
+N#define OS_ARM_CACHEMODE_C_B      ((1 << 3) | (1 << 2))
+N#define OS_ARM_CACHEMODE_ILLEGAL  (0x01)
+N
+N#ifdef __cplusplus
+S  } 
+N#endif
+N
+N/*********************************************************************
+N*
+N*     Port specific revision
+N*/
+N
+N/*********************************************************************
+N*
+N*       Check configuration
+N*
+N**********************************************************************
+N
+NThis is required in order to automatically create the correct identifiers
+Nin order to be able to autoamitcally remap the identifiers.
+N
+N*/
+N
+N#ifdef __thumb
+N  #define OS_CPUMODE_PREFIX "T"
+N#else
+S  #define OS_CPUMODE_PREFIX "A"
+N#endif
+N
+N#ifdef __TARGET_ARCH_4T
+N  #define OS_CPU_PREFIX "4"
+N#else
+S  #define OS_CPU_PREFIX "5"
+N#endif
+N
+N#ifdef __BIG_ENDIAN
+S  #define OS_ENDIAN_PREFIX "B"
+N#else
+N  #define OS_ENDIAN_PREFIX "L"
+N#endif
+N
+N#define OS_MODEL OS_CPUMODE_PREFIX OS_CPU_PREFIX OS_ENDIAN_PREFIX
+N
+N
+N/****** End of chip / compiler specific part ************************/
+N
+N/*********************************************************************
+N*
+N*       Generic portion of the OS starts here
+N*
+N**********************************************************************
+NThis file (original name OS_RAW.h) is part of RTOS.h, the include
+Nfile for the OS.
+N*/
+N
+N#if (!defined(OS_LIBMODE_XR) && !defined(OS_LIBMODE_R)  &&   \
+N     !defined(OS_LIBMODE_S)  && !defined(OS_LIBMODE_SP) &&   \
+N     !defined(OS_LIBMODE_D)  && !defined(OS_LIBMODE_DP) &&   \
+N     !defined(OS_LIBMODE_DT))
+X#if (!0L && !0L  &&        !0L  && !0L &&        !0L  && !0L &&        !0L)
+N#include "OS_Config.h"
+L 1 "Config\OS_Config.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N#ifndef OS_CONFIG_H                     /* Avoid multiple inclusion */
+N#define OS_CONFIG_H
+N
+N/*********************************************************************
+N*
+N*       Configuration for RTOS build and UART
+N*
+N*  One of the following builds needs to be selected for both DEBUG and Release builds:
+N*
+N*  OS_LIBMODE_XR    Extremly small release build without Round robin
+N*  OS_LIBMODE_R     Release build
+N*  OS_LIBMODE_S     Release build with stack check
+N*  OS_LIBMODE_SP    Release build with stack check and profiling
+N*  OS_LIBMODE_D     Debug build
+N*  OS_LIBMODE_DP    Debug build with profiling
+N*  OS_LIBMODE_DT    Debug build with trace
+N*/
+N
+N#ifndef   DEBUG
+N  #define DEBUG 0
+N#endif
+N
+N#if DEBUG
+X#if 0
+S  #define OS_LIBMODE_DP
+N#else
+N  #define OS_LIBMODE_R
+N  #define OS_VIEW_ENABLE   0
+N#endif
+N
+N#endif                                  /* Avoid multiple inclusion */
+N
+N/*************************** End of file ****************************/
+L 187 "OS\RTOS.h" 2
+N#endif
+N
+N#define OS_VERSION_GENERIC (36004)      /*   Generic version 3.60d  */
+N
+N#ifndef   OS_PORT_REVISION
+S  #define OS_PORT_REVISION 0
+N#endif
+N
+N#define OS_VERSION OS_VERSION_GENERIC + (OS_PORT_REVISION * 25)
+N
+N/*********************************************************************
+N*
+N*       Defines for library types
+N*
+N**********************************************************************
+N*/
+N
+N/* If library type is not selected yet (on project level,
+N   for example), then select DP by default
+N*/
+N#if (!defined(OS_LIBMODE_XR) && !defined(OS_LIBMODE_R)  &&   \
+N     !defined(OS_LIBMODE_S)  && !defined(OS_LIBMODE_SP) &&   \
+N     !defined(OS_LIBMODE_D)  && !defined(OS_LIBMODE_DP) &&   \
+N     !defined(OS_LIBMODE_DT))
+X#if (!0L && !1L  &&        !0L  && !0L &&        !0L  && !0L &&        !0L)
+S#define OS_LIBMODE_DP
+N#endif
+N
+N#if defined(OS_LIBMODE_XR)                                   // Extremely small release - without Round robin support
+X#if 0L                                   
+S  #define OS_CHECKSTACK       0
+S  #define OS_DEBUG            0
+S  #define OS_PROFILE          0
+S  #define OS_SUPPORT_TICKSTEP 0
+S  #define OS_TRACE            0
+S  #define OS_RR_SUPPORTED     0
+S  #define OS_TRACKNAME        0
+S  #define OS_SUPPORT_SAVE_RESTORE_HOOK 0
+S  #define OS_CreateTask   OS_CreateTask_XR
+S  #define OS_CreateTaskEx OS_CreateTaskEx_XR
+S  #define OS_LIBMODE "XR"
+N#elif defined(OS_LIBMODE_R)                                  // Release build
+X#elif 1L                                  
+N  #define OS_CHECKSTACK       0
+N  #define OS_DEBUG            0
+N  #define OS_PROFILE          0
+N  #define OS_SUPPORT_TICKSTEP 0
+N  #define OS_TRACE            0
+N  #define OS_CreateTask   OS_CreateTask_R
+N  #define OS_CreateTaskEx OS_CreateTaskEx_R
+N  #define OS_LIBMODE "R"
+N#elif defined(OS_LIBMODE_S)                                  // Release build with stack check
+S  #define OS_CHECKSTACK       1
+S  #define OS_DEBUG            0
+S  #define OS_PROFILE          0
+S  #define OS_SUPPORT_TICKSTEP 0
+S  #define OS_TRACE            0
+S  #define OS_CreateTask   OS_CreateTask_S
+S  #define OS_CreateTaskEx OS_CreateTaskEx_S
+S  #define OS_LIBMODE "S"
+S#elif defined(OS_LIBMODE_SP)                                 // Release build with stack check and profiling
+S  #define OS_CHECKSTACK       1
+S  #define OS_DEBUG            0
+S  #define OS_PROFILE          1
+S  #define OS_SUPPORT_TICKSTEP 1
+S  #define OS_TRACE            0
+S  #define OS_CreateTask   OS_CreateTask_SP
+S  #define OS_CreateTaskEx OS_CreateTaskEx_SP
+S  #define OS_LIBMODE "SP"
+S#elif defined(OS_LIBMODE_D)                                  // Debug build
+S  #define OS_CHECKSTACK       1
+S  #define OS_DEBUG            1
+S  #define OS_PROFILE          0
+S  #define OS_SUPPORT_TICKSTEP 1
+S  #define OS_TRACE            0
+S  #define OS_CreateTask   OS_CreateTask_D
+S  #define OS_CreateTaskEx OS_CreateTaskEx_D
+S  #define OS_LIBMODE "D"
+S#elif defined(OS_LIBMODE_DP)                                  // Debug build with profiling
+S  #define OS_CHECKSTACK       1
+S  #define OS_PROFILE          1
+S  #define OS_DEBUG            1
+S  #define OS_SUPPORT_TICKSTEP 1
+S  #define OS_TRACE            0
+S  #define OS_CreateTask   OS_CreateTask_DP
+S  #define OS_CreateTaskEx OS_CreateTaskEx_DP
+S  #define OS_LIBMODE "DP"
+S#elif defined(OS_LIBMODE_DT)                                  // Debug build with profiling and trace
+S  #define OS_CHECKSTACK       1
+S  #define OS_DEBUG            1
+S  #define OS_PROFILE          1
+S  #define OS_SUPPORT_TICKSTEP 1
+S  #define OS_TRACE            1
+S  #define OS_CreateTask   OS_CreateTask_DT
+S  #define OS_CreateTaskEx OS_CreateTaskEx_DT
+S  #define OS_LIBMODE "DT"
+S#else
+S  #error Please define library type used !
+N#endif
+N
+N/*********************************************************************
+N*
+N*       OS compile time switches
+N*
+N**********************************************************************
+N
+NThese compile time switches can be modified when recompiling
+Nthe library. Usually, the values are in OSCHIP.H, which is then
+Nmerged with OS_RAW.H to form RTOS.H.
+NIf the values are not defined in OSCHIP.H, the default values
+Nbelow are used.
+N*/
+N
+N/* Make it possible to place const data in RAM via
+N   define and therefore via command line. This is required
+N   for some smaller CPUs in small memory models
+N   It is defined to be "const" by default, but can be defined to nothing
+N   by simply adding a -DOS_CONST_DATA on the commandline
+N*/
+N
+N#ifndef   OS_CONST_DATA
+N  #define OS_CONST_DATA const  /* Default      */
+N#else
+S  #undef  OS_CONST_DATA
+S  #define OS_CONST_DATA        /* define blank */
+N#endif
+N
+N#ifndef   OS_INTERWORK
+N  #define OS_INTERWORK
+N#endif
+N
+N#ifndef   OS_SCHEDULER_ACTIVATED_BY_EXCEPTION
+N  #define OS_SCHEDULER_ACTIVATED_BY_EXCEPTION   (0)
+N#endif
+N
+N#ifndef   OS_STACK_ADR
+N  #define OS_STACK_ADR OS_U32
+N#endif
+N
+N#ifndef   OS_MODEL
+S  #define OS_MODEL ""
+N#endif
+N
+N#ifndef   OS_MEMSET
+N  #define OS_MEMSET(a,v,s) memset(a,v,s)
+N#endif
+N
+N#ifndef   OS_MEMCPY
+N  #define OS_MEMCPY(dest,src,cnt) memcpy(dest,src,cnt)
+N#endif
+N
+N#ifndef   OS_STRLEN
+N  #define OS_STRLEN(s) strlen(s)
+N#endif
+N
+N#ifndef   OS_DUMMY_STATEMENT
+N  #define OS_DUMMY_STATEMENT()
+N#endif
+N
+N#ifndef   OS_USEPARA
+N  #define OS_USEPARA(para) para=para
+N#endif
+N
+N#ifndef   OS_SUPPORT_TICKSTEP
+S  #define OS_SUPPORT_TICKSTEP 0
+N#endif
+N
+N#ifndef   OS_TRACKNAME
+N  #define OS_TRACKNAME (1)
+N#endif
+N
+N#ifndef   OS_TRACE
+S  #define OS_TRACE (0)
+N#endif
+N
+N#ifndef   OS_SUPPORT_SAVE_RESTORE_HOOK
+N  #define OS_SUPPORT_SAVE_RESTORE_HOOK  (1)
+N#endif
+N
+N#ifndef   OS_RR_SUPPORTED
+N  #define OS_RR_SUPPORTED (1)
+N#endif
+N
+N#ifndef   OS_STACK_AT_BOTTOM
+N  #define OS_STACK_AT_BOTTOM (0)
+N#endif
+N
+N/*  Settings for NON-ANSI compiler syntax
+N    The default behaviour complies with IAR.
+N*/
+N#ifndef   OS_COMPILER_LOCATION_LEFT
+N  #define OS_COMPILER_LOCATION_LEFT 1  /* (req. for IAR) */
+N#endif
+N
+N#ifndef   OS_COMPILER_STORAGE_MODIFIER_LEFT
+N  #define OS_COMPILER_STORAGE_MODIFIER_LEFT 1  /* default for all except KEIL */
+N#endif
+N
+N#define OS_LINK_MAILBOXES (OS_DEBUG)
+N
+N#ifndef   OS_CHECK
+N  #define OS_CHECK 0
+N#endif
+N
+N#ifndef   OS_ALIGN_PTR
+N  #define OS_ALIGN_PTR (1)
+N#endif
+N
+N#ifndef   OS_ALIGN_INT
+N  #define OS_ALIGN_INT (1)
+N#endif
+N
+N#ifndef   OS_PTR_TO_VALUE
+N  #define OS_PTR_TO_VALUE(p) (p)
+N#endif
+N
+N#ifndef   OS_IDLE
+N  #define OS_IDLE() OS_Idle()
+N#endif
+N
+N#ifndef   OS_PTR_OP_IS_ATOMIC
+S  #define OS_PTR_OP_IS_ATOMIC   (0)         // Helps to minimize code size and execution time. Some code is not required if setting pointers is an atomic operation (32 bit CPUs or 16 bit CPUs in near model)
+N#endif
+N
+N#ifndef   OS_SUSPEND_TASK_ON_TERMINATE      // Sets the task state of a terminated task to "suspended". Primarily used in the OS simulation, because the windows scheduler might re-activate a suspended task
+N  #define OS_SUSPEND_TASK_ON_TERMINATE (0)
+N#endif
+N
+N#ifndef   OS_INIT_EXPLICITLY
+N  #define OS_INIT_EXPLICITLY  (0)           // If enabled, OS_InitKern() initializes Non-Zero globals. Required only for faulty compiler (or startup-code) which do not perform proper init of globals during startup.
+N#endif
+N
+N#ifndef   OS_TASK_LIST_HAS_PPREV
+N  #define OS_TASK_LIST_HAS_PPREV   OS_RR_SUPPORTED
+N#else
+S  #if (OS_TASK_LIST_HAS_PPREV == 0) && OS_RR_SUPPORTED
+S    #error  "Invalid combination of config switches"
+S  #endif
+N#endif
+N
+N#ifndef   OS_SUPPORT_CALL_ISR
+N  #define OS_SUPPORT_CALL_ISR (1)
+N#endif
+N
+N#ifndef   OS_PREPARE_STACKPOINTER
+N  #define OS_PREPARE_STACKPOINTER()
+N#endif
+N
+N#ifndef   OS_SUPPORT_POWER
+N  #define OS_SUPPORT_POWER (1)
+N#endif
+N
+N#ifndef   OS_POWER_NUM_COUNTERS
+N  #define OS_POWER_NUM_COUNTERS (5)
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Check Compile time switches
+N*
+N**********************************************************************
+N*/
+N
+N#ifndef OS_SIZEOF_INT
+S  #error "Please define OS_SIZEOF_INT (OSChip.h)"
+N#endif
+N#ifndef OS_BIG_ENDIAN
+S  #error "Please define OS_BIG_ENDIAN (OSChip.h)"
+N#endif
+N
+N#if (OS_STACK_AT_BOTTOM != 0) && (OS_STACK_AT_BOTTOM != 1)
+X#if ((0) != 0) && ((0) != 1)
+S  /*
+S  *  Only 0 or 1 is allowed, because OS_STACK_AT_BOTTOM is used for calculations!
+S  */
+S  #error "OS_STACK_AT_BOTTOM has to be defined to 0 or 1"
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Basic type defines
+N*
+N**********************************************************************
+N*/
+N
+N#ifndef   OS_I8
+N  #define OS_I8 signed char
+N#endif
+N
+N#ifndef   OS_U8
+N  #define OS_U8 unsigned char
+N#endif
+N
+N#ifndef   OS_I16
+N  #define OS_I16 signed short
+N#endif
+N
+N#ifndef   OS_U16
+N  #define OS_U16 unsigned short
+N#endif
+N
+N#ifndef   OS_I32
+S  #define OS_I32 long
+N#endif
+N
+N#ifndef   OS_U32
+N  #define OS_U32 unsigned OS_I32
+N#endif
+N
+N/* Defines a true integer. This type is guaranteed
+N   a) to have at least 8 bits,
+N   b) to compile and execute best on the target CPU
+N   It will normally be the same as an int, but on most
+N   8-bit CPUs it will be replaced by a character because
+N   the CPU can deal with 8 bits more efficient than with
+N   16 bit integers.
+N   Use with care !
+N*/
+N#ifndef   OS_INT
+N  #define OS_INT       int
+N#endif
+N
+N#ifndef   OS_UINT
+N  #define OS_UINT      unsigned OS_INT
+N#endif
+N
+N#ifndef   OS_TIME
+N  #define OS_TIME      int
+N#endif
+N
+N
+N/*********************************************************************
+N*
+N*       Error codes
+N*
+N**********************************************************************
+N*/
+N
+N/* User 0..99  ***********************************/
+N
+N/* Port 100..119 *********************************/
+N#define OS_ERR_ISR_INDEX                      (100)
+N#define OS_ERR_ISR_VECTOR                     (101)
+N#define OS_ERR_ISR_PRIO                       (102)
+N
+N/* OS generic ************************************/
+N/* stack overflow or invalid stack */
+N#define OS_ERR_STACK                          (120)
+N
+N/* Counting semaphore overflow */
+N#define OS_ERR_CSEMA_OVERFLOW                 (121)
+N
+N/* Power management module */
+N#define OS_ERR_POWER_OVER                     (122)
+N#define OS_ERR_POWER_UNDER                    (123)
+N#define OS_ERR_POWER_INDEX                    (124)
+N
+N
+N/* invalid or non-initialized data structures */
+N#define OS_ERR_INV_TASK                       (128)
+N#define OS_ERR_INV_TIMER                      (129)
+N#define OS_ERR_INV_MAILBOX                    (130)
+N#define OS_ERR_INV_CSEMA                      (132)
+N#define OS_ERR_INV_RSEMA                      (133)
+N
+N/* Using GetMail1 or PutMail1 or GetMailCond1 or PutMailCond1 on
+N   a non-1 byte mailbox  */
+N#define OS_ERR_MAILBOX_NOT1                   (135)
+N
+N/* Waitable objects deleted with waiting tasks or occupied by task */
+N#define OS_ERR_MAILBOX_DELETE                 (136)
+N#define OS_ERR_CSEMA_DELETE                   (137)
+N#define OS_ERR_RSEMA_DELETE                   (138)
+N
+N/* internal errors, please contact SEGGER Microcontrollersysteme */
+N#define OS_ERR_MAILBOX_NOT_IN_LIST            (140)
+N#define OS_ERR_TASKLIST_CORRUPT               (142)
+N
+N/* not matching routine calls or macro usage */
+N#define OS_ERR_UNUSE_BEFORE_USE               (150)
+N#define OS_ERR_LEAVEREGION_BEFORE_ENTERREGION (151)
+N#define OS_ERR_LEAVEINT                       (152)
+N#define OS_ERR_DICNT                          (153)
+N#define OS_ERR_INTERRUPT_DISABLED             (154)
+N#define OS_ERR_TASK_ENDS_WITHOUT_TERMINATE    (155)
+N#define OS_ERR_RESOURCE_OWNER                 (156)
+N
+N#define OS_ERR_ILLEGAL_IN_ISR                 (160)  /* not a legal system call during interrupt */
+N#define OS_ERR_ILLEGAL_IN_TIMER               (161)  /* not a legal system call during timer */
+N#define OS_ERR_ILLEGAL_OUT_ISR                (162)  /* not a legal system call outside interrupt */
+N#define OS_ERR_NOT_IN_ISR                     (163)  /* OS_EnterInterrupt() has been called, but CPU is not in ISR state */
+N#define OS_ERR_IN_ISR                         (164)  /* OS_EnterInterrupt() has not been called, but CPU is in ISR state */
+N
+N#define OS_ERR_INIT_NOT_CALLED                (165)  /* OS_InitKern() was not called */
+N
+N/* Double used data structures */
+N#define OS_ERR_2USE_TASK                      (170)
+N#define OS_ERR_2USE_TIMER                     (171)
+N#define OS_ERR_2USE_MAILBOX                   (172)
+N#define OS_ERR_2USE_BSEMA                     (173)
+N#define OS_ERR_2USE_CSEMA                     (174)
+N#define OS_ERR_2USE_RSEMA                     (175)
+N#define OS_ERR_2USE_MEMF                      (176)
+N
+N/* Communication errors (OSCOM) */
+N#define OS_ERR_NESTED_RX_INT                  (180)
+N
+N/* Fixed block memory pool  */
+N#define OS_ERR_MEMF_INV                       (190)
+N#define OS_ERR_MEMF_INV_PTR                   (191)
+N#define OS_ERR_MEMF_PTR_FREE                  (192)
+N#define OS_ERR_MEMF_RELEASE                   (193)
+N#define OS_ERR_POOLADDR                       (194)
+N#define OS_ERR_BLOCKSIZE                      (195)
+N
+N/* Task suspend / resume errors */
+N#define OS_ERR_SUSPEND_TOO_OFTEN              (200)
+N#define OS_ERR_RESUME_BEFORE_SUSPEND          (201)
+N
+N/* Other task related errors */
+N#define OS_ERR_TASK_PRIORITY                  (202)
+N
+N/* Event object */
+N#define OS_ERR_EVENT_INVALID                  (210)
+N#define OS_ERR_2USE_EVENTOBJ                  (211)
+N#define OS_ERR_EVENT_DELETE                   (212)
+N
+N/* Waitlist (checked build) */
+N#define OS_ERR_WAITLIST_RING                  (220)
+N#define OS_ERR_WAITLIST_PREV                  (221)
+N#define OS_ERR_WAITLIST_NEXT                  (222)
+N
+N/* Other potential problems discovered in checked build */
+N#define OS_ERR_NOT_IN_REGION                  (225)
+N
+N/* Cache related */
+N#define OS_ERR_NON_ALIGNED_INVALIDATE         (230)
+N
+N/* OS special build, or internal */
+N#define OS_ERR_TRIAL_LIMIT                    (254)
+N
+N/*********************************************************************
+N*
+N*       Trace identifier
+N*
+N**********************************************************************
+N
+NIdentifier from 0 to 99 are reserved for the OS
+NEven when not all of those are currently used,
+Nthey may be defined in the future
+N
+N*/
+N
+N#define OS_TRACE_ID_DEACTIVATE      (1)
+N#define OS_TRACE_ID_ACTIVATE        (2)
+N#define OS_TRACE_ID_TIMERCALLBACK   (3)
+N
+N/* Task group */
+N#define OS_TRACE_ID_DELAY           (10)
+N#define OS_TRACE_ID_DELAYUNTIL      (11)
+N#define OS_TRACE_ID_SETPRIORITY     (12)
+N#define OS_TRACE_ID_WAKETASK        (13)
+N#define OS_TRACE_ID_CREATETASK      (14)
+N#define OS_TRACE_ID_TERMINATETASK   (15)
+N#define OS_TRACE_ID_SUSPENDTASK     (16)
+N#define OS_TRACE_ID_RESUMETASK      (17)
+N#define OS_TRACE_ID_CREATETASK_EX   (18)
+N#define OS_TRACE_ID_YIELD           (19)
+N
+N/* Event group */
+N#define OS_TRACE_ID_WAITEVENT       (20)
+N#define OS_TRACE_ID_WAITEVENT_TIMED (21)
+N#define OS_TRACE_ID_SIGNALEVENT     (22)
+N#define OS_TRACE_ID_CLEAREVENTS     (23)
+N
+N/* Mailbox group  */
+N#define OS_TRACE_ID_CREATEMB        (30)
+N#define OS_TRACE_ID_CLEARMB         (31)
+N#define OS_TRACE_ID_DELETEMB        (32)
+N#define OS_TRACE_ID_PUTMAIL         (33)
+N#define OS_TRACE_ID_GETMAIL         (34)
+N#define OS_TRACE_ID_PUTMAILCOND     (35)
+N#define OS_TRACE_ID_GETMAILCOND     (36)
+N#define OS_TRACE_ID_PUTMAIL_TIMED   (37)
+N#define OS_TRACE_ID_GETMAIL_TIMED   (38)
+N#define OS_TRACE_ID_WAITMAIL        (39)
+N
+N#define OS_TRACE_ID_PUTMAIL1        (40)
+N#define OS_TRACE_ID_GETMAIL1        (41)
+N#define OS_TRACE_ID_PUTMAILCOND1    (42)
+N#define OS_TRACE_ID_GETMAILCOND1    (43)
+N#define OS_TRACE_ID_PUTMAIL_TIMED1  (44)
+N#define OS_TRACE_ID_GETMAIL_TIMED1  (45)
+N
+N#define OS_TRACE_ID_PUTMAIL_F       (46)
+N#define OS_TRACE_ID_PUTMAIL_F1      (47)
+N#define OS_TRACE_ID_PUTMAIL_FCOND   (48)
+N#define OS_TRACE_ID_PUTMAIL_FCOND1  (49)
+N
+N/* Resource group */
+N#define OS_TRACE_ID_CREATERSEMA     (50)
+N#define OS_TRACE_ID_USE             (51)
+N#define OS_TRACE_ID_UNUSE           (52)
+N#define OS_TRACE_ID_REQUEST         (53)
+N#define OS_TRACE_ID_GETSEMAVALUE    (54)
+N#define OS_TRACE_ID_DELETE_RSEMA    (55)
+N
+N/* Counting Semaphore group */
+N#define OS_TRACE_ID_CREATECSEMA     (60)
+N#define OS_TRACE_ID_DELETECSEMA     (61)
+N#define OS_TRACE_ID_SIGNALCSEMA     (62)
+N#define OS_TRACE_ID_WAITCSEMA       (63)
+N#define OS_TRACE_ID_WAITCSEMATIMED  (64)
+N#define OS_TRACE_ID_SIGNALCSEMA_MAX (65)
+N#define OS_TRACE_ID_SET_CSEMAVALUE  (66)
+N#define OS_TRACE_ID_CSEMAREQUEST    (67)
+N
+N/* Timer group    */
+N#define OS_TRACE_ID_CREATETIMER     (70)
+N#define OS_TRACE_ID_DELETETIMER     (71)
+N#define OS_TRACE_ID_STARTTIMER      (72)
+N#define OS_TRACE_ID_STOPTIMER       (73)
+N#define OS_TRACE_ID_RETRIGGERTIMER  (74)
+N#define OS_TRACE_ID_SETTIMERPERIOD  (75)
+N#define OS_TRACE_ID_CREATETIMER_EX  (76)
+N
+N/* Heap type memory management  */
+N#define OS_TRACE_ID_MALLOC          (80)
+N#define OS_TRACE_ID_FREE            (81)
+N#define OS_TRACE_ID_REALLOC         (82)
+N
+N/* Fixed block type memory management  */
+N#define OS_TRACE_ID_MEMF_CREATE     (90)
+N#define OS_TRACE_ID_MEMF_DELETE     (91)
+N#define OS_TRACE_ID_MEMF_ALLOC      (92)
+N
+N
+N/*********************************************************************
+N*
+N*       Assertions
+N*
+N**********************************************************************
+N
+N  Assertions are used to generate code in the debug version
+N  of the OS in order catch programming faults like
+N  bad pointers or uninitialized data structures
+N*/
+N
+N#if OS_DEBUG
+X#if 0
+S  #define OS_ASSERT(Exp, ErrCode) { if (!(Exp)) OS_Error(ErrCode); }
+N#else
+N  #define OS_ASSERT(Exp, ErrCode)
+N#endif
+N
+N#define OS_ASSERT_INT()           OS_ASSERT((OS_InInt != 0),          OS_ERR_ILLEGAL_OUT_ISR)
+N#define OS_ASSERT_NOINT()         OS_ASSERT((OS_InInt == 0),          OS_ERR_ILLEGAL_IN_ISR)
+N#define OS_ASSERT_NOTIMER()       OS_ASSERT((OS_InTimer == 0),        OS_ERR_ILLEGAL_IN_TIMER)
+N#define OS_ASSERT_DICnt()         OS_ASSERT(((OS_DICnt & 0xf0) == 0), OS_ERR_DICNT)
+N#define OS_ASSERT_INIT_CALLED()   OS_ASSERT((OS_InitCalled != 0),     OS_ERR_INIT_NOT_CALLED)
+N
+N/*********************************************************************
+N*
+N*       Memory attributes
+N*
+N**********************************************************************
+N*/
+N
+N#ifndef OS_STACKPTR
+N  #define OS_STACKPTR
+N#endif
+N
+N#ifndef OS_SADDR
+N  #ifdef SADDR
+S    #define OS_SADDR SADDR
+N  #else
+N    #define OS_SADDR
+N  #endif
+N#endif
+N
+N/* pointer modifier for data items */
+N#ifndef OS_DATAPTR
+N  #define OS_DATAPTR
+N#endif
+N
+N#ifndef OS_RSEMAPTR
+N  #define OS_RSEMAPTR
+N#endif
+N
+N#ifndef   OS_CSEMAPTR
+N  #define OS_CSEMAPTR
+N#endif
+N
+N#ifndef   OS_MBPTR
+N  #define OS_MBPTR
+N#endif
+N
+N#ifndef   OS_TCBPTR
+N  #define OS_TCBPTR
+N#endif
+N
+N#ifndef   OS_TIMERPTR
+N  #define OS_TIMERPTR
+N#endif
+N
+N#ifdef __cplusplus
+S  extern "C" {
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Data structures
+N*
+N**********************************************************************
+N*/
+N
+Ntypedef struct OS_TASK         OS_TASK;
+Ntypedef struct OS_WAIT_LIST    OS_WAIT_LIST;
+Ntypedef struct OS_WAIT_OBJ     OS_WAIT_OBJ;
+Ntypedef struct OS_WAIT_OBJ_EX  OS_WAIT_OBJ_EX;
+Ntypedef struct OS_REGS         OS_REGS;
+N
+Ntypedef void voidRoutine(void);
+Ntypedef void OS_RX_CALLBACK(OS_U8 Data);
+Xtypedef void OS_RX_CALLBACK(unsigned char Data);
+Ntypedef void OS_TIMERROUTINE(void);
+Ntypedef void OS_TIMER_EX_ROUTINE(void *);
+Ntypedef void OS_ON_TERMINATE_FUNC(OS_TASK *);
+N
+Ntypedef void OS_TICK_HOOK_ROUTINE(void);
+N
+N/**********************************************************************
+N*
+N*       OS_WAIT_OBJ
+N*       OS_WAIT_LIST
+N*       OS_WAIT_OBJ_EX
+N*/
+Nstruct OS_WAIT_OBJ {
+N  OS_WAIT_LIST * pWaitList;
+N};
+N
+Nstruct OS_WAIT_OBJ_EX {
+N  OS_WAIT_OBJ WaitObj;
+N  int v;
+N};
+N
+Nstruct OS_WAIT_LIST {
+N  OS_WAIT_LIST * pNext;    /* Needs to be first element ! */
+N  OS_WAIT_LIST * pPrev;
+N  OS_WAIT_OBJ  * pWaitObj;
+N  OS_TASK      * pTask;
+N};
+N
+N
+N/**********************************************************************
+N*
+N*       OS_EXTEND_TASK_CONTEXT
+N*
+N*  This structure is used to define a save and restore function for
+N*  extension of the task context.
+N*  A pointer to this structure is part of the task control block
+N*  It is initialized by OS_ExtendTaskContext();
+N*/
+Ntypedef struct OS_EXTEND_TASK_CONTEXT {
+N  void (*pfSave)   (      void * pStack);
+N  void (*pfRestore)(const void * pStack);
+N} OS_EXTEND_TASK_CONTEXT;
+N
+N
+N/**********************************************************************
+N*
+N*       OS_TASK
+N*
+N*  This structure (referred to as "task control block" or TCB) holds all relevant information
+N*  about a single task. Note that some elements are optional, depending on the compile time
+N*  options, especially the type of build
+N*/
+Nstruct OS_TASK {
+N  //
+N  // Elements required for all builds
+N  //
+N  // Start of assembly relevant section. Do not move these elements
+N  OS_TASK * pNext;                        // Points to the TCB of the next task in the list (with equal or lower priority). Needs to be first element !
+N  OS_REGS OS_STACKPTR * pStack;           // Typically contains the stack pointer if the task is suspended.                 Needs to be second element !
+X  OS_REGS  * pStack;           
+N  // End of assembly relevant section
+N  OS_WAIT_LIST * pWaitList;               // Points to a waitable object if task is suspended.
+N  OS_TIME        Timeout;
+X  int        Timeout;
+N  OS_U8          Priority;
+X  unsigned char          Priority;
+N  OS_U8          Stat;
+X  unsigned char          Stat;
+N  OS_U8          Events;                  // Event storage
+X  unsigned char          Events;                  
+N  OS_U8          EventMask;               // Event mask
+X  unsigned char          EventMask;               
+N  //
+N  // PPrev is required only in builds with doubly-linked task lists
+N  //
+N  #if OS_TASK_LIST_HAS_PPREV
+X  #if (1)
+N    OS_TASK      * pPrev;                   //
+N  #endif
+N  //
+N  // Elements required with "Track-name" functionality only. Typically available in all builds, but can be disabled at compile time
+N  //
+N  #if OS_TRACKNAME
+X  #if (1)
+N    const char * Name;
+N  #endif
+N  //
+N  // Elements required with "Stack-check" functionality only. Available in stack-check and debug builds.
+N  //
+N  #if OS_CHECKSTACK
+X  #if 0
+S    OS_UINT  StackSize;            // Stack size in bytes. Not required for functionality, just for analysis
+S    OS_U8 OS_STACKPTR* pStackBot;  // First byte of stack. Not required for functionality, just for analysis
+N  #endif
+N  //
+N  // Elements required with profiling or debug builds
+N  //
+N  #if (OS_PROFILE || OS_DEBUG)
+X  #if (0 || 0)
+S    OS_U32 NumActivations;         // Counts how many times task has been activated
+S    OS_U32 NumPreemptions;         // Counts how many times task has been preempted
+N  #endif
+N  //
+N  // Elements required with profiling builds
+N  //
+N  #if OS_PROFILE
+X  #if 0
+S    OS_U32 ExecTotal;              // Time spent executing
+S    OS_U32 ExecLast;               // Time spent executing (Reference)
+S    OS_U32 Load;                   // Profiling builds only:
+N  #endif
+N  //
+N  // Elements required with Round-robin functionality only. Typically available in all builds, but can be disabled at compile time
+N  //
+N  #if OS_RR_SUPPORTED
+X  #if (1)
+N    OS_U8  TimeSliceRem;
+X    unsigned char  TimeSliceRem;
+N    OS_U8  TimeSliceReload;
+X    unsigned char  TimeSliceReload;
+N  #endif
+N  //
+N  // Optional Save & Restore hook support (usually only for bigger CPUs)
+N  //
+N  #if OS_SUPPORT_SAVE_RESTORE_HOOK
+X  #if (1)
+N    const OS_EXTEND_TASK_CONTEXT * pExtendContext;
+N  #endif
+N  //
+N  // Elements required with debug builds
+N  //
+N  #if OS_DEBUG
+X  #if 0
+S    char Id;                       // Debug builds only: Id of this control block.
+N  #endif
+N  //
+N  // Allow port specific extension to the task control block. Not used in most ports
+N  //
+N  #ifdef OS_TCB_CPU_EX
+S    OS_TCB_CPU_EX
+N  #endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_TIMER
+N*/
+Ntypedef struct OS_timer OS_TIMER;
+Nstruct OS_timer {
+N  OS_TIMER * pNext;
+N  voidRoutine* Hook;
+N  OS_TIME Time;
+X  int Time;
+N  OS_TIME Period;
+X  int Period;
+N  char    Active;
+N#if OS_DEBUG
+X#if 0
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_TIMER_EX
+N*/
+Ntypedef struct {
+N  OS_TIMER Timer;
+N  OS_TIMER_EX_ROUTINE * pfUser;
+N  void * pData;
+N} OS_TIMER_EX;
+N
+N/**********************************************************************
+N*
+N*       OS_TICK_HOOK
+N*/
+Ntypedef struct OS_TICK_HOOK OS_TICK_HOOK;
+Nstruct OS_TICK_HOOK {
+N  OS_TICK_HOOK*          pNext;
+N  OS_TICK_HOOK_ROUTINE * pfUser;
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_RSEMA
+N*/
+Ntypedef struct OS_RSEMA OS_RSEMA;
+Nstruct OS_RSEMA {
+N  OS_WAIT_OBJ WaitObj;
+N  OS_TASK * pTask;                /* Owner */
+N  OS_U8 UseCnt;
+X  unsigned char UseCnt;
+N  OS_RSEMA * pNext;
+N#if OS_DEBUG
+X#if 0
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_CSEMA
+N*/
+Ntypedef struct OS_CSEMA OS_CSEMA;
+Nstruct OS_CSEMA {
+N  OS_WAIT_OBJ WaitObj;
+N  OS_UINT Cnt;
+X  unsigned int Cnt;
+N#if OS_DEBUG
+X#if 0
+S  OS_CSEMA * pNext;
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_MAILBOX
+N*/
+Ntypedef struct OS_MAILBOX OS_MAILBOX;
+Nstruct OS_MAILBOX {
+N  OS_WAIT_OBJ WaitObj;
+N#if OS_LINK_MAILBOXES
+X#if (0)
+S  OS_MAILBOX * pNext;
+N#endif
+N  char *pData;
+N  OS_UINT nofMsg;
+X  unsigned int nofMsg;
+N  OS_UINT maxMsg;
+X  unsigned int maxMsg;
+N  OS_UINT iRd;
+X  unsigned int iRd;
+N  OS_U8  sizeofMsg;
+X  unsigned char  sizeofMsg;
+N#if OS_DEBUG
+X#if 0
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_Q
+N*/
+Ntypedef struct OS_Q OS_Q;
+Nstruct OS_Q {
+N  OS_WAIT_OBJ WaitObj;
+N  OS_Q*    pNext;          /* ptr to next queue (for debugging / monitoring) */
+N  OS_U8*   pData;
+X  unsigned char*   pData;
+N  OS_UINT  Size;
+X  unsigned int  Size;
+N  OS_UINT  MsgCnt;
+X  unsigned int  MsgCnt;
+N  OS_UINT  offFirst;
+X  unsigned int  offFirst;
+N  OS_UINT  offLast;
+X  unsigned int  offLast;
+N#if OS_DEBUG
+X#if 0
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_MEMF
+N*/
+N#ifndef   OS_MEMF_MAX_ITEMS
+N  #define OS_MEMF_MAX_ITEMS 20
+N#endif
+N
+N#define OS_MEMF_SIZEOF_BLOCKCONTROL 0  /* sizeof(int) in future version for debugging */
+N
+Ntypedef struct OS_MEMF OS_MEMF;
+Nstruct OS_MEMF {
+N  OS_WAIT_OBJ WaitObj;
+N  OS_MEMF* pNext;          /* ptr to next memory pool */
+N  void*    pPool;
+N  OS_U16   NumBlocks;
+X  unsigned short   NumBlocks;
+N  OS_U16   BlockSize;
+X  unsigned short   BlockSize;
+N  OS_U16   NumFreeBlocks;
+X  unsigned short   NumFreeBlocks;
+N  OS_U16   MaxUsed;
+X  unsigned short   MaxUsed;
+N  void*    pFree;
+N  #if OS_DEBUG
+X  #if 0
+S    int  aiPurpose[OS_MEMF_MAX_ITEMS];
+S    char Id;
+N  #endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_EVENT
+N*/
+Ntypedef struct  OS_EVENT OS_EVENT;
+N
+Nstruct OS_EVENT {
+N  OS_WAIT_OBJ WaitObj;
+N  OS_U8       Signaled;
+X  unsigned char       Signaled;
+N#if OS_DEBUG
+X#if 0
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_TRACE_ENTRY
+N*/
+Ntypedef struct {
+N  OS_U32  Time;
+X  unsigned int  Time;
+N  void    *pCurrentTask;
+N  void    *p;
+N  OS_U32  v;
+X  unsigned int  v;
+N  OS_U8   iRout;
+X  unsigned char   iRout;
+N} OS_TRACE_ENTRY;
+N
+N
+N/*********************************************************************
+N*
+N*       Globals
+N*
+N**********************************************************************
+N*/
+N
+N/*
+N    Handle DEFinition (storage is actually allocted) versus DEClaration
+N    (reference) of RTOS variables depending upon who includes this header file.
+N*/
+N#ifdef __OSGLOBAL_C__
+S  #define OS_EXTERN        /* Declare variables if included by RTOSKERN.C */
+S  #define OS_EXTERN_INIT(Var, Val) Var=Val
+N#else
+N  #define OS_EXTERN extern /* Define variables if included by anyone else */
+N  #define OS_EXTERN_INIT(Var, Val) Var
+N#endif
+N
+N/*****  Mark start of memory pragma area ****************************/
+N
+N/* Some compilers can not deal with memory attributes and need pragmas */
+N#if defined(__ghs_zda)
+X#if 0L
+S  #pragma ghs startzda
+N#endif
+N
+N/********************************************************************/
+N
+Ntypedef union {
+N  int Dummy;            // Make sure a full integer (32 bit on 32 bit CPUs) is used.
+N  struct {
+N    OS_U8 Region;
+X    unsigned char Region;
+N    OS_U8 DI;
+X    unsigned char DI;
+N  } Cnt;
+N} OS_COUNTERS;
+N
+N
+N#if OS_COMPILER_STORAGE_MODIFIER_LEFT  /* default */
+X#if 1   
+N  OS_EXTERN OS_SADDR  volatile OS_I32 OS_Time;
+X  extern   volatile int OS_Time;
+N  OS_EXTERN OS_SADDR  OS_TIME         OS_EXTERN_INIT(OS_TimeDex, 16384);
+X  extern   int         OS_TimeDex;
+N  OS_EXTERN OS_SADDR  OS_COUNTERS OS_Counters;
+X  extern   OS_COUNTERS OS_Counters;
+N
+N  OS_EXTERN OS_SADDR  OS_U8  OS_EXTERN_INIT(OS_IntMSInc, 1);
+X  extern   unsigned char  OS_IntMSInc;
+N  OS_EXTERN OS_SADDR  OS_U8  OS_Pending;
+X  extern   unsigned char  OS_Pending;
+N  OS_EXTERN OS_SADDR  volatile OS_U8  OS_Status;
+X  extern   volatile unsigned char  OS_Status;
+N
+N  #if OS_RR_SUPPORTED
+X  #if (1)
+N    OS_EXTERN OS_SADDR  OS_U8  OS_TimeSlice;
+X    extern   unsigned char  OS_TimeSlice;
+N    OS_EXTERN OS_SADDR  OS_U8  OS_TimeSliceAtStart;
+X    extern   unsigned char  OS_TimeSliceAtStart;
+N  #endif
+N  #if OS_SUPPORT_TICKSTEP
+X  #if 0
+S    OS_EXTERN OS_SADDR  volatile OS_U8   OS_TickStep;
+S    OS_EXTERN OS_SADDR  volatile int     OS_TickStepTime;
+N  #endif
+N  OS_EXTERN OS_SADDR        OS_UINT OS_TicksPerMS;
+X  extern         unsigned int OS_TicksPerMS;
+N  OS_EXTERN OS_SADDR        int     OS_IntTicksInc;
+X  extern         int     OS_IntTicksInc;
+N  #if OS_PROFILE
+X  #if 0
+S    OS_EXTERN OS_SADDR OS_U32 OS_TS_ExecStart;
+S    OS_EXTERN OS_SADDR OS_U8  ProfilingOn;
+N  #endif
+N  #if OS_DEBUG
+X  #if 0
+S    OS_EXTERN OS_SADDR OS_U8 OS_InInt;
+S    OS_EXTERN OS_SADDR OS_U8 OS_InTimer;
+S    OS_EXTERN OS_SADDR OS_U8 OS_InitCalled;
+N  #endif
+N
+N  #if OS_SUPPORT_POWER
+X  #if (1)
+N    OS_EXTERN OS_SADDR OS_U8 OS_POWER_Levels[OS_POWER_NUM_COUNTERS];
+X    extern  unsigned char OS_POWER_Levels[(5)];
+N  #endif
+N
+N  /*** Pointers ***
+N    Unfortunately there is no real standard on how to define/declare
+N    pointers properly with extended memory attributes. There are
+N    currently 2 different standards, which we both support.
+N  */
+N  #if OS_COMPILER_LOCATION_LEFT
+X  #if 1
+N    OS_EXTERN OS_SADDR  OS_TASK      * OS_pTask;             /* linked list of all Tasks */
+X    extern   OS_TASK      * OS_pTask;              
+N    OS_EXTERN OS_SADDR  OS_TASK      * OS_pCurrentTask;      /* pointer to current Task */
+X    extern   OS_TASK      * OS_pCurrentTask;       
+N    OS_EXTERN OS_SADDR  OS_TASK volatile * volatile OS_pActiveTask;
+X    extern   OS_TASK volatile * volatile OS_pActiveTask;
+N    OS_EXTERN OS_SADDR  OS_TIMER     * OS_pTimer;            /* linked list of all active Timers */
+X    extern   OS_TIMER     * OS_pTimer;             
+N    OS_EXTERN OS_SADDR  OS_TIMER     * OS_pCurrentTimer;     /* Actual expired timer which called callback */
+X    extern   OS_TIMER     * OS_pCurrentTimer;      
+N    OS_EXTERN OS_SADDR OS_RSEMA      * OS_pRSema;
+X    extern  OS_RSEMA      * OS_pRSema;
+N    #if OS_LINK_MAILBOXES
+X    #if (0)
+S      OS_EXTERN OS_SADDR OS_MAILBOX  * OS_pMailbox;
+N    #endif
+N    #if OS_DEBUG
+X    #if 0
+S      OS_EXTERN OS_SADDR OS_CSEMA    * OS_pCSema;
+N    #endif
+N    OS_EXTERN   OS_SADDR OS_MEMF      * OS_pMEMF;            /* linked list of all fixed size memory pools */
+X    extern    OS_MEMF      * OS_pMEMF;             
+N    OS_EXTERN   OS_SADDR OS_TICK_HOOK * OS_pTickHook;        /* linked list of all tick hook functions */
+X    extern    OS_TICK_HOOK * OS_pTickHook;         
+N  #else
+S    OS_EXTERN OS_TASK             * OS_SADDR OS_pTask;          /* linked list of all Tasks */
+S    OS_EXTERN OS_TASK             * OS_SADDR OS_pCurrentTask;   /* pointer to current Task */
+S    OS_EXTERN OS_TASK    volatile * OS_SADDR volatile OS_pActiveTask;
+S    OS_EXTERN OS_TIMER            * OS_SADDR OS_pTimer;         /* linked list of all active Timers */
+S    OS_EXTERN OS_TIMER            * OS_SADDR OS_pCurrentTimer;  /* Actual expired timer which called callback */
+S    OS_EXTERN OS_RSEMA            * OS_SADDR OS_pRSema;
+S    #if OS_LINK_MAILBOXES
+S      OS_EXTERN OS_MAILBOX        * OS_SADDR OS_pMailbox;
+S    #endif
+S
+S    #if OS_DEBUG
+S      OS_EXTERN  OS_CSEMA         * OS_SADDR OS_pCSema;
+S    #endif
+S    OS_EXTERN OS_MEMF             * OS_SADDR OS_pMEMF;          /* linked list of all fixed size memory pools */
+S    OS_EXTERN OS_TICK_HOOK        * OS_SADDR OS_pTickHook;      /* linked list of all tick hook functions */
+N  #endif
+N
+N#else  /*  OS_COMPILER_STORAGE_MODIFIER_LEFT == 0, needed for Keil 166 */
+S  OS_EXTERN volatile OS_I32 OS_SADDR OS_Time;
+S  OS_EXTERN OS_TIME         OS_SADDR OS_EXTERN_INIT(OS_TimeDex, 16384);
+S  OS_EXTERN OS_COUNTERS OS_SADDR OS_Counters;
+S
+S  OS_EXTERN OS_U8 OS_SADDR OS_EXTERN_INIT(OS_IntMSInc, 1);
+S  OS_EXTERN OS_U8 OS_SADDR OS_Pending;
+S  OS_EXTERN volatile OS_U8 OS_SADDR OS_Status;
+S  #if OS_RR_SUPPORTED
+S    OS_EXTERN OS_U8 OS_SADDR OS_TimeSlice;
+S    OS_EXTERN OS_U8 OS_SADDR OS_TimeSliceAtStart;
+S  #endif
+S  #if OS_SUPPORT_TICKSTEP
+S    OS_EXTERN volatile OS_U8 OS_SADDR OS_TickStep;
+S    OS_EXTERN volatile int   OS_SADDR OS_TickStepTime;
+S  #endif
+S  OS_EXTERN OS_UINT OS_SADDR OS_TicksPerMS;
+S  OS_EXTERN int     OS_SADDR OS_IntTicksInc;
+S  #if OS_PROFILE
+S    OS_EXTERN OS_U32 OS_SADDR OS_TS_ExecStart;
+S    OS_EXTERN OS_U8  OS_SADDR ProfilingOn;
+S  #endif
+S  #if OS_DEBUG
+S    OS_EXTERN OS_U8 OS_SADDR OS_InInt;
+S    OS_EXTERN OS_U8 OS_SADDR OS_InTimer;
+S    OS_EXTERN OS_U8 OS_SADDR OS_InitCalled;
+S  #endif
+S
+S  #if OS_SUPPORT_POWER
+S    OS_EXTERN OS_U8 OS_SADDR OS_POWER_Levels[OS_POWER_NUM_COUNTERS];
+S  #endif
+S
+S  /*** Pointers ***
+S    Unfortunately there is no real standard on how to define/declare
+S    pointers properly with extended memory attributes. There are
+S    currently 2 different standards, which we both support.
+S  */
+S  #if OS_COMPILER_LOCATION_LEFT
+S    OS_EXTERN OS_SADDR  OS_TASK      * OS_pTask;             /* linked list of all Tasks */
+S    OS_EXTERN OS_SADDR  OS_TASK      * OS_pCurrentTask;      /* pointer to current Task */
+S    OS_EXTERN OS_SADDR  OS_TASK volatile * volatile OS_pActiveTask;
+S    OS_EXTERN OS_SADDR  OS_TIMER     * OS_pTimer;            /* linked list of all active Timers */
+S    OS_EXTERN OS_SADDR  OS_TIMER     * OS_pCurrentTimer;     /* Actual expired timer which called callback */
+S    OS_EXTERN OS_SADDR OS_RSEMA      * OS_pRSema;
+S    #if OS_LINK_MAILBOXES
+S      OS_EXTERN OS_SADDR OS_MAILBOX  * OS_pMailbox;
+S    #endif
+S    #if OS_DEBUG
+S      OS_EXTERN OS_SADDR OS_CSEMA    * OS_pCSema;
+S    #endif
+S      OS_EXTERN OS_SADDR OS_MEMF      * OS_pMEMF;            /* linked list of all fixed size memory pools */
+S      OS_EXTERN OS_SADDR OS_TICK_HOOK * OS_pTickHook;        /* linked list of all tick hook functions */
+S
+S  #else
+S    OS_EXTERN OS_TASK             * OS_SADDR OS_pTask;          /* linked list of all Tasks */
+S    OS_EXTERN OS_TASK             * OS_SADDR OS_pCurrentTask;   /* pointer to current Task */
+S    OS_EXTERN OS_TASK    volatile * volatile OS_SADDR OS_pActiveTask;
+S    OS_EXTERN OS_TIMER            * OS_SADDR OS_pTimer;         /* linked list of all active Timers */
+S    OS_EXTERN OS_TIMER            * OS_SADDR OS_pCurrentTimer;  /* Actual expired timer which called callback */
+S    OS_EXTERN OS_RSEMA            * OS_SADDR OS_pRSema;
+S    #if OS_LINK_MAILBOXES
+S      OS_EXTERN OS_MAILBOX        * OS_SADDR OS_pMailbox;
+S    #endif
+S    #if OS_DEBUG
+S      OS_EXTERN OS_CSEMA          * OS_SADDR OS_pCSema;
+S    #endif
+S
+S    OS_EXTERN OS_MEMF             * OS_SADDR OS_pMEMF;          /* linked list of all fixed size memory pools */
+S    OS_EXTERN OS_TICK_HOOK        * OS_SADDR OS_pTickHook;      /* linked list of all tick hook functions */
+S  #endif
+S
+N#endif  /*  OS_COMPILER_STORAGE_MODIFIER_LEFT  */
+N
+N/***** Mark end of memory pragma area *******************************/
+N#if defined(__ghs_zda)
+X#if 0L
+S  #pragma ghs endzda
+N#endif
+N
+N/********************************************************************/
+N
+N#define OS_RegionCnt OS_Counters.Cnt.Region
+N#define OS_DICnt     OS_Counters.Cnt.DI
+N
+N/*********************************************************************
+N*
+N*       OS_CREATETASK macro
+N*       OS_CREATETASK_EX macro
+N*/
+N#if OS_RR_SUPPORTED
+X#if (1)
+N  #define CTPARA_TIMESLICE ,2
+N#else
+S  #define CTPARA_TIMESLICE
+N#endif
+N
+N#if OS_TRACKNAME
+X#if (1)
+N  #define OS_CREATETASK(pTask, Name, Hook, Priority, pStack) \
+N  OS_CreateTask (pTask,                                      \
+N                  Name,                                      \
+N                  Priority,                                  \
+N                  Hook,                                      \
+N                  (void OS_STACKPTR*)pStack,                 \
+N                  sizeof(pStack)                             \
+N                  CTPARA_TIMESLICE                           \
+N               )
+X  #define OS_CREATETASK(pTask, Name, Hook, Priority, pStack)   OS_CreateTask (pTask,                                                        Name,                                                        Priority,                                                    Hook,                                                        (void OS_STACKPTR*)pStack,                                   sizeof(pStack)                                               CTPARA_TIMESLICE                                          )
+N#else
+S  #define OS_CREATETASK(pTask, Name, Hook, Priority, pStack) \
+S  OS_CreateTask (pTask,                                      \
+S                  Priority,                                  \
+S                  Hook,                                      \
+S                  (void OS_STACKPTR*)pStack,                 \
+S                  sizeof(pStack)                             \
+S                  CTPARA_TIMESLICE                           \
+S               )
+X  #define OS_CREATETASK(pTask, Name, Hook, Priority, pStack)   OS_CreateTask (pTask,                                                        Priority,                                                    Hook,                                                        (void OS_STACKPTR*)pStack,                                   sizeof(pStack)                                               CTPARA_TIMESLICE                                          )
+N#endif
+N
+N#if OS_TRACKNAME
+X#if (1)
+N  #define OS_CREATETASK_EX(pTask, Name, Hook, Priority, pStack, pContext) \
+N  OS_CreateTaskEx  (pTask,                                                \
+N                    Name,                                                 \
+N                    Priority,                                             \
+N                    Hook,                                                 \
+N                    (void OS_STACKPTR*)pStack,                            \
+N                    sizeof(pStack)                                        \
+N                    CTPARA_TIMESLICE,                                     \
+N                    pContext                                              \
+N               )
+X  #define OS_CREATETASK_EX(pTask, Name, Hook, Priority, pStack, pContext)   OS_CreateTaskEx  (pTask,                                                                    Name,                                                                     Priority,                                                                 Hook,                                                                     (void OS_STACKPTR*)pStack,                                                sizeof(pStack)                                                            CTPARA_TIMESLICE,                                                         pContext                                                             )
+N#else
+S  #define OS_CREATETASK_EX(pTask, Name, Hook, Priority, pStack, pContext) \
+S  OS_CreateTaskEx  (pTask,                                                \
+S                    Priority,                                             \
+S                    Hook,                                                 \
+S                    (void OS_STACKPTR*)pStack,                            \
+S                    sizeof(pStack)                                        \
+S                    CTPARA_TIMESLICE,                                     \
+S                    pContext                                              \
+S               )
+X  #define OS_CREATETASK_EX(pTask, Name, Hook, Priority, pStack, pContext)   OS_CreateTaskEx  (pTask,                                                                    Priority,                                                                 Hook,                                                                     (void OS_STACKPTR*)pStack,                                                sizeof(pStack)                                                            CTPARA_TIMESLICE,                                                         pContext                                                             )
+N#endif
+N
+N/*********************************************************************
+N*
+N*       OS_CreateTask
+N*       OS_CreateTaskEx
+N*/
+N#if OS_TRACKNAME
+X#if (1)
+N  #define OS_CREATE_TASK_PARA_NAME      const char*Name,
+N#else
+S  #define OS_CREATE_TASK_PARA_NAME
+N#endif
+N
+N#if OS_RR_SUPPORTED
+X#if (1)
+N  #define OS_CREATE_TASK_PARA_TS   ,OS_UINT TimeSlice
+N#else
+S  #define OS_CREATE_TASK_PARA_TS
+N#endif
+N
+Nvoid OS_CreateTask  ( OS_TASK * pTask,
+Xvoid OS_CreateTask_R  ( OS_TASK * pTask,
+N                      OS_CREATE_TASK_PARA_NAME
+X                      const char*Name,
+N                      OS_U8 Priority,
+X                      unsigned char Priority,
+N                      void (*pRoutine)(void),
+N                      void OS_STACKPTR *pStack,
+X                      void  *pStack,
+N                      OS_UINT StackSize
+X                      unsigned int StackSize
+N                      OS_CREATE_TASK_PARA_TS
+X                      ,unsigned int TimeSlice
+N        );
+Nvoid OS_CreateTaskEx  ( OS_TASK * pTask,
+Xvoid OS_CreateTaskEx_R  ( OS_TASK * pTask,
+N                        OS_CREATE_TASK_PARA_NAME
+X                        const char*Name,
+N                        OS_U8 Priority,
+X                        unsigned char Priority,
+N                        void (*pRoutine)(void *),
+N                        void OS_STACKPTR *pStack,
+X                        void  *pStack,
+N                        OS_UINT StackSize
+X                        unsigned int StackSize
+N                        OS_CREATE_TASK_PARA_TS,
+X                        ,unsigned int TimeSlice,
+N                        void * pContext
+N        );
+N#if OS_SUPPORT_SAVE_RESTORE_HOOK
+X#if (1)
+Nvoid OS_ExtendTaskContext(const OS_EXTEND_TASK_CONTEXT * pExtendContext);
+N#endif
+N/*********************************************************************
+N*
+N*       Task related routines
+N*
+N**********************************************************************
+N*/
+N
+Nvoid  OS_Delay(OS_TIME ms);                /* OSKern.c              */
+Xvoid  OS_Delay(int ms);                 
+Nvoid  OS_DelayUntil(OS_TIME t);            /* OSKern.c              */
+Xvoid  OS_DelayUntil(int t);             
+NOS_U8 OS_GetSuspendCnt  (OS_TASK* pTask);  /* OS_GetSuspendCnt.c    */
+Xunsigned char OS_GetSuspendCnt  (OS_TASK* pTask);   
+Nvoid  OS_GetState       (OS_TASK* pTask);
+Nchar  OS_IsTask         (OS_TASK* pTask);  /* OSIsTask.c            */
+Nvoid  OS_Resume         (OS_TASK* pTask);  /* OS_Suspend.c          */
+Nvoid  OS_SetTaskName    (OS_TASK * pTask, const char* s);
+Nvoid  OS_SetPriority    (OS_TASK* pTask, OS_U8 Prio); /* OSSetP.c   */
+Xvoid  OS_SetPriority    (OS_TASK* pTask, unsigned char Prio);  
+Nvoid  OS_Suspend        (OS_TASK* pTask);  /* OS_Suspend.c          */
+Nvoid  OS_Terminate      (OS_TASK* pTask);  /* OSTerm.c              */
+Nvoid  OS_TerminateError (void);            /* OSTermE.c             */
+Nvoid  OS_WakeTask       (OS_TASK* pTask);  /* OSWake.c              */
+Nvoid  OS_Yield          (void);            /* OS_Yield              */
+N
+N#if OS_SUSPEND_TASK_ON_TERMINATE           /* Set task state of a terminated task to "suspended" */
+X#if (0)            
+S  #define OS_SUSPEND_TERMINATED_TASK(pTask) (pTask->Stat = 0x01)
+N#else
+N  #define OS_SUSPEND_TERMINATED_TASK(pTask)
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Info routines (OSInfo.c)
+N*
+N**********************************************************************
+N*/
+N
+Nconst char* OS_GetCPU(void);
+Nconst char* OS_GetLibMode(void);
+Nconst char* OS_GetModel(void);
+Nconst char* OS_GetLibName(void);
+N
+NOS_UINT OS_GetVersion(void);
+Xunsigned int OS_GetVersion(void);
+N#define OS_GetType() OS_GetLibMode()
+N
+N#define OS_TASKID OS_TASK *
+N#define OS_GetTaskID() OS_pCurrentTask
+N
+N#define OS_GetpCurrentTask()    OS_pCurrentTask
+N#define OS_GetpCurrentTimer()   OS_pCurrentTimer
+N#define OS_GetpCurrentTimerEx() ((OS_TIMER_EX*)OS_pCurrentTimer)
+N
+N#if OS_TRACKNAME
+X#if (1)
+N  const char* OS_GetTaskName(OS_TASK *);
+N#else
+S  #define OS_GetTaskName(pt)  ("n/a")
+N#endif
+N
+N#if OS_CHECKSTACK
+X#if 0
+S  void OS_CheckStack(void);              /* internal usage */
+S  int  OS_GetStackSpace(OS_TASK * pTask);
+S  int  OS_GetStackUsed (OS_TASK * pTask);
+S  int  OS_GetStackSize (OS_TASK OS_TCBPTR * pTask);
+S  void OS_STACKPTR* OS_GetStackBase(OS_TASK OS_TCBPTR *pTask);
+N#else
+N  #define OS_CheckStack()
+N  #define OS_GetStackSpace(pt) 0
+N  #define OS_GetStackUsed(pt)  0
+N  #define OS_GetStackSize(pt)  0
+N  #define OS_GetStackBase(pt)  0
+N#endif
+N
+NOS_STACK_ADR OS_GetSysStackBase(void);  /* RTOS asm part */
+Xunsigned int OS_GetSysStackBase(void);   
+Nunsigned int OS_GetSysStackSize(void);  /* RTOS asm part */
+NOS_STACK_ADR OS_GetIntStackBase(void);  /* RTOS asm part */
+Xunsigned int OS_GetIntStackBase(void);   
+Nunsigned int OS_GetIntStackSize(void);  /* RTOS asm part */
+N
+N#if OS_RR_SUPPORTED
+X#if (1)
+N  OS_U8 OS_SetTimeSlice(OS_TASK * pTask, OS_U8 TimeSlice);
+X  unsigned char OS_SetTimeSlice(OS_TASK * pTask, unsigned char TimeSlice);
+N  OS_U8 OS_GetTimeSliceRem(OS_TASK OS_TCBPTR * pTask);
+X  unsigned char OS_GetTimeSliceRem(OS_TASK  * pTask);
+N  #define OS_GetTimeSliceReload(pTask)  pTask->TimeSliceReload
+N#else
+S  #define OS_GetTimeSliceRem(pTask)     0
+S  #define OS_GetTimeSliceReload(pTask)  0
+N#endif
+N
+NOS_U8    OS_GetPriority(OS_TASK * pTask);  /* OS_GetPrio.c       */
+Xunsigned char    OS_GetPriority(OS_TASK * pTask);   
+N#define OS_GET_PRIORITY(pt) pt->Priority
+N
+Nint     OS_GetNumTasks(void);              /* OS_GetNumTasks.c   */
+N
+NOS_TASK* OS_TaskIndex2Ptr(int TaskIndex);  /* OS_TaskIndex2Ptr.c */
+N
+N#if OS_PROFILE >=1
+X#if 0 >=1
+S  OS_U32 OS_STAT_GetExecTime_Cycles (OS_TASK *pTask);  /* OSStat.c   */
+S  int    OS_STAT_GetLoad            (OS_TASK *pTask);  /* OSStatGL.c */
+S  void   OS_STAT_NotifyReadyStart   (OS_TASK *pTask);  /* OSStat.c   */
+S  void   OS_STAT_Sample(void);                         /* OSStat.c   */
+N#else
+N  #define OS_STAT_NotifyExecEnd()
+N  #define OS_STAT_GetExecTime_Cycles(pTask)   0
+N  #define OS_STAT_GetLoad(pTask)              0
+N  #define OS_STAT_Sample()
+N  #define OS_STAT_SetClocksPerUnit(ClocksPerUnit)
+N  #define OS_STAT_NOTIFYREADYSTART(pTask)
+N#endif
+N
+N
+N#if ((OS_PROFILE >= 1) || (OS_DEBUG > 0))  /* Also available in Debug build since V3.32b */
+X#if ((0 >= 1) || (0 > 0))   
+S  OS_U32 OS_STAT_GetNumActivations  (OS_TASK *pTask);  /* OSStat.c   */
+S  OS_U32 OS_STAT_GetNumPreemptions  (OS_TASK *pTask);  /* OSStat.c   */
+N#else
+N  #define OS_STAT_GetNumActivations(pTask)    0
+N  #define OS_STAT_GetNumPreemptions(pTask)    0
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Size info routines (OS_GetSize.c)
+N*
+N**********************************************************************
+N*/
+N
+Nint OS_WAIT_OBJ_GetSize(void);
+Nint OS_WAIT_OBJ_EX_GetSize(void);
+Nint OS_WAIT_LIST_GetSize(void);
+Nint OS_EXTEND_TASK_CONTEXT_GetSize(void);
+Nint OS_TASK_GetSize(void);
+Nint OS_REGS_GetSize(void);
+Nint OS_TIMER_GetSize(void);
+Nint OS_TIMER_EX_GetSize(void);
+Nint OS_TICK_HOOK_GetSize(void);
+Nint OS_RSEMA_GetSize(void);
+Nint OS_CSEMA_GetSize(void);
+Nint OS_MAILBOX_GetSize(void);
+Nint OS_Q_GetSize(void);
+Nint OS_MEMF_GetSize(void);
+Nint OS_EVENT_GetSize(void);
+Nint OS_TRACE_ENTRY_GetSize(void);
+N
+N/*********************************************************************
+N*
+N*       Critical regions (OsKern.c)
+N*
+N**********************************************************************
+N*/
+N
+N#define OS_EnterRegion() {OS_RegionCnt++; }
+Nvoid OS_LeaveRegion(void);
+N
+N/* Macro for OS_Leaveregion.
+N   Main purposes:
+N   - Used in OS-Kernel
+N   - Offers the high speed variant (macro) instead of the function call
+N*/
+N
+N#define OS_LEAVEREGION_STD()        \
+N  if (--OS_RegionCnt == 0) {        \
+N    OS_DI();                        \
+N    if (OS_Pending) {               \
+N      OS_RegionCnt = 1;             \
+N      OS_Switch();                  \
+N      OS_RegionCnt = 0;             \
+N    }                               \
+N    OS_RESTORE_I();                 \
+N  }
+X#define OS_LEAVEREGION_STD()          if (--OS_RegionCnt == 0) {            OS_DI();                            if (OS_Pending) {                     OS_RegionCnt = 1;                   OS_Switch();                        OS_RegionCnt = 0;                 }                                   OS_RESTORE_I();                   }
+N
+N#if OS_DEBUG
+X#if 0
+S #define OS_LEAVEREGION() \
+S   if (!OS_RegionCnt) OS_Error(OS_ERR_LEAVEREGION_BEFORE_ENTERREGION); \
+S   OS_LEAVEREGION_STD()
+X #define OS_LEAVEREGION()    if (!OS_RegionCnt) OS_Error(OS_ERR_LEAVEREGION_BEFORE_ENTERREGION);    OS_LEAVEREGION_STD()
+N#else
+N  #define OS_LEAVEREGION()  OS_LEAVEREGION_STD()
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Interrupt save/disable/restore macros
+N*
+N**********************************************************************
+N*/
+N#define OS_IncDI()       { OS_ASSERT_DICnt(); OS_DI(); OS_DICnt++; }
+N#define OS_DecRI()       { OS_ASSERT_DICnt(); if (--OS_DICnt==0) OS_EI(); }
+N#define OS_RESTORE_I()   { OS_ASSERT_DICnt(); if (OS_DICnt==0)   OS_EI(); }
+N
+Nvoid OS_RestoreI(void);  /* OS_Kern.c */
+N
+N/*********************************************************************
+N*
+N*       ISR (Interrupt service routine) support
+N*
+N**********************************************************************
+N*/
+N
+N#define RTOS_PPENDING           (1)     /*      Preemption  pending */
+N#define RTOS_TSPENDING          (2)     /*      Task switch pending */
+N#define RTOS_RRPENDING          (4)     /*      Round robin pending */
+N
+N
+N#ifndef   OS_SUPPORT_INT_PRIORITY
+S  #define OS_SUPPORT_INT_PRIORITY (1)
+N#endif
+N
+N#if OS_SUPPORT_INT_PRIORITY
+X#if (0)
+S  #ifndef   OS_IPL_EI_DEFAULT
+S    #error "Please define OS_IPL_EI_DEFAULT (OSChip.h)"
+S  #endif
+S
+S  #ifndef   OS_IPL_DI_DEFAULT
+S    #error "Please define OS_IPL_DI_DEFAULT (OSChip.h)"
+S  #endif
+S
+S  #if OS_COMPILER_STORAGE_MODIFIER_LEFT
+S    OS_EXTERN OS_SADDR unsigned int  OS_EXTERN_INIT(OS_Ipl_EI, OS_IPL_EI_DEFAULT);
+S    OS_EXTERN OS_SADDR unsigned int  OS_EXTERN_INIT(OS_Ipl_DI, OS_IPL_DI_DEFAULT);
+S  #else
+S    OS_EXTERN unsigned int OS_SADDR  OS_EXTERN_INIT(OS_Ipl_EI, OS_IPL_EI_DEFAULT);
+S    OS_EXTERN unsigned int OS_SADDR  OS_EXTERN_INIT(OS_Ipl_DI, OS_IPL_DI_DEFAULT);
+S  #endif
+N#endif
+N
+N#if OS_DEBUG
+X#if 0
+S  #define OS_MARK_IN_ISR()         {OS_InInt++;}
+S  #define OS_MARK_OUTOF_ISR()      {if (!OS_InInt--) OS_Error(OS_ERR_LEAVEINT);}
+N#else
+N  #define OS_MARK_IN_ISR()
+N  #define OS_MARK_OUTOF_ISR()
+N#endif
+N
+N#if OS_SUPPORT_CALL_ISR            // Not allowed for some CPUs
+X#if (1)            
+Nvoid OS_CallISR        (void (*pRoutine)(void));
+Nvoid OS_CallNestableISR(void (*pRoutine)(void));
+N#endif
+N
+N#if (OS_SWITCH_FROM_INT_MODIFIES_STACK == 0) && (OS_INTERRUPTS_ARE_NESTABLE_ON_ENTRY != 0) && (OS_SCHEDULER_ACTIVATED_BY_EXCEPTION == 0)
+X#if ((1) == 0) && ((0) != 0) && ((0) == 0)
+S  //
+S  // FOR CPUs without separate interrupt stack which do not disable interrupts on entry,
+S  // OS_Enter- / Leave- Interrupt() is not defined.
+S  // OS_CallISR() has to be used
+S  //
+N#else
+N
+N  #ifndef   OS_ENABLE_INTS_SAVE_IPL
+N    #define OS_ENABLE_INTS_SAVE_IPL() OS_EI()
+N  #endif
+N
+N  #ifndef   OS_RESTORE_IPL
+N    #define OS_RESTORE_IPL()
+N  #endif
+N
+N  #ifndef   OS_EI_ON_LEAVE
+N    #define OS_EI_ON_LEAVE()        // Required for CPUs with do not restore DI-flag by RETI. Currently only CM3.
+N  #endif
+N
+N  #if OS_INTERRUPTS_ARE_NESTABLE_ON_ENTRY
+X  #if (0)
+S    #define OS_DI_ON_ENTRY() OS_DI()
+N  #else
+N    #define OS_DI_ON_ENTRY()
+N  #endif
+N
+N  #if OS_SWITCH_FROM_INT_MODIFIES_STACK
+X  #if (1)
+N    #define OS_HANDLE_REGION_CNT_ON_LI()                                          \
+N      else {                                                                      \
+N        OS_RegionCnt--;                                                           \
+N      }
+X    #define OS_HANDLE_REGION_CNT_ON_LI()                                                else {                                                                              OS_RegionCnt--;                                                                 }
+N  #else
+S    #define OS_HANDLE_REGION_CNT_ON_LI()                                          \
+S      OS_RegionCnt--;
+X    #define OS_HANDLE_REGION_CNT_ON_LI()                                                OS_RegionCnt--;
+N  #endif
+N
+N
+N  #define OS_SWITCH_FROM_INT_IF_REQUIRED()                                      \
+N    if ((OS_RegionCnt == 1) && OS_Pending) {                                    \
+N      OS_SwitchFromInt();                                                       \
+N    }
+X  #define OS_SWITCH_FROM_INT_IF_REQUIRED()                                          if ((OS_RegionCnt == 1) && OS_Pending) {                                          OS_SwitchFromInt();                                                           }
+N
+N  #define OS_EnterInterrupt() { \
+N    OS_DI_ON_ENTRY();           \
+N    OS_MARK_IN_ISR();           \
+N    OS_RegionCnt++;             \
+N    OS_DICnt++;                 \
+N  }
+X  #define OS_EnterInterrupt() {     OS_DI_ON_ENTRY();               OS_MARK_IN_ISR();               OS_RegionCnt++;                 OS_DICnt++;                   }
+N
+N  #define OS_LeaveInterrupt() {                                                 \
+N    OS_MARK_OUTOF_ISR();                                                        \
+N    OS_DICnt--; /* Must have been zero initially ! (We could put =0 instead) */ \
+N    OS_SWITCH_FROM_INT_IF_REQUIRED()                                            \
+N    OS_HANDLE_REGION_CNT_ON_LI();                                               \
+N    OS_EI_ON_LEAVE();                                                           \
+N  }
+X  #define OS_LeaveInterrupt() {                                                     OS_MARK_OUTOF_ISR();                                                            OS_DICnt--;       OS_SWITCH_FROM_INT_IF_REQUIRED()                                                OS_HANDLE_REGION_CNT_ON_LI();                                                   OS_EI_ON_LEAVE();                                                             }
+N
+N  #define OS_LeaveInterruptNoSwitch() { \
+N    OS_MARK_OUTOF_ISR();                \
+N    OS_DICnt--;                         \
+N    OS_RegionCnt--;                     \
+N    OS_EI_ON_LEAVE();                   \
+N  }
+X  #define OS_LeaveInterruptNoSwitch() {     OS_MARK_OUTOF_ISR();                    OS_DICnt--;                             OS_RegionCnt--;                         OS_EI_ON_LEAVE();                     }
+N
+N  #define OS_EnterNestableInterrupt() { \
+N    OS_MARK_IN_ISR();                   \
+N    OS_RegionCnt++;                     \
+N    OS_ENABLE_INTS_SAVE_IPL();          \
+N  }
+X  #define OS_EnterNestableInterrupt() {     OS_MARK_IN_ISR();                       OS_RegionCnt++;                         OS_ENABLE_INTS_SAVE_IPL();            }
+N
+N  #define OS_LeaveNestableInterrupt() {                                         \
+N    OS_DI();                                                                    \
+N    OS_MARK_OUTOF_ISR();                                                        \
+N    OS_SWITCH_FROM_INT_IF_REQUIRED()                                            \
+N    OS_HANDLE_REGION_CNT_ON_LI();                                               \
+N    OS_RESTORE_IPL();                                                           \
+N    OS_EI_ON_LEAVE();                                                           \
+N  }
+X  #define OS_LeaveNestableInterrupt() {                                             OS_DI();                                                                        OS_MARK_OUTOF_ISR();                                                            OS_SWITCH_FROM_INT_IF_REQUIRED()                                                OS_HANDLE_REGION_CNT_ON_LI();                                                   OS_RESTORE_IPL();                                                               OS_EI_ON_LEAVE();                                                             }
+N
+N  #define OS_LeaveNestableInterruptNoSwitch() { \
+N    OS_DI();                                    \
+N    OS_MARK_OUTOF_ISR();                        \
+N    OS_RegionCnt--;                             \
+N    OS_RESTORE_IPL();                           \
+N    OS_EI_ON_LEAVE();                           \
+N  }
+X  #define OS_LeaveNestableInterruptNoSwitch() {     OS_DI();                                        OS_MARK_OUTOF_ISR();                            OS_RegionCnt--;                                 OS_RESTORE_IPL();                               OS_EI_ON_LEAVE();                             }
+N#endif
+N
+N#ifndef OS_EnterIntStack
+S  void OS__EnterIntStack(void);
+S  #define OS_EnterIntStack() {OS_DI(); OS__EnterIntStack(); OS_RESTORE_I(); }
+N#endif
+N
+N#ifndef OS_LeaveIntStack
+S  void OS__LeaveIntStack(void);
+S  #define OS_LeaveIntStack() {OS_DI(); OS__LeaveIntStack(); }
+N#endif
+N
+Nvoid OS_SetFastIntPriorityLimit(OS_UINT Priority);
+Xvoid OS_SetFastIntPriorityLimit(unsigned int Priority);
+N
+N/*********************************************************************
+N*
+N*       Resource semaphores
+N*
+N**********************************************************************
+N*/
+N
+Nint      OS_Use             (OS_RSEMA * pRSema); /* OSRsem.c   */
+Nvoid     OS_Unuse           (OS_RSEMA * pRSema); /* OSRsem.c   */
+Nchar     OS_Request         (OS_RSEMA * pRSema); /* OSRsemRQ.c */
+Nint      OS_GetSemaValue    (OS_RSEMA * pRSema); /* OSRSemGV.c */
+NOS_TASK* OS_GetResourceOwner(OS_RSEMA * pRSema); /* OSRsemGO.c */
+N
+Nvoid     OS_CreateRSema     (OS_RSEMA * pRSema); /* OSRsem.c   */
+Nvoid     OS_DeleteRSema     (OS_RSEMA * pRSema); /* OSDelRS.c  */
+N
+N#define  OS_CREATERSEMA(ps) OS_CreateRSema(ps)
+N
+N/*********************************************************************
+N*
+N*       Counting semaphores
+N*
+N**********************************************************************
+N*/
+N
+Nvoid  OS_CreateCSema    (OS_CSEMA * pCSema, OS_UINT InitValue);  /* OSCSEM.c             */
+Xvoid  OS_CreateCSema    (OS_CSEMA * pCSema, unsigned int InitValue);   
+Nvoid  OS_DeleteCSema    (OS_CSEMA * pCSema);                     /* OSDELCS.c            */
+Nint   OS_GetCSemaValue  (OS_CSEMA * pCSema);                     /* OSCSEMGV.c           */
+NOS_U8 OS_SetCSemaValue  (OS_CSEMA * pCSema, OS_UINT value);      /* OS_SetCSemaValue.c   */
+Xunsigned char OS_SetCSemaValue  (OS_CSEMA * pCSema, unsigned int value);       
+Nvoid  OS_SignalCSema    (OS_CSEMA * pCSema);                     /* OSCSEM.c             */
+Nvoid  OS_SignalCSemaMax (OS_CSEMA * pCSema, OS_UINT MaxValue);   /* OS_CSEMA_SignalMax.c */
+Xvoid  OS_SignalCSemaMax (OS_CSEMA * pCSema, unsigned int MaxValue);    
+Nvoid  OS_WaitCSema      (OS_CSEMA * pCSema);                     /* OSCSEM.c             */
+Nint   OS_WaitCSemaTimed (OS_CSEMA * pCSema, OS_TIME TimeOut);    /* OSCSEMT.c            */
+Xint   OS_WaitCSemaTimed (OS_CSEMA * pCSema, int TimeOut);     
+Nchar  OS_CSemaRequest   (OS_CSEMA * pCSema);                     /* OSCSEMRQ.c           */
+N
+N#define OS_CREATECSEMA(ps) OS_CreateCSema(ps,0)
+N
+N/*********************************************************************
+N*
+N*       Mailboxes
+N*
+N**********************************************************************
+N*/
+N#define CREATEMB(MAILBOX, size, max, Buffer) OS_CreateMB(MAILBOX,size, max, Buffer);
+Nvoid OS_CreateMB          (OS_MAILBOX * pMB, OS_U8 sizeofMsg, OS_UINT maxnofMsg, void* Buffer);    /* initialize mailbox */
+Xvoid OS_CreateMB          (OS_MAILBOX * pMB, unsigned char sizeofMsg, unsigned int maxnofMsg, void* Buffer);     
+Nvoid OS_ClearMB           (OS_MAILBOX * pMB);
+Nvoid OS_PutMail           (OS_MAILBOX * pMB, void* pMail);
+Nchar OS_PutMailCond       (OS_MAILBOX * pMB, void* pMail);
+Nvoid OS_PutMailFront      (OS_MAILBOX * pMB, void* pMail);
+Nchar OS_PutMailFrontCond  (OS_MAILBOX * pMB, void* pMail);
+Nvoid OS_GetMail           (OS_MAILBOX * pMB, void* pDest);
+Nchar OS_GetMailCond       (OS_MAILBOX * pMB, void* pDest);
+Nvoid OS_PutMail1          (OS_MAILBOX * pMB, const char* pMail);
+Nchar OS_PutMailCond1      (OS_MAILBOX * pMB, const char* pMail);
+Nvoid OS_PutMailFront1     (OS_MAILBOX * pMB, const char* pMail);
+Nchar OS_PutMailFrontCond1 (OS_MAILBOX * pMB, const char* pMail);
+Nvoid OS_GetMail1          (OS_MAILBOX * pMB, char* pDest);
+Nchar OS_GetMailCond1      (OS_MAILBOX * pMB, char* pDest);
+Nchar OS_GetMailTimed      (OS_MAILBOX * pMB, void* pDest, OS_TIME Timeout);
+Xchar OS_GetMailTimed      (OS_MAILBOX * pMB, void* pDest, int Timeout);
+Nvoid OS_DeleteMB          (OS_MAILBOX * pMB);
+Nvoid OS_WaitMail          (OS_MAILBOX * pMB);
+N
+N#if OS_DEBUG == 0
+X#if 0 == 0
+N  #define OS_GetMessageCnt(pMB) (*pMB).nofMsg
+N#else
+S  OS_UINT OS_GetMessageCnt(OS_MAILBOX * pMB);   /* get no. of available Messages */
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Message Queues (OSQ.c)
+N*
+N**********************************************************************
+N*/
+N
+Nvoid    OS_Q_Create       (OS_Q* pQ, void*pData, OS_UINT Size);
+Xvoid    OS_Q_Create       (OS_Q* pQ, void*pData, unsigned int Size);
+Nvoid    OS_Q_Clear        (OS_Q* pQ);                                /* OSQCL.c  */
+Nint     OS_Q_GetMessageCnt(OS_Q* pQ);                                /* OSQGMC.c */
+Nint     OS_Q_Put          (OS_Q* pQ, const void* pSrc, OS_UINT Size);
+Xint     OS_Q_Put          (OS_Q* pQ, const void* pSrc, unsigned int Size);
+Nint     OS_Q_GetPtr       (OS_Q* pQ, void**ppData);
+Nint     OS_Q_GetPtrCond   (OS_Q* pQ, void**ppData);                  /* OSQGPC.c */
+Nint     OS_Q_GetPtrTimed  (OS_Q* pQ, void**ppData, OS_TIME Timeout); /* OSQGPT.c */
+Xint     OS_Q_GetPtrTimed  (OS_Q* pQ, void**ppData, int Timeout);  
+Nvoid    OS_Q_Purge        (OS_Q* pQ);
+N
+N/*********************************************************************
+N*
+N*       Events
+N*
+N**********************************************************************
+N*/
+N
+Nchar OS_ClearEvents          (OS_TASK * pTask);                 /* OSEVENCL.c  */
+Nchar OS_GetEventsOccured     (OS_TASK * pTask);                 /* OSEVENGE.c  */
+Nvoid OS_SignalEvent          (char Event, OS_TASK * pTask);     /* OSENENS.c   */
+Nchar OS_WaitEvent            (char EventMask);                  /* OSEVENW.c   */
+Nchar OS_WaitEventTimed       (char EventMask, OS_TIME TimeOut); /* OSEVENT.c   */
+Xchar OS_WaitEventTimed       (char EventMask, int TimeOut);  
+Nchar OS_WaitSingleEvent      (char EventMask);                  /* OSEVENWS.c  */
+Nchar OS_WaitSingleEventTimed (char EventMask, OS_TIME TimeOut); /* OSEVENWST.c */
+Xchar OS_WaitSingleEventTimed (char EventMask, int TimeOut);  
+N
+N/*********************************************************************
+N*
+N*       Timers(OSTIME.c)
+N*
+N**********************************************************************
+N*/
+N
+N#ifdef OS_SIZEOF_INT
+N  #if OS_SIZEOF_INT == 2
+X  #if (4) == 2
+S    #define OS_TIMER_MAX_TIME 0x7F00
+N  #elif OS_SIZEOF_INT == 4
+X  #elif (4) == 4
+N    #define OS_TIMER_MAX_TIME 0x7FFFFF00
+N  #else
+S    #error "OS_SIZEOF_INT not correctly defined"
+N  #endif
+N#endif
+N
+Nvoid    OS_CreateTimer    (OS_TIMER * pTimer, OS_TIMERROUTINE* Callback, OS_TIME Timeout);
+Xvoid    OS_CreateTimer    (OS_TIMER * pTimer, OS_TIMERROUTINE* Callback, int Timeout);
+Nvoid    OS_RetriggerTimer (OS_TIMER * pTimer);
+Nvoid    OS_StartTimer     (OS_TIMER * pTimer);
+Nvoid    OS_StopTimer      (OS_TIMER * pTimer);
+Nvoid    OS_DeleteTimer    (OS_TIMER * pTimer);                  /* OSTIMED.c  */
+NOS_TIME OS_GetTimerPeriod (OS_TIMER * pTimer);                  /* OSTIMEGP.c */
+Xint OS_GetTimerPeriod (OS_TIMER * pTimer);                   
+NOS_U8   OS_GetTimerStatus (OS_TIMER * pTimer);                  /* OSTIMEGS.c */
+Xunsigned char   OS_GetTimerStatus (OS_TIMER * pTimer);                   
+NOS_TIME OS_GetTimerValue  (OS_TIMER * pTimer);                  /* OSTIMEGV.c */
+Xint OS_GetTimerValue  (OS_TIMER * pTimer);                   
+Nvoid    OS_SetTimerPeriod (OS_TIMER * pTimer, OS_TIME Period);  /* OSTIMES.c  */
+Xvoid    OS_SetTimerPeriod (OS_TIMER * pTimer, int Period);   
+N
+N#define OS_CREATETIMER(pTimer,c,d)  \
+N        OS_CreateTimer(pTimer,c,d); \
+N        OS_StartTimer(pTimer);
+X#define OS_CREATETIMER(pTimer,c,d)          OS_CreateTimer(pTimer,c,d);         OS_StartTimer(pTimer);
+N
+N/*********************************************************************
+N*
+N*       Extended timers (OSTIMERX.c)
+N*
+N**********************************************************************
+N*/
+Nvoid    OS_CreateTimerEx (OS_TIMER_EX * pTimerEx, OS_TIMER_EX_ROUTINE* Callback, OS_TIME Timeout, void * pData);
+Xvoid    OS_CreateTimerEx (OS_TIMER_EX * pTimerEx, OS_TIMER_EX_ROUTINE* Callback, int Timeout, void * pData);
+N
+N#define OS_RetriggerTimerEx(pTimerEx)         OS_RetriggerTimer(&(pTimerEx)->Timer)
+N#define OS_StartTimerEx(pTimerEx)             OS_StartTimer(&(pTimerEx)->Timer)
+N#define OS_StopTimerEx(pTimerEx)              OS_StopTimer(&(pTimerEx)->Timer)
+N#define OS_DeleteTimerEx(pTimerEx)            OS_DeleteTimer(&(pTimerEx)->Timer)
+N#define OS_GetTimerPeriodEx(pTimerEx)         OS_GetTimerPeriod(&(pTimerEx)->Timer)
+N#define OS_GetTimerStatusEx(pTimerEx)         OS_GetTimerStatus(&(pTimerEx)->Timer)
+N#define OS_GetTimerValueEx(pTimerEx)          OS_GetTimerValue(&(pTimerEx)->Timer)
+N#define OS_SetTimerPeriodEx(pTimerEx,Period)  OS_SetTimerPeriod(&(pTimerEx)->Timer, Period)
+N
+N#define OS_CREATETIMER_EX(pTimerEx,cb,Timeout,pData) \
+N        OS_CreateTimerEx(pTimerEx,cb,Timeout,pData); \
+N        OS_StartTimerEx(pTimerEx)
+X#define OS_CREATETIMER_EX(pTimerEx,cb,Timeout,pData)         OS_CreateTimerEx(pTimerEx,cb,Timeout,pData);         OS_StartTimerEx(pTimerEx)
+N
+N/*********************************************************************
+N*
+N*       Heap type memory management (OS_Alloc.c)
+N*
+N**********************************************************************
+N
+N  This functions might not be implemented in all OS ports.
+N  Therefore declaration depends on condition OS_SUPPORT_OS_ALLOC
+N  which has to be defined in CPU specific part
+N
+N*/
+N
+N#if OS_SUPPORT_OS_ALLOC
+X#if (1)
+N  void* OS_malloc(unsigned int);
+N  void  OS_free  (void* pMemBlock);
+N  void* OS_realloc  (void* pMemBlock, unsigned NewSize);
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Fixed Block memory management
+N*
+N**********************************************************************
+N*/
+N
+Nvoid  OS_MEMF_Create(OS_MEMF* pMEMF, void* pPool, OS_U16 NumBlocks, OS_U16 BlockSize);
+Xvoid  OS_MEMF_Create(OS_MEMF* pMEMF, void* pPool, unsigned short NumBlocks, unsigned short BlockSize);
+Nvoid  OS_MEMF_Delete(OS_MEMF* pMEMF);
+Nvoid* OS_MEMF_Alloc(OS_MEMF* pMEMF, int Purpose);
+Nvoid* OS_MEMF_AllocTimed(OS_MEMF* pMEMF, OS_TIME Timeout, int Purpose);
+Xvoid* OS_MEMF_AllocTimed(OS_MEMF* pMEMF, int Timeout, int Purpose);
+Nvoid* OS_MEMF_Request(OS_MEMF* pMEMF, int Purpose);
+Nvoid  OS_MEMF_Release(OS_MEMF* pMEMF, void* pMemBlock);
+Nvoid  OS_MEMF_FreeBlock(void* pMemBlock);
+Nint   OS_MEMF_GetNumFreeBlocks(OS_MEMF* pMEMF);
+Nchar  OS_MEMF_IsInPool(OS_MEMF* pMEMF, void* pMemBlock);
+Nint   OS_MEMF_GetMaxUsed(OS_MEMF* pMEMF);
+Nint   OS_MEMF_GetNumBlocks(OS_MEMF* pMEMF);
+Nint   OS_MEMF_GetBlockSize(OS_MEMF* pMEMF);
+N
+N/*********************************************************************
+N*
+N*       Event object module
+N*
+N**********************************************************************
+N*/
+N
+N/****** Simple OS_EVENT functions ************************************/
+N
+Nvoid  OS_EVENT_Create    (OS_EVENT* pEvent);
+Nvoid  OS_EVENT_Delete    (OS_EVENT* pEvent);
+N
+NOS_U8 OS_EVENT_Get       (OS_EVENT* pEvent);
+Xunsigned char OS_EVENT_Get       (OS_EVENT* pEvent);
+Nvoid  OS_EVENT_Pulse     (OS_EVENT* pEvent);
+Nvoid  OS_EVENT_Reset     (OS_EVENT* pEvent);
+Nvoid  OS_EVENT_Set       (OS_EVENT* pEvent);
+Nvoid  OS_EVENT_Wait      (OS_EVENT* pEvent);
+Nchar  OS_EVENT_WaitTimed (OS_EVENT* pEvent, OS_TIME Timeout);
+Xchar  OS_EVENT_WaitTimed (OS_EVENT* pEvent, int Timeout);
+N
+N/*********************************************************************
+N*
+N*       Timing support (OSTiming.c)
+N*
+N**********************************************************************
+N
+N New in V3.04, but not yet documented to the end user. Great for
+N run-time measurement.
+N*/
+N
+N#define OS_TIMING OS_U32
+Nvoid    OS_Timing_Start(OS_TIMING* pCycle);
+Xvoid    OS_Timing_Start(unsigned int* pCycle);
+Nvoid    OS_Timing_End(OS_TIMING* pCycle);
+Xvoid    OS_Timing_End(unsigned int* pCycle);
+NOS_U32  OS_Timing_Getus(OS_TIMING* pCycle);
+Xunsigned int  OS_Timing_Getus(unsigned int* pCycle);
+N#define OS_Timing_GetCycles(pPara) (*pPara)
+N
+N
+N/*********************************************************************
+N*
+N*       OS Power control module OS_Power.c
+N*
+N**********************************************************************
+N*/
+N#if OS_SUPPORT_POWER
+X#if (1)
+N#define OS_POWER_LEVEL0  (0x0001)
+N#define OS_POWER_LEVEL1  (0x0002)
+N#define OS_POWER_LEVEL2  (0x0004)
+N#define OS_POWER_LEVEL3  (0x0008)
+N#define OS_POWER_LEVEL4  (0x0010)
+N#define OS_POWER_LEVEL5  (0x0020)
+N#define OS_POWER_LEVEL6  (0x0040)
+N#define OS_POWER_LEVEL8  (0x0080)
+N
+Nvoid    OS_POWER_UsageInc(OS_UINT Level);
+Xvoid    OS_POWER_UsageInc(unsigned int Level);
+Nvoid    OS_POWER_UsageDec(OS_UINT Level);
+Xvoid    OS_POWER_UsageDec(unsigned int Level);
+NOS_UINT OS_POWER_GetMask(void);
+Xunsigned int OS_POWER_GetMask(void);
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Advanced profiling support (Module OsKern.c)
+N*
+N**********************************************************************
+N*/
+N#if OS_PROFILE >= 1
+X#if 0 >= 1
+S  void OS_EnableProfiling(int Period);
+S  #define OS_DisableProfiling() { OS_ProfilingOn=0; }
+N#else
+N  #define OS_EnableProfiling(Period);
+N  #define OS_DisableProfiling()
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Configuration
+N*
+N**********************************************************************
+N*/
+N
+N#define OS_CONFIG_FRACT(f, div)                    \
+N  OS_TicksPerMS  = f/1000;                         \
+N  OS_IntMSInc    = div*1000L/f;                    \
+N  OS_IntTicksInc = div-(f/1000)*(div*1000L/f);
+X#define OS_CONFIG_FRACT(f, div)                      OS_TicksPerMS  = f/1000;                           OS_IntMSInc    = div*1000L/f;                      OS_IntTicksInc = div-(f/1000)*(div*1000L/f);
+N
+N#define OS_CONFIG(f, div)     \
+N  OS_IntMSInc    = div*1000L/f;
+X#define OS_CONFIG(f, div)       OS_IntMSInc    = div*1000L/f;
+N
+N
+N/*********************************************************************
+N*
+N*       Trace support (OSTrace.c)
+N*
+N**********************************************************************
+N
+NTrace support is enabled by defining OS_TRACE 1.
+NThis is automatically done, when OS_LIBMODE_T is defined.
+N
+N*/
+N
+N#if OS_TRACE
+X#if 0
+S  /* Declare trace function prototypes */
+S  void OS_TraceVoid (OS_U8 id);
+S  void OS_TracePtr  (OS_U8 id, void* p);
+S  void OS_TraceData (OS_U8 id, int v);
+S  void OS_TraceDataPtr (OS_U8 id, int v, void*p);
+S  void OS_TraceU32Ptr  (OS_U8 id, OS_U32 p0, void*p1);
+S  void OS_TraceEnable(void);
+S  void OS_TraceDisable(void);
+S  void OS_TraceEnableAll(void);                              /* OSTrace1.c */
+S  void OS_TraceDisableAll(void);                             /* OSTrace1.c */
+S  void OS_TraceEnableId(OS_U8 id);                           /* OSTrace1.c */
+S  void OS_TraceDisableId(OS_U8 id);                          /* OSTrace1.c */
+S  void OS_TraceEnableFilterId(OS_U8 FilterIndex, OS_U8 id);  /* OSTrace1.c */
+S  void OS_TraceDisableFilterId(OS_U8 FilterIndex, OS_U8 id); /* OSTrace1.c */
+S
+S  /* Trace function macros, used in API functions */
+S  #define OS_TRACE_VOID(id)            OS_TraceVoid(id)
+S  #define OS_TRACE_PTR(id, p)          OS_TracePtr(id, p)
+S  #define OS_TRACE_DATA(id, v)         OS_TraceData(id, v)
+S  #define OS_TRACE_DATA_PTR(id, v, p)  OS_TraceDataPtr(id, v, p)
+S  #define OS_TRACE_U32_PTR(id, p0, p1) OS_TraceU32Ptr(id, p0, p1)
+S
+S  #define OS_TRACE_START()                    { OS_EnterRegion();                                }
+S  #define OS_TRACE_START_VOID(id)             { OS_EnterRegion(); OS_TraceVoid(id);              }
+S  #define OS_TRACE_START_PTR(id, p)           { OS_EnterRegion(); OS_TracePtr(id, p);            }
+S  #define OS_TRACE_START_DATA(id, v)          { OS_EnterRegion(); OS_TraceData(id, v);           }
+S  #define OS_TRACE_START_DATA_PTR(id, v, p)   { OS_EnterRegion(); OS_TraceDataPtr(id, v, p);     }
+S  #define OS_TRACE_START_U32_PTR(id, p0, p1)  { OS_EnterRegion(); OS_TraceU32Ptr(id, u, p);      }
+S  #define OS_TRACE_END()                      { OS_LeaveRegion();                                }
+S
+N#else
+N  /* Replace trace functions by empty macros if trace is not enabled */
+N  #define OS_TraceVoid(id)
+N  #define OS_TracePtr(id, p)
+N  #define OS_TraceData(id, v)
+N  #define OS_TraceDataPtr(id, v, p)
+N  #define OS_TraceU32Ptr(id, p0, p1)
+N  #define OS_TraceEnable()
+N  #define OS_TraceDisable()
+N  #define OS_TraceEnableAll()
+N  #define OS_TraceDisableAll()
+N  #define OS_TraceEnableId(id)
+N  #define OS_TraceDisableId(id)
+N  #define OS_TraceEnableFilterId(FilterIndex, id)
+N  #define OS_TraceDisableFilterId(FilterIndex, id)
+N  /* Trace function macros, used in API functions. */
+N  /* Expand to nothing if trace is disabled       */
+N  #define OS_TRACE_VOID(id)
+N  #define OS_TRACE_PTR(id, p)
+N  #define OS_TRACE_DATA(id, v)
+N  #define OS_TRACE_DATA_PTR(id, v, p)
+N  #define OS_TRACE_U32_PTR(id, p0, p1)
+N
+N  #define OS_TRACE_START()
+N  #define OS_TRACE_START_VOID(id)
+N  #define OS_TRACE_START_PTR(id, p)
+N  #define OS_TRACE_START_DATA(id, v)
+N  #define OS_TRACE_START_DATA_PTR(id, v, p)
+N  #define OS_TRACE_START_U32_PTR(id, p0, p1)
+N  #define OS_TRACE_END()
+N#endif
+N
+N/*********************************************************************
+N*
+N*        RTOSInit and misc.
+N*
+N**********************************************************************
+N
+NThe routines declared below are available on all targets.
+N
+N*/
+N
+N/* Routines in RTOSInit.c */
+Nvoid   OS_InitHW(void);
+Nvoid   OS_Idle(void);
+NOS_U32 OS_ConvertCycles2us(OS_U32 Cycles);
+Xunsigned int OS_ConvertCycles2us(unsigned int Cycles);
+NOS_U32 OS_GetTime_Cycles(void);
+Xunsigned int OS_GetTime_Cycles(void);
+Nvoid   OS_COM_Init(void);
+Nvoid   OS_COM_Send1(unsigned char c);
+N
+N/* Routines in OS_Error.c, delivered as source file */
+Nvoid   OS_Error(int code);
+N
+NOS_INTERWORK void  OS_Start(void);                  /* RTOS ASM part   */
+X void  OS_Start(void);                   
+NOS_INTERWORK void  OS_Switch(void);                 /* RTOS ASM part   */
+X void  OS_Switch(void);                  
+NOS_INTERWORK int   OS_SwitchFromInt(void);          /* RTOS ASM part   */
+X int   OS_SwitchFromInt(void);           
+N
+Nvoid  OS_InitKern(void);             /* OSKern.c        */
+NOS_U8 OS_OnTx(void);                 /* OSComRxTx1.c, Returns 1 on last byte */
+Xunsigned char OS_OnTx(void);                  
+Nvoid  OS_OnRx(unsigned char c);      /* OSComRxTx1.c    */
+Nvoid  OS_Send1(OS_U8 c);             /* not implemented */
+Xvoid  OS_Send1(unsigned char c);              
+Nvoid  OS_SendString(const char* s);  /* OSSend.c        */
+NOS_RX_CALLBACK* OS_SetRxCallback(OS_RX_CALLBACK* cb);
+NOS_U8 OS_EvaPacketEx(const OS_U8 * pSrc, OS_U16 SrcLen, OS_U8** pReturn);  /* OS_EvaPacketEx.c */
+Xunsigned char OS_EvaPacketEx(const unsigned char * pSrc, unsigned short SrcLen, unsigned char** pReturn);   
+N
+Nvoid  OS_COM_ClearTxActive(void);    /* OSCom2.c */
+N
+N/*********************************************************************
+N*
+N*        RTOS misc. optional
+N*
+N**********************************************************************
+N
+NThe routines declared below are available on some targets
+Nonly. (Because they do not make much sense on others)
+N*/
+N
+N/* Timing routines. Their existance depends on the CPU. In general,
+N  8-bit CPUs require both routines, where 16-bit CPUs require one
+N  and 32-bit CPUs require none of these.
+N*/
+N#ifndef OS_GetTime
+S  OS_TIME OS_GetTime(void);
+N#endif
+N#ifndef OS_GetTime32
+S  #if (OS_SIZEOF_INT == 4)
+S    #define OS_GetTime32() (OS_Time)
+S  #else
+S    OS_I32 OS_GetTime32(void);
+S  #endif
+N#endif
+N
+Nvoid OS__di(void);
+Nvoid OS__ei(void);
+Nvoid OS__SaveIPL(void);
+Nvoid OS__RestIPL(void);
+Nvoid OS_SIM_Init(void);
+N
+N/* Standard tick handler which increment OS time variable by one on each interrupt */
+Nvoid OS_HandleTick(void);       /* New version of OS_TickHandler() without Enter- Leave-Interrupt    */
+Nvoid OS_HandleTickDI(void);     /* OSTickDI.c */
+N
+N/* Non standard tick handler which increment the OS time variable by OS_IntMsInc once on each interrupt */
+N/* One of these handler has to be used when OS_CONFIG() is used to set a tick increment unequal to 0    */
+Nvoid OS_HandleTick_Ex(void);    /* OS_HandleTick_Ex.c */
+Nvoid OS_HandleTickDI_Ex(void);  /* OSTickDI_Ex.c      */
+N
+Nvoid OS_AddTickHook(OS_TICK_HOOK* pHook, OS_TICK_HOOK_ROUTINE * pfUser);
+Nvoid OS_RemoveTickHook(OS_TICK_HOOK* pHook);
+N
+N/* Routines for the PC-version running in native mode (non-windows) */
+Nvoid OS_SetIntFreq(OS_UINT f);
+Xvoid OS_SetIntFreq(unsigned int f);
+Nvoid OS_Exit(int code);
+Nvoid OS_UseDos(void);
+Nvoid OS_UnuseDos(void);
+Nint  OS_GetKey(void);
+Nint  OS_WaitKey(void);
+N
+N/* Compatibility with manual */
+N#define OS_CREATEMB          OS_CreateMB
+N#define OS_GetUseCnt         OS_GetSemaValue
+N#define OS_WaitCSema_Timed   OS_WaitCSemaTimed
+N#define OS_WaitEvent_Timed   OS_WaitEventTimed
+N
+N/********************************************************************/
+N
+N#ifdef __cplusplus
+S  }
+N#endif
+N
+N#endif /* RTOS_H_INCLUDED */
+N
+N/*****  EOF  ********************************************************/
+N
+L 22 "USB\USB_OS_embOS.c" 2
+N
+N/*********************************************************************
+N*
+N*       Static data
+N*
+N**********************************************************************
+N*/
+Nstatic OS_EVENT _aEvent[USB_NUM_EPS];
+Xstatic OS_EVENT _aEvent[8];
+N
+N/*********************************************************************
+N*
+N*       Public code
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       USB_OS_Init
+N*
+N*  Function description:
+N*    This function shall initialize all event objects that are necessary.
+N*
+N*/
+Nvoid USB_OS_Init(void) {
+N  unsigned i;
+N
+N  for (i = 0; i < COUNTOF(_aEvent); i++) {
+X  for (i = 0; i < (sizeof(_aEvent)/sizeof(_aEvent[0])); i++) {
+N    OS_EVENT_Create(&_aEvent[i]);
+N  }
+N}
+N
+N
+N/**********************************************************
+N*
+N*       USB_OS_Delay
+N*
+N* Function description
+N*   Delays for a given number of ms.
+N*
+N*/
+Nvoid USB_OS_Delay(int ms) {
+N  OS_Delay(ms);
+N}
+N
+N/**********************************************************
+N*
+N*       USB_OS_DecRI
+N*
+N* Function description
+N*   Decrement interrupt disable count and enable interrupts
+N*   if counter reaches 0.
+N*
+N*/
+Nvoid USB_OS_DecRI(void) {
+N  OS_DecRI();
+X  { ; if (--OS_Counters . Cnt . DI==0) __enable_irq(); };
+N}
+N
+N/**********************************************************
+N*
+N*        USB_OS_IncDI
+N*
+N* Function description
+N*   Increment interrupt disable count and disable interrupts
+N*
+N*/
+Nvoid   USB_OS_IncDI(void) {
+N  OS_IncDI();
+X  { ; __disable_irq(); OS_Counters . Cnt . DI++; };
+N}
+N
+N/**********************************************************
+N*
+N*       USB_OS_Signal
+N*
+N* Function description
+N*   Wake the task waiting for reception
+N*   This routine is typically called from within an interrupt
+N*   service routine
+N*
+N*/
+Nvoid USB_OS_Signal(unsigned EPIndex) {
+N  OS_EVENT_Pulse(&_aEvent[EPIndex]);
+N}
+N
+N/**********************************************************
+N*
+N*        USB_OS_Wait
+N*
+N* Function description
+N*   Block the task until USB_OS_SignalRx is called
+N*   This routine is called from a task.
+N*
+N*/
+Nvoid USB_OS_Wait(unsigned EPIndex) {
+N  OS_EVENT_Wait(&_aEvent[EPIndex]);
+N}
+N
+N/**********************************************************
+N*
+N*        USB_OS_WaitTimed
+N*
+N* Function description
+N*   Block the task until USB_OS_Signal is called 
+N*   or a time out occurs
+N*   This routine is called from a task.
+N*
+N*/
+Nint USB_OS_WaitTimed(unsigned EPIndex, unsigned ms) {
+N  int r;
+N  r = (int)OS_EVENT_WaitTimed(&_aEvent[EPIndex], ms + 1);
+N  return r;
+N}
+N
+N/**********************************************************
+N*
+N*        USB_OS_Panic
+N*
+N* Function description
+N*   Called if fatal error is detected.
+N*
+N* Add. info
+N*   Error codes:
+N*     1   USB_ERROR_RX_OVERFLOW
+N*     2   USB_ERROR_ILLEGAL_MAX_PACKET_SIZE
+N*     3   USB_ERROR_ILLEGAL_EPADDR
+N*     4   USB_ERROR_IBUFFER_SIZE_TOO_SMALL
+N*/
+Nvoid USB_OS_Panic(unsigned ErrCode) {
+N  while (ErrCode);
+N}
+N
+N/**********************************************************
+N*
+N*        USB_OS_GetTickCnt
+N*
+N* Function description
+N*   Returns the current system time in ticks.
+N*/
+NU32 USB_OS_GetTickCnt(void) {
+Xunsigned long USB_OS_GetTickCnt(void) {
+N  return OS_Time;
+N}
+N
+N/*************************** End of file ****************************/

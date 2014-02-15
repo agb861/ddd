@@ -1,0 +1,55 @@
+;
+;   Device installation file for 
+;   USB 2 COM port emulation
+;
+;
+;
+[Version] 
+Signature="$Windows NT$"
+Class=Ports
+ClassGuid={4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider=%MFGNAME%
+LayoutFile=layout.inf
+DriverVer=01/28/2009,6.0.2600.2
+CatalogFile=usbser.cat
+
+[Manufacturer] 
+%MFGNAME%=CDCDevice,NT,NTamd64
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+[CDCDevice.NT]
+%DESCRIPTION%=DriverInstall,USB\VID_8765&PID_0234
+%DESCRIPTION%=DriverInstall,USB\VID_8765&PID_1111
+%DESCRIPTION%=DriverInstall,USB\VID_8765&PID_1256&MI_00
+
+[CDCDevice.NTamd64]
+%DESCRIPTION%=DriverInstall,USB\VID_8765&PID_0234
+%DESCRIPTION%=DriverInstall,USB\VID_8765&PID_1111
+%DESCRIPTION%=DriverInstall,USB\VID_8765&PID_1256&MI_00
+
+[DriverInstall.NT]
+Include=mdmcpq.inf
+CopyFiles=FakeModemCopyFileSection
+AddReg=DriverInstall.NT.AddReg
+
+[DriverInstall.NT.AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,usbser.sys
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+
+[DriverInstall.NT.Services]
+AddService=usbser, 0x00000002, DriverServiceInst
+
+[DriverServiceInst]
+DisplayName=%SERVICE%
+ServiceType=1
+StartType=3
+ErrorControl=1
+ServiceBinary=%12%\usbser.sys 
+
+[Strings]
+MFGNAME = "Manufacturer"
+DESCRIPTION = "USB CDC serial port emulation"
+SERVICE = "USB CDC serial port emulation"

@@ -1,0 +1,598 @@
+L 1 "Setup\I2CPCA9532.c"
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2008     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : I2C_PCA9532.c
+NPurpose : I2C interface for PCA9532
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N#include "I2CPCA9532.h"
+L 1 "Setup\I2CPCA9532.h" 1
+N/*********************************************************************
+N*               SEGGER MICROCONTROLLER SYSTEME GmbH                  *
+N*       Solutions for real time microcontroller applications         *
+N**********************************************************************
+N*                                                                    *
+N*       (C) 2006   SEGGER Microcontroller Systeme GmbH               *
+N*                                                                    *
+N*       www.segger.com     Support: support@segger.com               *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : I2CPCA9532.h
+NPurpose : I2C PCA9532 header
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N         void I2CPCA9532_Init     (void);
+Nunsigned char I2CPCA9532_WriteRead(unsigned char * pData, unsigned short NumBytesToWrite, unsigned char * pBuf, unsigned short NumBytesToRead);
+L 19 "Setup\I2CPCA9532.c" 2
+N
+N/*********************************************************************
+N*
+N*       Defines
+N*
+N**********************************************************************
+N*/
+N
+N/* I2C return codes */
+N#define I2C_CODE_OK       (0)
+N#define I2C_CODE_DATA     (1)
+N#define I2C_CODE_RTR      (2)
+N#define I2C_CODE_ERROR    (3)
+N#define I2C_CODE_FULL     (4)
+N#define I2C_CODE_EMPTY    (5)
+N#define I2C_CODE_BUSY     (6)
+N
+N/* I2C modes */
+N#define I2C_MODE_ACK0     (0)
+N#define I2C_MODE_ACK1     (1)
+N#define I2C_MODE_READ     (2)
+N
+N
+N/****** Addresses of sfrs and peripheral identifiers ****************/
+N#define PINSEL_BASE_ADDR  (0xE002C000)
+N#define I2C0_BASE_ADDR    (0xE001C000)
+N
+N#if 0
+S#define FIO_BASE_ADDR     (0x3FFFC000)
+S#define PWM1_BASE_ADDR    (0xE0018000)
+S#define SPI0_BASE_ADDR    (0xE0020000)
+S#define IO_BASE_ADDR      (0xE0028000)
+S#define LCDC_BASE_ADDR    (0xFFE10000)
+N#endif
+N
+N/****** SFRs and identifiers used for LED demo **********************/
+N#define PINSEL1           (*(volatile unsigned long *)(PINSEL_BASE_ADDR + 0x0004))
+N
+N#define I20CONSET         (*(volatile unsigned long *)(I2C0_BASE_ADDR   + 0x0000))
+N#define I20STAT           (*(volatile unsigned long *)(I2C0_BASE_ADDR   + 0x0004))
+N#define I20DAT            (*(volatile unsigned long *)(I2C0_BASE_ADDR   + 0x0008))
+N#define I20ADR            (*(volatile unsigned long *)(I2C0_BASE_ADDR   + 0x000C))
+N#define I20SCLH           (*(volatile unsigned long *)(I2C0_BASE_ADDR   + 0x0010))
+N#define I20SCLL           (*(volatile unsigned long *)(I2C0_BASE_ADDR   + 0x0014))
+N#define I20CONCLR         (*(volatile unsigned long *)(I2C0_BASE_ADDR   + 0x0018))
+N
+N
+N
+N#if 0
+S#define PINSEL0           (*(volatile unsigned long *)(PINSEL_BASE_ADDR + 0x0000))
+S#define PINSEL2           (*(volatile unsigned long *)(PINSEL_BASE_ADDR + 0x0008))
+S#define PINSEL3           (*(volatile unsigned long *)(PINSEL_BASE_ADDR + 0x000C))
+S#define PINSEL4           (*(volatile unsigned long *)(PINSEL_BASE_ADDR + 0x0010))
+S#define PINSEL9           (*(volatile unsigned long *)(PINSEL_BASE_ADDR + 0x0024))
+S#define PINSEL10          (*(volatile unsigned long *)(PINSEL_BASE_ADDR + 0x0028))
+S#define PINSEL11          (*(volatile unsigned long *)(PINSEL_BASE_ADDR + 0x002C))
+S
+S
+S#define FIO2DIR           (*(volatile unsigned long *)(FIO_BASE_ADDR    + 0x0040))
+S#define FIO2SET           (*(volatile unsigned long *)(FIO_BASE_ADDR    + 0x0058))
+S
+S#define PWM1TCR           (*(volatile unsigned long *)(PWM1_BASE_ADDR   + 0x0004))
+S#define PWM1PR            (*(volatile unsigned long *)(PWM1_BASE_ADDR   + 0x000C))
+S#define PWM1MCR           (*(volatile unsigned long *)(PWM1_BASE_ADDR   + 0x0014))
+S#define PWM1MR0           (*(volatile unsigned long *)(PWM1_BASE_ADDR   + 0x0018))
+S#define PWM1MR1           (*(volatile unsigned long *)(PWM1_BASE_ADDR   + 0x001C))
+S#define PWM1PCR           (*(volatile unsigned long *)(PWM1_BASE_ADDR   + 0x004C))
+S#define PWM1LER           (*(volatile unsigned long *)(PWM1_BASE_ADDR   + 0x0050))
+S
+S#define S0SPCR            (*(volatile unsigned long *)(SPI0_BASE_ADDR   + 0x0000))
+S#define S0SPSR            (*(volatile unsigned long *)(SPI0_BASE_ADDR   + 0x0004))
+S#define S0SPDR            (*(volatile unsigned long *)(SPI0_BASE_ADDR   + 0x0008))
+S#define S0SPCCR           (*(volatile unsigned long *)(SPI0_BASE_ADDR   + 0x000C))
+S
+S#define IO0SET            (*(volatile unsigned long *)(IO_BASE_ADDR     + 0x0004))
+S#define IO0DIR            (*(volatile unsigned long *)(IO_BASE_ADDR     + 0x0008))
+S#define IO0CLR            (*(volatile unsigned long *)(IO_BASE_ADDR     + 0x000C))
+S
+S#define LCD_CFG           (*(volatile unsigned long *)(0xE01FC1B8))
+S
+S#define LCD_TIMH          (*(volatile unsigned long *)(LCDC_BASE_ADDR   + 0x0000))
+S#define LCD_TIMV          (*(volatile unsigned long *)(LCDC_BASE_ADDR   + 0x0004))
+S#define LCD_POL           (*(volatile unsigned long *)(LCDC_BASE_ADDR   + 0x0008))
+S#define LCD_LE            (*(volatile unsigned long *)(LCDC_BASE_ADDR   + 0x000C))
+S#define LCD_UPBASE        (*(volatile unsigned long *)(LCDC_BASE_ADDR   + 0x0010))
+S#define LCD_CTRL          (*(volatile unsigned long *)(LCDC_BASE_ADDR   + 0x0018))
+S#define LCD_INTMSK        (*(volatile unsigned long *)(LCDC_BASE_ADDR   + 0x001C))
+S
+S#define PCONP             (*(volatile unsigned long *)(0xE01FC0C4))
+S
+S#define LCD_PAL_ADDR                                  (LCDC_BASE_ADDR   + 0x0200)
+S
+S#define MAC_MODULEID      (*(volatile unsigned long *)(0xFFE00FFC))  // MAC ID register
+N#endif
+N/*********************************************************************
+N*
+N*       Static functions
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       _I2C_CheckStatus()
+N*
+N*  Purpose: Checks the I2C status
+N*
+N*  Return:
+N*    0x00 Bus error
+N*    0x08 START condition transmitted
+N*    0x10 Repeated START condition transmitted
+N*    0x18 SLA + W transmitted, ACK received
+N*    0x20 SLA + W transmitted, ACK not received
+N*    0x28 Data byte transmitted, ACK received
+N*    0x30 Data byte transmitted, ACK not received
+N*    0x38 Arbitration lost
+N*    0x40 SLA + R transmitted, ACK received
+N*    0x48 SLA + R transmitted, ACK not received
+N*    0x50 Data byte received in master mode, ACK transmitted
+N*    0x58 Data byte received in master mode, ACK not transmitted
+N*    0x60 SLA + W received, ACK transmitted
+N*    0x68 Arbitration lost, SLA + W received, ACK transmitted
+N*    0x70 General call address received, ACK transmitted
+N*    0x78 Arbitration lost, general call addr received, ACK transmitted
+N*    0x80 Data byte received with own SLA, ACK transmitted
+N*    0x88 Data byte received with own SLA, ACK not transmitted
+N*    0x90 Data byte received after general call, ACK transmitted
+N*    0x98 Data byte received after general call, ACK not transmitted
+N*    0xA0 STOP or repeated START condition received in slave mode
+N*    0xA8 SLA + R received, ACK transmitted
+N*    0xB0 Arbitration lost, SLA + R received, ACK transmitted
+N*    0xB8 Data byte transmitted in slave mode, ACK received
+N*    0xC0 Data byte transmitted in slave mode, ACK not received
+N*    0xC8 Last byte transmitted in slave mode, ACK received
+N*    0xF8 No relevant status information, SI=0
+N*    0xFF Channel error
+N*
+N*  Note:
+N*    SI flag is not cleared!
+N*/
+Nstatic unsigned char _I2C_CheckStatus(void) {
+N  unsigned char r = 0;
+N
+N  //
+N  // Wait for I2C status to change
+N  //
+N  while ((I20CONSET & (1 << 3)) == 0) {  // SI == 0
+X  while (((*(volatile unsigned long *)((0xE001C000) + 0x0000)) & (1 << 3)) == 0) {  
+N  }
+N  //
+N  // Read I2C state
+N  //
+N  r = I20STAT;
+X  r = (*(volatile unsigned long *)((0xE001C000) + 0x0004));
+N
+N  return r;
+N}
+N
+N/*********************************************************************
+N*
+N*       _I2C_Start()
+N*/
+Nstatic char _I2C_Start(void) {
+N  unsigned char Status = 0;
+N  unsigned char r      = 0;
+N
+N  //
+N  // Issue start condition
+N  //
+N  I20CONSET |= (1 << 5);  // STA = 1, set start flag
+X  (*(volatile unsigned long *)((0xE001C000) + 0x0000)) |= (1 << 5);  
+N  //
+N  // Wait until START transmitted
+N  //
+N  while(1) {
+N    Status = _I2C_CheckStatus();
+N    //
+N    // Check if start transmitted
+N    //
+N    if ((Status == 0x08) || (Status == 0x10)) {
+N      r = I2C_CODE_OK;
+X      r = (0);
+N      break;
+N    } else if (Status != 0xF8) {  // Error
+N      r = Status;
+N      break;
+N    } else {
+N      I20CONCLR = (1 << 3);      // Clear SI flag
+X      (*(volatile unsigned long *)((0xE001C000) + 0x0018)) = (1 << 3);      
+N    }
+N  }
+N  I20CONCLR = (1 << 5);          // Clear start flag
+X  (*(volatile unsigned long *)((0xE001C000) + 0x0018)) = (1 << 5);          
+N
+N  return r;
+N}
+N
+N/*********************************************************************
+N*
+N*       _I2C_PutChar()
+N*
+N*  Description:
+N*    Sends a character on the I2C network
+N*
+N*  Return:
+N*    I2C_CODE_OK   - successful
+N*    I2C_CODE_BUSY - data register is not ready -> byte was not sent
+N*/
+Nstatic unsigned  char _I2C_PutChar(unsigned char Data) {
+N  unsigned char r = 0;
+N
+N  /* check if I2C Data register can be accessed */
+N  if ((I20CONSET & (1 << 3)) != 0) {  // SI = 1
+X  if (((*(volatile unsigned long *)((0xE001C000) + 0x0000)) & (1 << 3)) != 0) {  
+N    //
+N    // Send data
+N    //
+N    I20DAT    = Data;
+X    (*(volatile unsigned long *)((0xE001C000) + 0x0008))    = Data;
+N    I20CONCLR = (1 << 3);  // Clear SI flag
+X    (*(volatile unsigned long *)((0xE001C000) + 0x0018)) = (1 << 3);  
+N    r         = I2C_CODE_OK;
+X    r         = (0);
+N  } else {
+N    r = I2C_CODE_BUSY;  // Data register not ready
+X    r = (6);  
+N  }
+N
+N  return r;
+N}
+N
+N/*********************************************************************
+N*
+N*       _I2C_WaitTransmit()
+N*/
+Nstatic unsigned char _I2C_WaitTransmit(void) {
+N  unsigned char Status = 0;
+N
+N  //
+N  // Wait till data transmitted
+N  //
+N  while(1) {
+N    Status = _I2C_CheckStatus();
+N    //
+N    // SLA+W transmitted, ACK received or
+N    // data byte transmitted, ACK received
+N    //
+N    if ((Status == 0x18) || (Status == 0x28)) {
+N      return I2C_CODE_OK;  // Data transmitted and ACK received
+X      return (0);  
+N    } else if (Status != 0xF8) {
+N      return I2C_CODE_ERROR;  // Error, no relevant status information
+X      return (3);  
+N    }
+N  }
+N}
+N
+N/*********************************************************************
+N*
+N*       _I2C_WriteWithWait()
+N*/
+Nstatic unsigned char _I2C_WriteWithWait(unsigned char Data) {
+N  unsigned char r = 0;
+N
+N  r = _I2C_PutChar(Data);
+N  while(r == I2C_CODE_BUSY) {
+X  while(r == (6)) {
+N    r = _I2C_PutChar(Data);
+N  }
+N  if(r == I2C_CODE_OK)
+X  if(r == (0))
+N    r = _I2C_WaitTransmit();
+N
+N  return r;
+N}
+N
+N/*********************************************************************
+N*
+N*       _I2C_Stop()
+N*
+N*  Purpose:
+N*    Generates a stop condition in master mode or recovers from an error
+N*    condition in slave mode.
+N*
+N*  Note: After this function is run, you may need a bus free time before
+N*        you can generate a new start condition.
+N*
+N*/
+Nstatic void _I2C_Stop(void) {
+N  I20CONSET |= (1 << 4);  // STO = 1, set stop flag
+X  (*(volatile unsigned long *)((0xE001C000) + 0x0000)) |= (1 << 4);  
+N  I20CONCLR  = (1 << 3);  // Clear SI flag
+X  (*(volatile unsigned long *)((0xE001C000) + 0x0018))  = (1 << 3);  
+N  while (I20CONSET & (1 << 4)) {  // Wait till STOP detected (while STO = 1)
+X  while ((*(volatile unsigned long *)((0xE001C000) + 0x0000)) & (1 << 4)) {  
+N  }
+N}
+N
+N/*********************************************************************
+N*
+N*       _I2C_RepeatStart()
+N*
+N*  Description:
+N*    Generates a start condition on I2C when bus is free.
+N*    Master mode will also automatically be entered.
+N*
+N*    Note: After a stop condition, you may need a bus free time before you
+N*          can generate a new start condition.
+N*/
+Nstatic unsigned char _I2C_RepeatStart(void) {
+N  unsigned char Status = 0;
+N  unsigned char r      = 0;
+N
+N  //
+N  // Issue a start condition
+N  //
+N  I20CONSET |= (1 << 5);  // STA = 1, set start flag
+X  (*(volatile unsigned long *)((0xE001C000) + 0x0000)) |= (1 << 5);  
+N  I20CONCLR  = (1 << 3);  // Clear SI flag
+X  (*(volatile unsigned long *)((0xE001C000) + 0x0018))  = (1 << 3);  
+N  //
+N  // Wait until START transmitted
+N  //
+N  while (1) {
+N    Status = _I2C_CheckStatus();
+N    if ((Status == 0x08) || (Status == 0x10)) {
+N      r = I2C_CODE_OK;  // Start transmitted
+X      r = (0);  
+N      break;
+N    } else if (Status != 0xF8) {
+N      r = Status;  // Error
+N      break;
+N    } else {
+N      I20CONCLR = (1 << 3);  // Clear SI flag
+X      (*(volatile unsigned long *)((0xE001C000) + 0x0018)) = (1 << 3);  
+N    }
+N  }
+N  I20CONCLR = (1 << 5);  // Clear start flag
+X  (*(volatile unsigned long *)((0xE001C000) + 0x0018)) = (1 << 5);  
+N
+N  return r;
+N}
+N
+N/*********************************************************************
+N*
+N*       _I2C_GetChar()
+N*
+N* Description:
+N*    Read a character. I2C master mode is used.
+N*    This function is also used to prepare if the master shall generate
+N*    acknowledge or not acknowledge.
+N*
+N*  Parameter:
+N*    Mode: I2C_MODE_ACK0 Set ACK=0. Slave sends next byte
+N*          I2C_MODE_ACK1 Set ACK=1. Slave sends last byte
+N*          I2C_MODE_READ Read data from data register
+N*/
+Nstatic unsigned char _I2C_GetChar(unsigned char Mode, unsigned char * pBuf) {
+N  unsigned char r = I2C_CODE_OK;
+X  unsigned char r = (0);
+N
+N  if(Mode == I2C_MODE_ACK0) {
+X  if(Mode == (0)) {
+N    //
+N    // Operation mode is changed from master transmit to master receive
+N    // Set ACK = 0 (informs slave to send next byte)
+N    //
+N    I20CONSET |= (1 << 2);  // AA = 1
+X    (*(volatile unsigned long *)((0xE001C000) + 0x0000)) |= (1 << 2);  
+N    I20CONCLR  = (1 << 3);  // Clear SI flag
+X    (*(volatile unsigned long *)((0xE001C000) + 0x0018))  = (1 << 3);  
+N  } else if (Mode == I2C_MODE_ACK1) {
+X  } else if (Mode == (1)) {
+N    I20CONCLR = (1 << 2);   // Set ACK = 1 (informs slave to send last byte)
+X    (*(volatile unsigned long *)((0xE001C000) + 0x0018)) = (1 << 2);   
+N    I20CONCLR = (1 << 3);   // Clear SI flag
+X    (*(volatile unsigned long *)((0xE001C000) + 0x0018)) = (1 << 3);   
+N  } else if (Mode == I2C_MODE_READ) {
+X  } else if (Mode == (2)) {
+N    //
+N    // Check if I2C Data register can be accessed
+N    //
+N    if (I20CONSET & (1 << 3)) {       // SI = 1
+X    if ((*(volatile unsigned long *)((0xE001C000) + 0x0000)) & (1 << 3)) {       
+N      *pBuf = (unsigned char)I20DAT;  // Read data
+X      *pBuf = (unsigned char)(*(volatile unsigned long *)((0xE001C000) + 0x0008));  
+N    } else {
+N      r = I2C_CODE_EMPTY;  // No data available
+X      r = (5);  
+N    }
+N  }
+N
+N  return r;
+N}
+N
+N/*********************************************************************
+N*
+N*       Global functions
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       I2C_PCA9532_WriteRead()
+N*/
+Nunsigned char I2CPCA9532_WriteRead(unsigned char * pData, unsigned short NumBytesToWrite, unsigned char * pBuf, unsigned short NumBytesToRead) {
+N  unsigned char  r       = 0;
+N  unsigned char  Status  = 0;
+N  unsigned short i       = 0;
+N
+N  r = _I2C_Start();  // Generate Start condition
+N  if(r != I2C_CODE_OK) {
+X  if(r != (0)) {
+N    goto STOPWRITE;
+N  }
+N  r = _I2C_WriteWithWait(0xC0);  // Write PCA9532 address
+N  if (r != I2C_CODE_OK) {
+X  if (r != (0)) {
+N    goto STOPWRITE;
+N  }
+N  //
+N  // Write data
+N  //
+N  for (i = 0; i < NumBytesToWrite; i++) {
+N    r = _I2C_WriteWithWait(*pData);
+N    if (r != I2C_CODE_OK) {
+X    if (r != (0)) {
+N      goto STOPWRITE;
+N    }
+N    pData++;
+N  }
+NSTOPWRITE:
+N  if (NumBytesToRead > 0) {
+N    r = _I2C_RepeatStart();  // Generate Start condition
+N    //
+N    // Transmit device address
+N    //
+N    if (r == I2C_CODE_OK) {
+X    if (r == (0)) {
+N      r = _I2C_PutChar(0xc0 + 0x01);  // Write SLA+R
+N      while(r == I2C_CODE_BUSY) {
+X      while(r == (6)) {
+N        r = _I2C_PutChar(0xc0 + 0x01);
+N      }
+N    }
+N    //
+N    // Wait until SLA+R transmitted
+N    //
+N    while (1) {
+N      Status = _I2C_CheckStatus();
+N      if (Status == 0x40) {         // Data transmitted and ACK received
+N        break;
+N      } else if (Status != 0xF8) {  // Error
+N        r = I2C_CODE_ERROR;
+X        r = (3);
+N        break;
+N      }
+N    }
+N    if (r == I2C_CODE_OK) {
+X    if (r == (0)) {
+N      //
+N      // Wait until address transmitted and receive data
+N      //
+N      for (i = 1; i <= NumBytesToRead; i++) {
+N        //
+N        // Wait until data transmitted
+N        //
+N        while (1) {
+N          Status = _I2C_CheckStatus();
+N          if ((Status == 0x40) || (Status == 0x48) || (Status == 0x50 )) {  // Data received
+N            //
+N            // Set generate NACK
+N            //
+N            if (i == NumBytesToRead) {
+N              r = _I2C_GetChar(I2C_MODE_ACK1, pBuf);
+X              r = _I2C_GetChar((1), pBuf);
+N            } else {
+N              r = _I2C_GetChar(I2C_MODE_ACK0, pBuf);
+X              r = _I2C_GetChar((0), pBuf);
+N            }
+N            r = _I2C_GetChar(I2C_MODE_READ, pBuf);  // Read data
+X            r = _I2C_GetChar((2), pBuf);  
+N            while (r == I2C_CODE_EMPTY) {
+X            while (r == (5)) {
+N              r = _I2C_GetChar(I2C_MODE_READ, pBuf);
+X              r = _I2C_GetChar((2), pBuf);
+N            }
+N            pBuf++;
+N            break;
+N          } else if (Status != 0xF8) {  // Error
+N            i = NumBytesToRead;
+N            r = I2C_CODE_ERROR;
+X            r = (3);
+N            break;
+N          }
+N        }
+N      }
+N    }
+N  }
+N  _I2C_Stop();  // Generate Stop condition
+N
+N  return r;
+N}
+N
+N/*********************************************************************
+N*
+N*       I2C_PCA9532_Init()
+N*/
+Nvoid I2CPCA9532_Init(void) {
+N  unsigned char InitCommand[] = {0x12, 0x97, 0x80, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00};
+N
+N  if ((I20CONSET & (1 << 6)) == 0) {  // I2C was not intialized before
+X  if (((*(volatile unsigned long *)((0xE001C000) + 0x0000)) & (1 << 6)) == 0) {  
+N    PINSEL1 &= 0
+X    (*(volatile unsigned long *)((0xE002C000) + 0x0004)) &= 0
+N               | (0x3   << 0)  // SSEL
+N               | (0x3   << 2)  // MISO
+N               | (0x3   << 4)  // MOSI
+N               | (0x3   << 6)  // SDA1
+N               | (0x3   << 8)  // SCL1
+N               | (0x3   << 10) // RD1
+N               | (0x3   << 12) // TD1
+N               | (0x3   << 14) // CAP3[0]
+N               | (0x3   << 16) // CAP3[1]
+N               | (0x3   << 18) // TXD3
+N               | (0x3   << 20) // RXD3
+N               | (0x3   << 26) // Reserved
+N               | (0x3   << 28) // Reserved
+N               | (0x3uL << 30) // Reserved
+N               ;
+N    PINSEL1 |= 0
+X    (*(volatile unsigned long *)((0xE002C000) + 0x0004)) |= 0
+N               | (0x1 << 22) // GPIO port 0.27 SDA0
+N               | (0x1 << 24) // GPIO port 0.28 SCL0
+N               ;
+N    //
+N    // Clear flags
+N    //
+N    I20CONCLR = 0
+X    (*(volatile unsigned long *)((0xE001C000) + 0x0018)) = 0
+N                | (1 << 2)   // AAC,   Assert acknowledge clear bit
+N                | (1 << 3)   // SIC,   I2C interrupt clear bit
+N                | (1 << 5)   // STAC,  START flag clear bit
+N                | (1 << 6)   // I2ENC, I2C interface disable bit
+N                ;
+N    //
+N    // Reset registers
+N    //
+N    I20SCLL    = (I20SCLL   & 0xFFFF0000) | 0x00000160;  // SCL Duty Cycle low register
+X    (*(volatile unsigned long *)((0xE001C000) + 0x0014))    = ((*(volatile unsigned long *)((0xE001C000) + 0x0014))   & 0xFFFF0000) | 0x00000160;  
+N    I20SCLH    = (I20SCLH   & 0xFFFF0000) | 0x000000F0;  // SCL Duty Cycle high register
+X    (*(volatile unsigned long *)((0xE001C000) + 0x0010))    = ((*(volatile unsigned long *)((0xE001C000) + 0x0010))   & 0xFFFF0000) | 0x000000F0;  
+N    I20CONSET |= (1 << 6);                                // I2EN, I2C interface enable bit
+X    (*(volatile unsigned long *)((0xE001C000) + 0x0000)) |= (1 << 6);                                
+N    I2CPCA9532_WriteRead(InitCommand, sizeof(InitCommand), 0, 0);
+N  }
+N}

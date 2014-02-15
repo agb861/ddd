@@ -1,0 +1,33 @@
+<HTML>
+  <HEAD>
+    <TITLE>Network Statistics</TITLE>
+    <meta http-equiv="refresh" content="5">
+  </HEAD>
+  <style type="text/css">
+      BODY{padding:0px; margin:0px; text-align:center; font-family:Verdana, Helvetica, sans-serif; background:#6699CC url(bg.png) repeat-x; font-size:11px; color:white }
+      td {font-family:Verdana, Helvetica, sans-serif; font-size:12px }
+      A:link { font-weight:bold; color:white; text-decoration:none; }
+      A:visited { font-weight:bold; color:silver; text-decoration:none; }
+      A:focus { font-weight:bold; color:white; text-decoration:underline; }
+      A:hover { font-weight:bold; color:silver; text-decoration:none; }
+      A:active { font-weight:bold; color:white; text-decoration:underline; }
+  </style>
+  <BODY>
+    <CENTER>
+      <HR>
+      <H2>Network information</H2>
+      <HR>
+    <P>
+      <H2>Configuration</H2>
+      <PRE>Server IP:   <!--#exec cgi="GetIPAddr"--></PRE>
+      <BR><BR>
+      <P><!--#exec cgi="GetIPInfo"-->
+      <BR><BR>
+       The data above shows some real time information of the network stack used.<br> Information about your application can easily be displayed in the same way.
+      <HR>
+
+      <A HREF="index.htm">Back to main</A>
+    </CENTER>
+    <IMG SRC="seggerlogo.gif" ALT="Segger logo">&nbsp;&nbsp; SEGGER Microcontroller GmbH &amp; Co. KG &nbsp;&nbsp;<A HREF="http://www.segger.com">www.segger.com</A>
+  </BODY>
+</HTML>

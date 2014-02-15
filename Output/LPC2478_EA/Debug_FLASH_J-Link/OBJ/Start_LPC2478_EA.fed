@@ -1,0 +1,1221 @@
+;#<FEEDBACK># ARM Linker, 5.03 [Build 76]: Last Updated: Wed Feb 12 11:39:37 2014
+;VERSION 0.2
+;FILE FAT_CheckDisk.o
+FS_FAT_AbortCheckDisk <= USED 0
+FS_FAT__CheckDisk <= USED 0
+;FILE FAT_Dir.o
+FS_FAT_CloseDir <= USED 0
+FS_FAT_CreateDir <= USED 0
+FS_FAT_CreateDirEx <= USED 0
+FS_FAT_OpenDir <= USED 0
+FS_FAT_ReadDir <= USED 0
+FS_FAT_RemoveDir <= USED 0
+;FILE FAT_DirEntry.o
+FS_FAT_GetDirEntryInfo <= USED 0
+FS_FAT_SetDirEntryInfo <= USED 0
+;FILE FAT_DiskInfo.o
+FS_FAT_GetDiskInfo <= USED 0
+FS_FAT_GetDiskSpace <= USED 0
+;FILE FAT_Format.o
+FS_FAT_Format <= USED 0
+FS_FAT_FormatEx <= USED 0
+;FILE FAT_Misc.o
+FS_FAT_AllocCluster <= USED 0
+FS_FAT_AllocClusterBlock <= USED 0
+FS_FAT_CheckBPB <= USED 0
+FS_FAT_ClusterId2SectorNo <= USED 0
+FS_FAT_CopyDirEntryInfo <= USED 0
+FS_FAT_CopyShortName <= USED 0
+FS_FAT_CreateJournalFile <= USED 0
+FS_FAT_FindDirEntry <= USED 0
+FS_FAT_FindFreeCluster <= USED 0
+FS_FAT_FindLastCluster <= USED 0
+FS_FAT_FreeClusterChain <= USED 0
+FS_FAT_GetFATType <= USED 0
+FS_FAT_GetIndexOfLastSector <= USED 0
+FS_FAT_GetNumAdjClustersInChain <= USED 0
+FS_FAT_GotoCluster <= USED 0
+FS_FAT_GrowRootDir <= USED 0
+FS_FAT_IsValidShortNameChar <= USED 0
+FS_FAT_LinkCluster <= USED 0
+FS_FAT_MarkClusterEOC <= USED 0
+FS_FAT_OpenJournalFile <= USED 0
+FS_FAT_ReadFATEntry <= USED 0
+FS_FAT_WalkCluster <= USED 0
+FS_FAT_WalkClusterEx <= USED 0
+;FILE FAT_Move.o
+FS_FAT_Move <= USED 0
+FS__FAT_Move <= USED 0
+;FILE FAT_Open.o
+FS_FAT_DeleteFileOrDir <= USED 0
+FS_FAT_FindDirEntryShort <= USED 0
+FS_FAT_FindDirEntryShortEx <= USED 0
+FS_FAT_FindEmptyDirEntry <= USED 0
+FS_FAT_FindPath <= USED 0
+FS_FAT_GetDirEntry <= USED 0
+FS_FAT_GetFirstCluster <= USED 0
+FS_FAT_IncDirPos <= USED 0
+FS_FAT_InitDirEntryScan <= USED 0
+FS_FAT_Make83Name <= USED 0
+FS_FAT_Open <= USED 0
+FS_FAT_WriteDirEntry83 <= USED 0
+FS_FAT_WriteDirEntryCluster <= USED 0
+FS_FAT_WriteDirEntryShort <= USED 0
+;FILE FAT_Read.o
+FS_FAT_Read <= USED 0
+;FILE FAT_Rename.o
+FS_FAT_Rename <= USED 0
+;FILE FAT_VolumeLabel.o
+FS_FAT_GetVolumeLabel <= USED 0
+FS_FAT_SetVolumeLabel <= USED 0
+;FILE FAT_Write.o
+FS_FAT_Clean <= USED 0
+FS_FAT_Close <= USED 0
+FS_FAT_GotoClusterAllocIfReq <= USED 0
+FS_FAT_Write <= USED 0
+;FILE FS_AssignCache.o
+FS_AssignCache <= USED 0
+FS_CACHE_Clean <= USED 0
+FS_CACHE_Command <= USED 0
+FS_CACHE_Invalidate <= USED 0
+FS_CACHE_SetMode <= USED 0
+FS_CACHE_SetQuota <= USED 0
+FS__CACHE_Clean <= USED 0
+FS__CACHE_CleanNL <= USED 0
+FS__CACHE_CommandDevice <= USED 0
+FS__CACHE_CommandDeviceNL <= USED 0
+FS__CACHE_CommandVolume <= USED 0
+;FILE FS_Core.o
+FS_Alloc <= USED 0
+FS_AllocZeroed <= USED 0
+FS_AllocZeroedPtr <= USED 0
+FS_AssignMemory <= USED 0
+FS_BITFIELD_CalcNumBitsUsed <= USED 0
+FS_BITFIELD_CalcSize <= USED 0
+FS_BITFIELD_Read <= USED 0
+FS_BITFIELD_Write <= USED 0
+FS_Free <= USED 0
+FS_GetMaxSectorSize <= USED 0
+FS_LoadU16BE <= USED 0
+FS_LoadU16LE <= USED 0
+FS_LoadU32BE <= USED 0
+FS_LoadU32LE <= USED 0
+FS_STORAGE_Init <= USED 0
+FS_SetBusyLEDCallback <= USED 0
+FS_SetMaxSectorSize <= USED 0
+FS_SetMemAccessCallback <= USED 0
+FS_SetMemHandler <= USED 0
+FS_StoreU16BE <= USED 0
+FS_StoreU16LE <= USED 0
+FS_StoreU24LE <= USED 0
+FS_StoreU32BE <= USED 0
+FS_StoreU32LE <= USED 0
+FS_TryAlloc <= USED 0
+FS__DivideU32Up <= USED 0
+FS__strchr <= USED 0
+;FILE FS_Dir.o
+FS_FindClose <= USED 0
+FS_FindFirstFile <= USED 0
+FS_FindNextFile <= USED 0
+FS_MkDir <= USED 0
+FS_RmDir <= USED 0
+FS__FindClose <= USED 0
+FS__FindFirstFile <= USED 0
+FS__FindFirstFileEx <= USED 0
+FS__FindNextFile <= USED 0
+FS__MkDir <= USED 0
+FS__RmDir <= USED 0
+;FILE FS_Format.o
+FS_Format <= USED 0
+FS__Format <= USED 0
+;FILE FS_GetFileSize.o
+FS_GetFileSize <= USED 0
+FS__GetFileSize <= USED 0
+;FILE FS_LogBlock.o
+FS_GetSectorSize <= USED 0
+FS_LB_FreePartSectors <= USED 0
+FS_LB_GetDeviceInfo <= USED 0
+FS_LB_GetStatus <= USED 0
+FS_LB_InitMedium <= USED 0
+FS_LB_InitMediumIfRequired <= USED 0
+FS_LB_Ioctl <= USED 0
+FS_LB_ReadBurst <= USED 0
+FS_LB_ReadDevice <= USED 0
+FS_LB_ReadPart <= USED 0
+FS_LB_WriteBurst <= USED 0
+FS_LB_WriteDevice <= USED 0
+FS_LB_WriteMultiple <= USED 0
+FS_LB_WritePart <= USED 0
+;FILE FS_Misc.o
+FS_ClearErr <= USED 0
+FS_FClose <= USED 0
+FS_FEof <= USED 0
+FS_FError <= USED 0
+FS_FOpen <= USED 0
+FS_FSeek <= USED 0
+FS_FTell <= USED 0
+FS_Init <= USED 0
+FS_Remove <= USED 0
+FS_RemoveDevice <= USED 0
+FS_WriteUpdateDir <= USED 0
+FS__AllocFileHandle <= USED 0
+FS__AllocFileObj <= USED 0
+FS__AllocSectorBuffer <= USED 0
+FS__CalcSizeInBytes <= USED 0
+FS__CalcSizeInKB <= USED 0
+FS__FClose <= USED 0
+FS__FCloseNL <= USED 0
+FS__FOpen <= USED 0
+FS__FOpenEx <= USED 0
+FS__FSeek <= USED 0
+FS__FTell <= USED 0
+FS__FreeFileHandle <= USED 0
+FS__FreeFileObj <= USED 0
+FS__FreeSectorBuffer <= USED 0
+FS__GetFileObj <= USED 0
+FS__OpenEx <= USED 0
+FS__Remove <= USED 0
+FS__RemoveDevice <= USED 0
+FS__RemoveDevices <= USED 0
+FS__SB_Clean <= USED 0
+FS__SB_Create <= USED 0
+FS__SB_Delete <= USED 0
+FS__SB_Flush <= USED 0
+FS__SB_MarkDirty <= USED 0
+FS__SB_MarkNotDirty <= USED 0
+FS__SB_MarkValid <= USED 0
+FS__SB_Read <= USED 0
+FS__SB_SetSector <= USED 0
+FS__SB_Write <= USED 0
+;FILE FS_OS_Interface.o
+FS_OS_DeInit <= USED 0
+FS_OS_Init <= USED 0
+FS_OS_Lock <= USED 0
+FS_OS_Unlock <= USED 0
+;FILE FS_Partition.o
+FS__GetMediaStartSec <= USED 0
+FS__GetMediaStartSecEx <= USED 0
+FS__LocatePartition <= USED 0
+;FILE FS_Read.o
+FS_Read <= USED 0
+FS__Read <= USED 0
+;FILE FS_Rename.o
+FS_Rename <= USED 0
+;FILE FS_Storage.o
+FS_AddDevice <= USED 0
+FS_AddPhysDevice <= USED 0
+FS_FindVolume <= USED 0
+FS_FormatLLIfRequired <= USED 0
+FS_FormatLow <= USED 0
+FS_GetNumVolumes <= USED 0
+FS_GetVolumeName <= USED 0
+FS_GetVolumeStatus <= USED 0
+FS_IoCtl <= USED 0
+FS_IsLLFormatted <= USED 0
+FS_STORAGE_GetCounters <= USED 0
+FS_STORAGE_GetDeviceInfo <= USED 0
+FS_STORAGE_ReadSector <= USED 0
+FS_STORAGE_ReadSectors <= USED 0
+FS_STORAGE_ResetCounters <= USED 0
+FS_STORAGE_Sync <= USED 0
+FS_STORAGE_Unmount <= USED 0
+FS_STORAGE_UnmountForced <= USED 0
+FS_STORAGE_WriteSector <= USED 0
+FS_STORAGE_WriteSectors <= USED 0
+FS_SetOnDeviceActivityHook <= USED 0
+FS__AddDevice <= USED 0
+FS__AddPhysDevice <= USED 0
+FS__FindVolume <= USED 0
+FS__FormatLow <= USED 0
+FS__GetDeviceInfo <= USED 0
+FS__GetNumVolumes <= USED 0
+FS__GetVolumeStatus <= USED 0
+FS__IoCtl <= USED 0
+FS__IoCtlNL <= USED 0
+FS__IsLLFormatted <= USED 0
+FS__ReadSector <= USED 0
+FS__ReadSectors <= USED 0
+FS__STORAGE_Sync <= USED 0
+FS__UnmountForcedLL <= USED 0
+FS__UnmountLL <= USED 0
+FS__WriteSector <= USED 0
+FS__WriteSectors <= USED 0
+;FILE FS_Unmount.o
+FS_Unmount <= USED 0
+FS_UnmountForced <= USED 0
+FS__Unmount <= USED 0
+FS__UnmountForced <= USED 0
+FS__UnmountForcedNL <= USED 0
+FS__UnmountNL <= USED 0
+;FILE FS_Volume.o
+FS_CheckDisk <= USED 0
+FS_GetVolumeFreeSpace <= USED 0
+FS_GetVolumeFreeSpaceKB <= USED 0
+FS_GetVolumeInfo <= USED 0
+FS_GetVolumeLabel <= USED 0
+FS_GetVolumeSize <= USED 0
+FS_GetVolumeSizeKB <= USED 0
+FS_IsHLFormatted <= USED 0
+FS_IsVolumeMounted <= USED 0
+FS_Mount <= USED 0
+FS_MountEx <= USED 0
+FS_SetAutoMount <= USED 0
+FS_SetVolumeLabel <= USED 0
+FS_Sync <= USED 0
+FS__AutoMount <= USED 0
+FS__AutoMountNL <= USED 0
+FS__GetVolumeInfo <= USED 0
+FS__GetVolumeInfoEx <= USED 0
+FS__Mount <= USED 0
+FS__MountNL <= USED 0
+FS__Sync <= USED 0
+;FILE FS_Write.o
+FS_Write <= USED 0
+FS__Write <= USED 0
+;FILE GUICC_0.o
+LCD_SetLUT <= USED 0
+LCD_SetLUTEx <= USED 0
+;FILE GUICC_565_Index2Color.o
+;FILE GUICC_8666.o
+LCD_Color2Index_8666 <= USED 0
+LCD_Index2Color_8666 <= USED 0
+;FILE GUIDEV.o
+GUI_MEMDEV_CopyToLCD <= USED 0
+GUI_MEMDEV_CopyToLCDAt <= USED 0
+GUI_MEMDEV_Create <= USED 0
+GUI_MEMDEV_CreateEx <= USED 0
+GUI_MEMDEV_Delete <= USED 0
+GUI_MEMDEV_GetBitsPerPixel <= USED 0
+GUI_MEMDEV_Select <= USED 0
+GUI_MEMDEV__CreateFixed <= USED 0
+GUI_MEMDEV__GetSuppressMixing <= USED 0
+GUI_MEMDEV__SuppressMixing <= USED 0
+GUI_MEMDEV__WriteToActiveAt <= USED 0
+;FILE GUIDEV_Banding.o
+GUI_MEMDEV_Draw <= USED 0
+;FILE GUIDEV_Clear.o
+GUI_MEMDEV_Clear <= USED 0
+;FILE GUIDEV_GetYSize.o
+GUI_MEMDEV_GetYSize <= USED 0
+;FILE GUIDEV_ReduceYSize.o
+GUI_MEMDEV_ReduceYSize <= USED 0
+;FILE GUIDEV_SetOrg.o
+GUI_MEMDEV_SetOrg <= USED 0
+;FILE GUIDEV_Usage.o
+GUI_USAGE_DecUseCnt <= USED 0
+GUI_USAGE_Select <= USED 0
+;FILE GUIDEV_UsageBM.o
+GUI_USAGE_BM_Create <= USED 0
+;FILE GUIDEV_WriteToActiveOpaque.o
+;FILE GUIVNC_Process.o
+GUI_VNC_AttachToLayer <= USED 0
+GUI_VNC_EnableKeyboardInput <= USED 0
+GUI_VNC_GetNumConnections <= USED 0
+GUI_VNC_Process <= USED 0
+GUI_VNC_RingBell <= USED 0
+GUI_VNC_SetAuthentication <= USED 0
+GUI_VNC_SetProgName <= USED 0
+GUI_VNC_SetSize <= USED 0
+;FILE GUI_ALLOC_AllocZero.o
+GUI_ALLOC_AllocZero <= USED 0
+;FILE GUI_Alloc.o
+GUI_ALLOC_AssignMemory <= USED 0
+GUI_ALLOC_FreeFixedBlock <= USED 0
+GUI_ALLOC_FreePtr <= USED 0
+GUI_ALLOC_FreePtrArray <= USED 0
+GUI_ALLOC_GetMaxSize <= USED 0
+GUI_ALLOC_GetNumFreeBlocks <= USED 0
+GUI_ALLOC_GetNumFreeBytes <= USED 0
+GUI_ALLOC_GetNumUsedBlocks <= USED 0
+GUI_ALLOC_GetNumUsedBytes <= USED 0
+GUI_ALLOC_GetSize <= USED 0
+GUI_ALLOC_Lock <= USED 0
+GUI_ALLOC_RequestSize <= USED 0
+GUI_ALLOC_SetAvBlockSize <= USED 0
+GUI_ALLOC_Unlock <= USED 0
+GUI_ALLOC_p2h <= USED 0
+;FILE GUI_CalcColorDist.o
+;FILE GUI_Char.o
+GL_DispChar <= USED 0
+GUI_DispNextLine <= USED 0
+GUI_GetCharDistX <= USED 0
+GUI_GetFontDistY <= USED 0
+GUI_GetYAdjust <= USED 0
+;FILE GUI_CharLine.o
+GUI__DispLine <= USED 0
+GUI__GetLineDistX <= USED 0
+GUI__GetLineNumChars <= USED 0
+GUI__GetOverlap <= USED 0
+;FILE GUI_CharM.o
+;FILE GUI_Core.o
+GUI_ClearRect <= USED 0
+GUI_Init <= USED 0
+GUI__Config <= USED 0
+;FILE GUI_Curs1.o
+GUI_CURSOR_GetState <= USED 0
+GUI_CURSOR_GetStateEx <= USED 0
+GUI_CURSOR_Hide <= USED 0
+GUI_CURSOR_HideEx <= USED 0
+GUI_CURSOR_Select <= USED 0
+GUI_CURSOR_SelectEx <= USED 0
+GUI_CURSOR_SetPosition <= USED 0
+GUI_CURSOR_Show <= USED 0
+GUI_CURSOR_ShowEx <= USED 0
+;FILE GUI_Device.o
+GUI_DEVICE_Create <= USED 0
+GUI_DEVICE_CreateAndLink <= USED 0
+GUI_DEVICE_Delete <= USED 0
+GUI_DEVICE_Link <= USED 0
+GUI_DEVICE_Unlink <= USED 0
+GUI_DEVICE__GetpDevice <= USED 0
+;FILE GUI_DispString.o
+GUI_DispString <= USED 0
+;FILE GUI_DrawBitmap.o
+GL_DrawBitmap <= USED 0
+GUI_DrawBitmap <= USED 0
+;FILE GUI_Exec.o
+GUI_Exec <= USED 0
+GUI_Exec1 <= USED 0
+;FILE GUI_GetBitmapPixelIndex.o
+;FILE GUI_GetOrg.o
+GUI_GetOrg <= USED 0
+GUI__GetOrg <= USED 0
+;FILE GUI_Goto.o
+GUI_GotoX <= USED 0
+GUI_GotoY <= USED 0
+;FILE GUI_MOUSE.o
+GUI_MOUSE_GetState <= USED 0
+GUI_MOUSE_StoreState <= USED 0
+;FILE GUI_MergeRect.o
+;FILE GUI_MoveRect.o
+;FILE GUI_OnKey.o
+GUI_ClearKeyBuffer <= USED 0
+GUI_GetKey <= USED 0
+GUI_PollKeyMsg <= USED 0
+GUI_SendKeyMsg <= USED 0
+;FILE GUI_PID.o
+;FILE GUI_Pen.o
+GUI_GetPenShape <= USED 0
+GUI_GetPenSize <= USED 0
+GUI_SetPenShape <= USED 0
+;FILE GUI_RectsIntersect.o
+;FILE GUI_SPRITE.o
+GUI_SPRITE_Create <= USED 0
+GUI_SPRITE_CreateEx <= USED 0
+GUI_SPRITE_Delete <= USED 0
+GUI_SPRITE_GetState <= USED 0
+GUI_SPRITE_Hide <= USED 0
+GUI_SPRITE_SetBitmap <= USED 0
+GUI_SPRITE_SetBitmapAndPosition <= USED 0
+GUI_SPRITE_Show <= USED 0
+GUI_SPRITE__CreateEx <= USED 0
+;FILE GUI_SaveContext.o
+GUI_RestoreContext <= USED 0
+GUI_SaveContext_W <= USED 0
+;FILE GUI_SelectLCD.o
+GUI_SelectLCD <= USED 0
+;FILE GUI_SelectLayer.o
+GUI_AssignCursorLayer <= USED 0
+GUI_SelectLayer <= USED 0
+GUI_SetLayerAlphaEx <= USED 0
+GUI_SetLayerSizeEx <= USED 0
+GUI_SetLayerVisEx <= USED 0
+;FILE GUI_SetColor.o
+;FILE GUI_SetDefault.o
+GUI_SetDefault <= USED 0
+;FILE GUI_SetDrawMode.o
+;FILE GUI_SetFont.o
+;FILE GUI_SetLineStyle.o
+;FILE GUI_SetOrg.o
+GUI_SetOrg <= USED 0
+;FILE GUI_SetTextAlign.o
+;FILE GUI_SetTextMode.o
+;FILE GUI_TOUCH.o
+GUI_TOUCH_GetState <= USED 0
+;FILE GUI_TOUCH_DriverAnalog.o
+GUI_TOUCH_GetCalData <= USED 0
+GUI_TOUCH_GetxPhys <= USED 0
+GUI_TOUCH_GetyPhys <= USED 0
+GUI_TOUCH_SetDefaultCalibration <= USED 0
+GUI_TOUCH_SetOrientationPhys <= USED 0
+;FILE GUI_TOUCH_StoreState.o
+GUI_TOUCH_SetLayer <= USED 0
+;FILE GUI_TOUCH_StoreUnstable.o
+GUI_TOUCH_GetUnstable <= USED 0
+;FILE GUI_Task.o
+GUITASK_CopyContext <= USED 0
+GUITASK_GetpContext <= USED 0
+GUITASK_Init <= USED 0
+;FILE GUI_Time.o
+GUI_Delay <= USED 0
+;FILE GUI_Timer.o
+GUI_TIMER_Create <= USED 0
+GUI_TIMER_Delete <= USED 0
+GUI_TIMER_Restart <= USED 0
+GUI_TIMER_SetDelay <= USED 0
+GUI_TIMER_SetPeriod <= USED 0
+GUI_TIMER_SetTime <= USED 0
+GUI_TIMER__GetNextTimer <= USED 0
+GUI_TIMER__GetPeriod <= USED 0
+GUI_TIMER__IsActive <= USED 0
+;FILE GUI_UC.o
+GUI_UC_Encode <= USED 0
+GUI_UC_GetCharCode <= USED 0
+GUI_UC_GetCharSize <= USED 0
+GUI_UC__CalcSizeOfChar <= USED 0
+GUI_UC__GetCharCodeInc <= USED 0
+GUI_UC__NumBytes2NumChars <= USED 0
+GUI_UC__NumChars2NumBytes <= USED 0
+;FILE GUI_UC_EncodeNone.o
+GUI_UC_SetEncodeNone <= USED 0
+;FILE GUI__ExpandPixelIndices.o
+GUI__ExpandPixelIndices <= USED 0
+GUI__ExpandPixelIndicesEx <= USED 0
+;FILE GUI__IntersectRect.o
+;FILE GUI__IntersectRects.o
+;FILE GUI__memset.o
+GUI__memset <= USED 0
+;FILE GUI__memset16.o
+;FILE IP_ARP.o
+IP_ARP_HasEntry <= USED 0
+IP_ARP_OnRx <= USED 0
+IP_ARP_Send <= USED 0
+IP_ARP_SendRequest <= USED 0
+IP_ARP_SetAgeout <= USED 0
+IP_ARP_Timer <= USED 0
+IP_ETH_SendBroadcast <= USED 0
+IP_ETH_SendMulticast <= USED 0
+IP_ShowARP <= USED 0
+;FILE IP_Core.o
+IP_AddBuffers <= USED 0
+IP_AddEtherInterface <= USED 0
+IP_AddTimer <= USED 0
+IP_Alloc <= USED 0
+IP_AllocWithQ <= USED 0
+IP_AllocZeroed <= USED 0
+IP_AllowBackPressure <= USED 0
+IP_AssignMemory <= USED 0
+IP_BringInBounds <= USED 0
+IP_CalcChecksum_Byte <= USED 0
+IP_ConfTCPSpace <= USED 0
+IP_Exec <= USED 0
+IP_GetAddrMask <= USED 0
+IP_GetCurrentLinkSpeed <= USED 0
+IP_GetGWAddr <= USED 0
+IP_GetHWAddr <= USED 0
+IP_GetIPAddr <= USED 0
+IP_GetIPPacketInfo <= USED 0
+IP_GetNextOutPacket <= USED 0
+IP_GetNextOutPacketFast <= USED 0
+IP_GetVersion <= USED 0
+IP_IFaceIsReady <= USED 0
+IP_Init <= USED 0
+IP_IsExpired <= USED 0
+IP_LoadU16BE <= USED 0
+IP_LoadU16LE <= USED 0
+IP_LoadU32BE <= USED 0
+IP_LoadU32LE <= USED 0
+IP_LoadU32TE <= USED 0
+IP_NI_ClrBPressure <= USED 0
+IP_NI_ConfigPHYAddr <= USED 0
+IP_NI_ConfigPHYMode <= USED 0
+IP_NI_ConfigPoll <= USED 0
+IP_NI_GetCaps <= USED 0
+IP_NI_LoadHWAddr <= USED 0
+IP_NI_SetBPressure <= USED 0
+IP_NI_SetError <= USED 0
+IP_NI_SetTxBufferSize <= USED 0
+IP_OnRx <= USED 0
+IP_ReadPackets <= USED 0
+IP_RemoveOutPacket <= USED 0
+IP_RxTask <= USED 0
+IP_SendPacket <= USED 0
+IP_SetAddrMask <= USED 0
+IP_SetCurrentLinkState <= USED 0
+IP_SetDefaultTTL <= USED 0
+IP_SetGWAddr <= USED 0
+IP_SetHWAddr <= USED 0
+IP_SetMTU <= USED 0
+IP_SetRxHook <= USED 0
+IP_StoreU32BE <= USED 0
+IP_StoreU32LE <= USED 0
+IP_SwapU32 <= USED 0
+IP_Task <= USED 0
+IP_TryAlloc <= USED 0
+IP_TryAllocWithQ <= USED 0
+IP__SendPacket <= USED 0
+IP_cksum <= USED 0
+IP_isalnum <= USED 0
+IP_isalpha <= USED 0
+IP_tolower <= USED 0
+if_netnumber <= USED 0
+ip_mymach <= USED 0
+iproute <= USED 0
+;FILE IP_DHCPC.o
+IP_DHCPC_Activate <= USED 0
+IP_DHCPC_GetState <= USED 0
+IP_DHCPC_Halt <= USED 0
+IP_DHCPC_SetCallback <= USED 0
+IP_DHCPC_SetClientId <= USED 0
+IP_ShowDHCPClient <= USED 0
+;FILE IP_ICMP.o
+IP_ICMP_OnRx <= USED 0
+IP_ICMP_SetRxHook <= USED 0
+IP_ShowICMP <= USED 0
+icmp_destun <= USED 0
+;FILE IP_IP.o
+IP_IP_OnRx <= USED 0
+IP_ShowStat <= USED 0
+IP_Write <= USED 0
+;FILE IP_Log.o
+IP_AddLogFilter <= USED 0
+IP_AddWarnFilter <= USED 0
+IP_Logf <= USED 0
+IP_Logf_Application <= USED 0
+IP_PrintIPAddr <= USED 0
+IP_PrintfSafe <= USED 0
+IP_SetLogFilter <= USED 0
+IP_SetWarnFilter <= USED 0
+IP_Warnf <= USED 0
+IP_Warnf_Application <= USED 0
+;FILE IP_OS_embOS.o
+IP_OS_AddTickHook <= USED 0
+IP_OS_AssertLock <= USED 0
+IP_OS_Delay <= USED 0
+IP_OS_DisableInterrupt <= USED 0
+IP_OS_EnableInterrupt <= USED 0
+IP_OS_GetTime32 <= USED 0
+IP_OS_Init <= USED 0
+IP_OS_Lock <= USED 0
+IP_OS_SignalItem <= USED 0
+IP_OS_SignalNetEvent <= USED 0
+IP_OS_SignalRxEvent <= USED 0
+IP_OS_Unlock <= USED 0
+IP_OS_WaitItem <= USED 0
+IP_OS_WaitItemTimed <= USED 0
+IP_OS_WaitNetEvent <= USED 0
+IP_OS_WaitRxEvent <= USED 0
+;FILE IP_Packet.o
+IP_PACKET_Alloc <= USED 0
+IP_PACKET_Q_Add <= USED 0
+IP_PACKET_Q_GetRemoveFirst <= USED 0
+IP_PACKET_Q_TryGetRemoveFirst <= USED 0
+pk_free <= USED 0
+pk_init <= USED 0
+;FILE IP_Q.o
+IP_Q_Add <= USED 0
+IP_Q_GetFirst <= USED 0
+IP_Q_GetRemoveFirst <= USED 0
+IP_Q_RemoveItem <= USED 0
+IP_Q_TryGetRemoveFirst <= USED 0
+;FILE IP_Raw.o
+ip_raw_alloc <= USED 0
+ip_raw_close <= USED 0
+ip_raw_free <= USED 0
+ip_raw_input <= USED 0
+ip_raw_maxalloc <= USED 0
+ip_raw_open <= USED 0
+;FILE IP_Rawsock.o
+rawip_usrreq <= USED 0
+;FILE IP_TCP.o
+IP_INFO_ConnectionState2String <= USED 0
+IP_INFO_ConnectionType2String <= USED 0
+IP_INFO_GetConnectionInfo <= USED 0
+IP_INFO_GetConnectionList <= USED 0
+IP_MBUF_Get <= USED 0
+IP_MBUF_Init <= USED 0
+IP_ShowBSDConn <= USED 0
+IP_ShowBSDRcv <= USED 0
+IP_ShowBSDSend <= USED 0
+IP_ShowMBuf <= USED 0
+IP_ShowMBufList <= USED 0
+IP_ShowSocketList <= USED 0
+IP_ShowTCP <= USED 0
+IP_TCP_CalcChecksum <= USED 0
+IP_TCP_Set2MSLDelay <= USED 0
+dtom <= USED 0
+in_broadcast <= USED 0
+insque <= USED 0
+ip_output <= USED 0
+m_adj <= USED 0
+m_copy <= USED 0
+m_free <= USED 0
+m_freem <= USED 0
+mbuf_len <= USED 0
+pffindproto <= USED 0
+pffindtype <= USED 0
+remque <= USED 0
+so_icmpdu <= USED 0
+;FILE IP_TCP_in.o
+IP_TCP_OnRx <= USED 0
+;FILE IP_TCP_out.o
+tcp_output <= USED 0
+tcp_setpersist <= USED 0
+;FILE IP_TCP_pcb.o
+IP_TCP_PCB_alloc <= USED 0
+IP_TCP_PCB_bind <= USED 0
+IP_TCP_PCB_connect <= USED 0
+IP_TCP_PCB_detach <= USED 0
+IP_TCP_PCB_disconnect <= USED 0
+IP_TCP_PCB_lookup <= USED 0
+in_setpeeraddr <= USED 0
+in_setsockaddr <= USED 0
+;FILE IP_TCP_subr.o
+tcp_close <= USED 0
+tcp_drop <= USED 0
+tcp_init <= USED 0
+tcp_newtcpcb <= USED 0
+tcp_quench <= USED 0
+tcp_respond <= USED 0
+tcp_template <= USED 0
+;FILE IP_TCP_timr.o
+IP_TCP_FastTimer <= USED 0
+IP_TCP_OnTimer <= USED 0
+IP_TCP_SetConnKeepaliveOpt <= USED 0
+IP_TCP_SetRetransDelay <= USED 0
+IP_TCP_SetRetransDelayRange <= USED 0
+IP_TCP_SlowTimer <= USED 0
+IP_TCP_Start2MSLTimer <= USED 0
+IP_TCP_StartKEEPTimer <= USED 0
+IP_TCP_StartREXMTTimer <= USED 0
+tcp_canceltimers <= USED 0
+;FILE IP_TCP_usr.o
+tcp_usrreq <= USED 0
+;FILE IP_TCP_zio.o
+IP_TCP_Alloc <= USED 0
+IP_TCP_DataUpcall <= USED 0
+IP_TCP_Free <= USED 0
+IP_TCP_Send <= USED 0
+IP_TCP_SendAndFree <= USED 0
+;FILE IP_UDP.o
+IP_ShowUDP <= USED 0
+IP_ShowUDPSockets <= USED 0
+IP_UDP_Alloc <= USED 0
+IP_UDP_Close <= USED 0
+IP_UDP_DisableRxChecksum <= USED 0
+IP_UDP_DisableTxChecksum <= USED 0
+IP_UDP_EnableRxChecksum <= USED 0
+IP_UDP_EnableTxChecksum <= USED 0
+IP_UDP_FindFreePort <= USED 0
+IP_UDP_Free <= USED 0
+IP_UDP_GetDataPtr <= USED 0
+IP_UDP_GetLPort <= USED 0
+IP_UDP_GetSrcAddr <= USED 0
+IP_UDP_OnRx <= USED 0
+IP_UDP_Open <= USED 0
+IP_UDP_Send <= USED 0
+IP_UDP_SendAndFree <= USED 0
+udp_maxalloc <= USED 0
+;FILE IP_UDPSock.o
+udp4_sockaddr <= USED 0
+udp4_sockbind <= USED 0
+udp4_socksend <= USED 0
+udp_usrreq <= USED 0
+;FILE IP_socket.o
+IP_FreeSockOpt <= USED 0
+IP_SOCKET_Alloc <= USED 0
+IP_SOCKET_Free <= USED 0
+IP_SOCKET_SetDefaultOptions <= USED 0
+IP_SOCKET_SetLimit <= USED 0
+IP_SOCKET_h2p <= USED 0
+IP_SOCKET_p2h <= USED 0
+so_perror <= USED 0
+soabort <= USED 0
+sofree <= USED 0
+sohasoutofband <= USED 0
+soreceive <= USED 0
+t_accept <= USED 0
+t_bind <= USED 0
+t_connect <= USED 0
+t_errno <= USED 0
+t_getpeername <= USED 0
+t_getsockname <= USED 0
+t_getsockopt <= USED 0
+t_listen <= USED 0
+t_recv <= USED 0
+t_recvfrom <= USED 0
+t_send <= USED 0
+t_sendto <= USED 0
+t_setsockopt <= USED 0
+t_shutdown <= USED 0
+t_socket <= USED 0
+t_socketclose <= USED 0
+;FILE IP_socket2.o
+sbappend <= USED 0
+sbappendaddr <= USED 0
+sbappendrecord <= USED 0
+sbcompress <= USED 0
+sbdrop <= USED 0
+sbdropend <= USED 0
+sbdroprecord <= USED 0
+sbflush <= USED 0
+sbrelease <= USED 0
+sbreserve <= USED 0
+sbselqueue <= USED 0
+sbspace <= USED 0
+sbwait <= USED 0
+sbwakeup <= USED 0
+socantrcvmore <= USED 0
+socantsendmore <= USED 0
+soisconnected <= USED 0
+soisconnecting <= USED 0
+soisdisconnected <= USED 0
+soisdisconnecting <= USED 0
+sonewconn <= USED 0
+soqinsque <= USED 0
+soqremque <= USED 0
+soreserve <= USED 0
+;FILE LCD.o
+LCD_Color2Index <= USED 0
+LCD_DrawVLine <= USED 0
+LCD_Index2Color <= USED 0
+LCD_Init <= USED 0
+LCD_SetBkColorIndex <= USED 0
+LCD_SetClipRectMax <= USED 0
+LCD_SetColorIndex <= USED 0
+;FILE LCD_Color.o
+LCD_GetpPalConvTable <= USED 0
+LCD_GetpPalConvTableUncached <= USED 0
+LCD_InitLUT <= USED 0
+;FILE LCD_GetEx.o
+LCD_GetBitsPerPixelEx <= USED 0
+LCD_GetBitsPerPixelMax <= USED 0
+LCD_GetMirrorX <= USED 0
+LCD_GetMirrorY <= USED 0
+LCD_GetNumColorsEx <= USED 0
+LCD_GetPaletteEx <= USED 0
+LCD_GetSwapXY <= USED 0
+LCD_GetVXSize <= USED 0
+LCD_GetVXSizeEx <= USED 0
+LCD_GetVXSizeMax <= USED 0
+LCD_GetVYSize <= USED 0
+LCD_GetVYSizeEx <= USED 0
+LCD_GetVYSizeMax <= USED 0
+LCD_GetXMag <= USED 0
+LCD_GetXMagEx <= USED 0
+LCD_GetXSize <= USED 0
+LCD_GetXSizeMax <= USED 0
+LCD_GetYMag <= USED 0
+LCD_GetYMagEx <= USED 0
+LCD_GetYSize <= USED 0
+LCD_GetYSizeMax <= USED 0
+LCD_GetpfColor2IndexEx <= USED 0
+LCD_GetpfIndex2ColorEx <= USED 0
+LCD__GetBPP <= USED 0
+LCD__GetBPPDevice <= USED 0
+;FILE LCD_GetNumDisplays.o
+LCD_GetNumLayers <= USED 0
+;FILE LCD_ReadRect.o
+GUI_ReadRect <= USED 0
+GUI_ReadRectEx <= USED 0
+LCD_ReadRect <= USED 0
+;FILE LCD_SelectLCD.o
+LCD_SelectLCD <= USED 0
+;FILE LCD_Set.o
+LCD_GetPos <= USED 0
+LCD_SetAlpha <= USED 0
+LCD_SetAlphaEx <= USED 0
+LCD_SetAlphaMode <= USED 0
+LCD_SetAlphaModeEx <= USED 0
+LCD_SetChroma <= USED 0
+LCD_SetChromaEx <= USED 0
+LCD_SetChromaMode <= USED 0
+LCD_SetChromaModeEx <= USED 0
+LCD_SetLUTEntry <= USED 0
+LCD_SetLUTEntryEx <= USED 0
+LCD_SetPos <= USED 0
+LCD_SetSize <= USED 0
+LCD_SetSizeEx <= USED 0
+LCD_SetVRAMAddr <= USED 0
+LCD_SetVRAMAddrEx <= USED 0
+LCD_SetVSize <= USED 0
+LCD_SetVSizeEx <= USED 0
+LCD_SetVis <= USED 0
+LCD_SetVisEx <= USED 0
+;FILE LCD_SetClipRectEx.o
+;FILE LCD_UpdateColorIndices.o
+LCD_UpdateColorIndices <= USED 0
+;FILE OSCOM.o
+OS_COM_GetInU16 <= USED 0
+OS_COM_GetInU8 <= USED 0
+OS_COM_StoreOutU32 <= USED 0
+OS_COM_StoreOutU8 <= USED 0
+;FILE OSCOMRxTx1.o
+OS_COM_StartSend <= USED 0
+;FILE OSDELRS.o
+OS_DeleteRSema <= USED 0
+;FILE OSEVENS.o
+OS_SignalEvent <= USED 0
+;FILE OSEVENW.o
+OS_WaitEvent <= USED 0
+;FILE OSGM.o
+;FILE OSINFO.o
+OS_GetLibMode <= USED 0
+OS_GetModel <= USED 0
+OS_GetStackSpace <= USED 0
+OS_GetStackUsed <= USED 0
+OS_GetVersion <= USED 0
+;FILE OSKERN.o
+OS_ActivateTask <= USED 0
+OS_AssertISRLevel <= USED 0
+OS_CallISR <= USED 0
+OS_CallNestableISR <= USED 0
+OS_Delay <= USED 0
+OS_DelayUntil <= USED 0
+OS_ExtendTaskContext <= USED 0
+OS_GetRegionCnt <= USED 0
+OS_RemoveTaskFromWaitList <= USED 0
+;FILE OSMAIL.o
+OS_GetMessageCnt <= USED 0
+;FILE OSMX.o
+;FILE OSPM.o
+;FILE OSRSEM.o
+;FILE OSSETP.o
+;FILE OSSTAT.o
+OS_STAT_GetNumPreemptions <= USED 0
+OS_STAT_Sample <= USED 0
+;FILE OSTERM.o
+OS_Terminate <= USED 0
+;FILE OSTIME.o
+OS_StopTimer <= USED 0
+;FILE OS_CreateTask.o
+;FILE OS_DeactivateP.o
+;FILE OS_DeactivateTP.o
+;FILE OS_EVENT_Create.o
+;FILE OS_EVENT_Delete.o
+OS_EVENT_Delete <= USED 0
+;FILE OS_EVENT_Pulse.o
+OS_EVENT_Pulse <= USED 0
+;FILE OS_EVENT_Reset.o
+OS_EVENT_Reset <= USED 0
+;FILE OS_EVENT_Set.o
+;FILE OS_EVENT_Wait.o
+;FILE OS_EVENT_WaitTimed.o
+;FILE OS_GetNumTasks.o
+;FILE OS_HandleTick.o
+;FILE OS_SetRxCallback.o
+OS_SetRxCallback <= USED 0
+;FILE OS_TickHook.o
+OS_AddTickHook <= USED 0
+OS_RemoveTickHook <= USED 0
+;FILE OS_Wait.o
+;FILE RAMDISK.o
+FS_RAMDISK_Configure <= USED 0
+;FILE USBH_Core.o
+USBH_AllocIsoUrb <= USED 0
+USBH_ConfigMaxNumEndpoints <= USED 0
+USBH_ConfigMaxUSBDevices <= USED 0
+USBH_ConfigRootHub <= USED 0
+USBH_ConfigSupportExternalHubs <= USED 0
+USBH_ConfigTransferBufferSize <= USED 0
+USBH_DLIST_Append <= USED 0
+USBH_FreeIsoUrb <= USED 0
+USBH_LoadU16BE <= USED 0
+USBH_LoadU32BE <= USED 0
+USBH_LoadU32TE <= USED 0
+USBH_ReadReg16 <= USED 0
+USBH_ReadReg8 <= USED 0
+USBH_StoreU16BE <= USED 0
+USBH_StoreU16LE <= USED 0
+USBH_StoreU32BE <= USED 0
+USBH_StoreU32LE <= USED 0
+USBH_SwapU32 <= USED 0
+;FILE USBH_DebugStrings.o
+;FILE USBH_Device.o
+USBH_GetDescriptorEx <= USED 0
+USBH_GetDeviceDescriptor <= USED 0
+USBH_GetFrameNumber <= USED 0
+USBH_GetPendingUrbCount <= USED 0
+USBH_GetSerialNumber <= USED 0
+USBH_GetSpeed <= USED 0
+;FILE USBH_Driver.o
+USBH_BD_AddNotification <= USED 0
+USBH_BD_GetDeviceById <= USED 0
+USBH_BD_RemoveNotification <= USED 0
+USBH_Exit <= USED 0
+USBH_RemoveHostController <= USED 0
+USBH_UnregisterPnPNotification <= USED 0
+;FILE USBH_EndPoint.o
+;FILE USBH_Enum.o
+USBH_RegisterEnumErrorNotification <= USED 0
+USBH_RestartEnumError <= USED 0
+USBH_UnregisterEnumErrorNotification <= USED 0
+_CreateEnumErrorNotification <= USED 0
+;FILE USBH_HC.o
+USBH_BD_FreeUsbAddress <= USED 0
+;FILE USBH_HID.o
+USBH_HID_CancelIo <= USED 0
+USBH_HID_Close <= USED 0
+USBH_HID_Exit <= USED 0
+USBH_HID_GetDeviceInfo <= USED 0
+USBH_HID_GetNumDevices <= USED 0
+USBH_HID_GetReport <= USED 0
+USBH_HID_GetReportDescriptor <= USED 0
+USBH_HID_GetReportDescriptorParsed <= USED 0
+USBH_HID_Open <= USED 0
+USBH_HID_RegisterNotification <= USED 0
+USBH_HID_SetReport <= USED 0
+;FILE USBH_Hub.o
+_HubPrepareClearFeatureEndpointStall <= USED 0
+;FILE USBH_Interface.o
+USBH_GetInterfaceIdByHandle <= USED 0
+USBH_GetInterfaceInfo <= USED 0
+;FILE USBH_Log.o
+USBH_AddLogFilter <= USED 0
+USBH_AddWarnFilter <= USED 0
+USBH_Warnf_Application <= USED 0
+USBH_sprintf_Application <= USED 0
+;FILE USBH_MEM.o
+;FILE USBH_OHC_Device.o
+USBH_OHCI_DeleteController <= USED 0
+USBH_OHCI_RemoveController <= USED 0
+;FILE USBH_OHC_EP.o
+USBH_OHCI_EpGetToggle <= USED 0
+USBH_OHCI_EpSetToggle <= USED 0
+;FILE USBH_OHC_EP_BulkInt.o
+;FILE USBH_OHC_EP_Control.o
+;FILE USBH_OHC_EP_Int.o
+;FILE USBH_OHC_EP_Iso.o
+;FILE USBH_OHC_HCCA.o
+;FILE USBH_OHC_RootHub.o
+;FILE USBH_OHC_Transfer.o
+;FILE USBH_OHC_td.o
+;FILE USBH_OS_embOS.o
+USBH_OS_Delay <= USED 0
+USBH_OS_Lock <= USED 0
+USBH_OS_ResetEvent <= USED 0
+USBH_OS_Unlock <= USED 0
+USBH_OS_WaitEvent <= USED 0
+;FILE USBH_PnPNotification.o
+USBH_PNP_ReleaseNotification <= USED 0
+;FILE USBH_RootHub.o
+;FILE USBH_URB.o
+USBH_URB_CreateTransferBufferPool <= USED 0
+USBH_URB_DeleteTransferBufferPool <= USED 0
+USBH_URB_GetFromTransferBufferPool <= USED 0
+USBH_URB_GetPendingCounterBufferPool <= USED 0
+USBH_URB_InitUrbBulkTransfer <= USED 0
+USBH_URB_PutToTransferBufferPool <= USED 0
+USBH_URB_SubStateAllocInit <= USED 0
+USBH_URB_SubStateFree <= USED 0
+USBH_URB_SubStateIsIdle <= USED 0
+;FILE USB_Main.o
+BUFFER_Read <= USED 0
+BUFFER_Write <= USED 0
+USB_AddDriver <= USED 0
+USB_AddEP <= USED 0
+USB_CancelIO <= USED 0
+USB_GetNumBytesInBuffer <= USED 0
+USB_GetState <= USED 0
+USB_Init <= USED 0
+USB_IsConfigured <= USED 0
+USB_ReadEP <= USED 0
+USB_ReadEPOverlapped <= USED 0
+USB_ReadEPTimed <= USED 0
+USB_ReceiveEP <= USED 0
+USB_ReceiveEPTimed <= USED 0
+USB_RegisterSCHook <= USED 0
+USB_SetClassRequestHook <= USED 0
+USB_SetClrStallEP <= USED 0
+USB_SetOnRXHookEP <= USED 0
+USB_SetOnRxEP0 <= USED 0
+USB_SetOnSetupHook <= USED 0
+USB_StallEP <= USED 0
+USB_Start <= USED 0
+USB_UnregisterSCHook <= USED 0
+USB_WaitForEndOfTransfer <= USED 0
+USB_WriteEP <= USED 0
+USB_WriteEPOverlapped <= USED 0
+USB_WriteEPTimed <= USED 0
+USB__AllocIF <= USED 0
+USB__CalcMaxPacketSize <= USED 0
+USB__EPAddr2Index <= USED 0
+USB__EPIndex2Addr <= USED 0
+USB__GetU16BE <= USED 0
+USB__GetU16LE <= USED 0
+USB__GetU32BE <= USED 0
+USB__GetU32LE <= USED 0
+USB__GetpDest <= USED 0
+USB__InvalidateEP <= USED 0
+USB__IsHighSpeedCapable <= USED 0
+USB__IsHighSpeedMode <= USED 0
+USB__OnBusReset <= USED 0
+USB__OnResume <= USED 0
+USB__OnRx <= USED 0
+USB__OnRxZeroCopy <= USED 0
+USB__OnStatusChange <= USED 0
+USB__OnSuspend <= USED 0
+USB__OnTx <= USED 0
+USB__Send <= USED 0
+USB__StallEP0 <= USED 0
+USB__StoreU16BE <= USED 0
+USB__StoreU16LE <= USED 0
+USB__StoreU32BE <= USED 0
+USB__StoreU32LE <= USED 0
+USB__UpdateEPHW <= USED 0
+USB__WriteEP0FromISR <= USED 0
+;FILE USB_Setup.o
+USB_IB_AddU16 <= USED 0
+USB_IB_AddU32 <= USED 0
+USB_IB_AddU8 <= USED 0
+USB_IB_Init <= USED 0
+USB_SetMaxPower <= USED 0
+USB__BuildConfigDesc <= USED 0
+USB__BuildDeviceDesc <= USED 0
+USB__HandleSetup <= USED 0
+USB__OnSetupCancel <= USED 0
+USB__OnTx0Done <= USED 0
+;FILE USB_Weak.o
+USB_GetProductId <= USED 0
+USB_GetProductName <= USED 0
+USB_GetSerialNumber <= USED 0
+USB_GetVendorId <= USED 0
+USB_GetVendorName <= USED 0
+USB_MSD_GetProductName <= USED 0
+USB_MSD_GetProductVer <= USED 0
+USB_MSD_GetSerialNo <= USED 0
+USB_MSD_GetVendorName <= USED 0
+;FILE WM.o
+WM_Activate <= USED 0
+WM_CreateWindow <= USED 0
+WM_CreateWindowAsChild <= USED 0
+WM_Deactivate <= USED 0
+WM_DeleteWindow <= USED 0
+WM_Exec <= USED 0
+WM_Exec1 <= USED 0
+WM_GetActiveWindow <= USED 0
+WM_Init <= USED 0
+WM_InvalidateRect <= USED 0
+WM_SelectWindow <= USED 0
+WM_SetDefault <= USED 0
+WM__Client2Screen <= USED 0
+WM__DeleteSecure <= USED 0
+WM__DetachWindow <= USED 0
+WM__GetClientRectWin <= USED 0
+WM__GetTopLevelLayer <= USED 0
+WM__InsertWindowIntoList <= USED 0
+WM__Invalidate1Abs <= USED 0
+WM__InvalidateParent <= USED 0
+WM__Paint <= USED 0
+WM__RectIsNZ <= USED 0
+WM__RemoveFromLinList <= USED 0
+WM__RemoveWindowFromList <= USED 0
+WM__SelectTopLevelLayer <= USED 0
+WM__SendMsgNoData <= USED 0
+WM__SetInvalidateDrawFunc <= USED 0
+WM__SetInvalidateParentFunc <= USED 0
+WM__SetPaint1Func <= USED 0
+;FILE WM_BringToBottom.o
+WM_BringToBottom <= USED 0
+;FILE WM_CriticalHandle.o
+;FILE WM_GetDesktopWindow.o
+WM_GetDesktopWindow <= USED 0
+;FILE WM_GetDesktopWindowEx.o
+;FILE WM_GetFirstChild.o
+;FILE WM_GetParent.o
+;FILE WM_IsWindow.o
+;FILE WM_NotifyParent.o
+WM_NotifyParent <= USED 0
+;FILE WM_OnKey.o
+WM_OnKey <= USED 0
+;FILE WM_PID__GetPrevState.o
+WM_PID__GetPrevState <= USED 0
+;FILE WM_Screen2Win.o
+WM_Screen2hWinEx <= USED 0
+WM__IsInWindow <= USED 0
+;FILE WM_SendToParent.o
+;FILE WM_SetCapture.o
+WM_SetCapture <= USED 0
+;FILE WM_Timer.o
+WM_CreateTimer <= USED 0
+WM_DeleteTimer <= USED 0
+WM_RestartTimer <= USED 0
+WM__DeleteAssocTimer <= USED 0
+;FILE WM_Touch.o
+WM__IsInModalArea <= USED 0
+WM__SendPIDMessage <= USED 0
+WM__SetLastTouched <= USED 0
+;FILE WM__GetFirstSibling.o
+WM__GetFirstSibling <= USED 0
+;FILE WM__GetPrevSibling.o
+WM__GetPrevSibling <= USED 0
+;FILE WM__IsAncestor.o
+WM__IsAncestorOrSelf <= USED 0
+;FILE WM__IsEnabled.o
+;FILE WM__SendMessage.o
+;FILE WM__SendMessageIfEnabled.o
+;FILE bsp.o
+BSP_ClrLED <= USED 0
+BSP_ETH_Init <= USED 0
+BSP_ETH_InstallISR <= USED 0
+LCD_X_Config <= USED 0
+;FILE fs_configio.o
+FS_X_ErrorOut <= USED 0
+FS_X_Log <= USED 0
+FS_X_Panic <= USED 0
+FS_X_Warn <= USED 0
+;FILE fs_configramdisk.o
+FS_X_AddDevices <= USED 0
+FS_X_GetTimeDate <= USED 0
+;FILE fs_ro.o
+;FILE fs_x_embos.o
+FS_X_OS_DeInit <= USED 0
+FS_X_OS_GetTime <= USED 0
+FS_X_OS_Init <= USED 0
+FS_X_OS_Lock <= USED 0
+FS_X_OS_Signal <= USED 0
+FS_X_OS_Unlock <= USED 0
+FS_X_OS_Wait <= USED 0
+;FILE gui_vnc_x_startserver.o
+GUI_VNC_X_StartServer <= USED 0
+GUI_VNC_X_getpeername <= USED 0
+;FILE gui_x_embos.o
+GUI_X_Delay <= USED 0
+GUI_X_ErrorOut <= USED 0
+GUI_X_ExecIdle <= USED 0
+GUI_X_Init <= USED 0
+GUI_X_InitOS <= USED 0
+GUI_X_Log <= USED 0
+GUI_X_SignalEvent <= USED 0
+GUI_X_WaitEvent <= USED 0
+GUI_X_Warn <= USED 0
+;FILE gui_x_touch.o
+;FILE guiconf.o
+GUI_X_Config <= USED 0
+;FILE i2cpca9532.o
+;FILE ip_config_lpc24xx.o
+IP_X_Config <= USED 0
+;FILE ip_configio.o
+IP_Log <= USED 0
+IP_Panic <= USED 0
+IP_Warn <= USED 0
+;FILE ip_fs_fs.o
+;FILE jlinkdcc_process.o
+JLINKDCC_SendChar <= USED 0
+JLINKDCC_SendOnChannel <= USED 0
+JLINKDCC_SendString <= USED 0
+;FILE main.o
+;FILE os_error.o
+;FILE os_usbh_hid.o
+;FILE retarget.o
+_ttywrch <= USED 0
+ferror <= USED 0
+;FILE rtosinit.o
+OS_ARM_DisableISR <= USED 0
+OS_ConvertCycles2us <= USED 0
+;FILE usb_config_lpc2468_ea.o
+USB_X_AddDriver <= USED 0
+USB_X_EnableISR <= USED 0
+USB_X_HWAttach <= USED 0
+;FILE usb_os_embos.o
+USB_OS_DecRI <= USED 0
+USB_OS_Delay <= USED 0
+USB_OS_GetTickCnt <= USED 0
+USB_OS_IncDI <= USED 0
+USB_OS_Init <= USED 0
+USB_OS_Panic <= USED 0
+USB_OS_Signal <= USED 0
+USB_OS_Wait <= USED 0
+USB_OS_WaitTimed <= USED 0
+;FILE usbh_config_lpc24xx.o
+;FILE usbh_configio.o

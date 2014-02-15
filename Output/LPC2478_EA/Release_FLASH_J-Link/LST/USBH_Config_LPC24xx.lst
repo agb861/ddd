@@ -1,0 +1,3765 @@
+L 1 "Setup\USBH_Config_LPC24xx.c"
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile        : USBH_Config_LPC24xx.c
+NPurpose     :
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N/*********************************************************************
+N*
+N*       #include Section
+N*
+N**********************************************************************
+N*/
+N#include <stdlib.h>
+L 1 "C:\Program Files (x86)\Keil\V473\ARM\ARMCC\bin\..\include\stdlib.h" 1
+N/* stdlib.h: ANSI draft (X3J11 May 88) library header, section 4.10 */
+N/* Copyright (C) Codemist Ltd., 1988-1993.                          */
+N/* Copyright 1991-1998 ARM Limited. All rights reserved.            */
+N/*
+N * RCS $Revision: 178085 $
+N * Checkin $Date: 2012-12-11 14:54:17 +0000 (Tue, 11 Dec 2012) $
+N * Revising $Author: agrant $
+N */
+N 
+N/*
+N * stdlib.h declares four types, several general purpose functions,
+N * and defines several macros.
+N */
+N
+N#ifndef __stdlib_h
+N#define __stdlib_h
+N#define __ARMCLIB_VERSION 5030076
+N
+N#define _ARMABI __declspec(__nothrow)
+N#define _ARMABI_PURE __declspec(__nothrow) __pure
+N#define _ARMABI_NORETURN __declspec(__nothrow) __declspec(__noreturn)
+N#define _ARMABI_THROW
+N
+N  #ifndef __STDLIB_DECLS
+N  #define __STDLIB_DECLS
+N
+N  /*
+N   * Some of these declarations are new in C99.  To access them in C++
+N   * you can use -D__USE_C99_STDLIB (or -D__USE_C99ALL).
+N   */
+N  #ifndef __USE_C99_STDLIB
+N    #if defined(__USE_C99_ALL) || (defined(__STDC_VERSION__) && 199901L <= __STDC_VERSION__)
+X    #if 0L || (1L && 199901L <= 199409L)
+S      #define __USE_C99_STDLIB 1
+N    #endif
+N  #endif
+N
+N    #undef __CLIBNS
+N
+N    #ifdef __cplusplus
+S      namespace std {
+S          #define __CLIBNS ::std::
+S          extern "C" {
+N    #else
+N      #define __CLIBNS
+N    #endif  /* __cplusplus */
+N
+N#if defined(__cplusplus) || !defined(__STRICT_ANSI__)
+X#if 0L || !0L
+N /* unconditional in C++ and non-strict C for consistency of debug info */
+N  typedef unsigned int size_t;
+N#elif !defined(__size_t)
+S  #define __size_t 1
+S  typedef unsigned int size_t;   /* see <stddef.h> */
+N#endif
+N
+N#undef NULL
+N#define NULL 0                   /* see <stddef.h> */
+N
+N#ifndef __cplusplus  /* wchar_t is a builtin type for C++ */
+N  #if !defined(__STRICT_ANSI__)
+X  #if !0L
+N   /* unconditional in non-strict C for consistency of debug info */
+N   #if defined(__WCHAR32)
+X   #if 0L
+S    typedef unsigned int wchar_t; /* see <stddef.h> */
+N   #else
+N    typedef unsigned short wchar_t; /* see <stddef.h> */
+N   #endif
+N  #elif !defined(__wchar_t)
+S    #define __wchar_t 1
+S   #if defined(__WCHAR32)
+S    typedef unsigned int wchar_t; /* see <stddef.h> */
+S   #else
+S    typedef unsigned short wchar_t; /* see <stddef.h> */
+S   #endif
+N  #endif
+N#endif
+N
+Ntypedef struct div_t { int quot, rem; } div_t;
+N   /* type of the value returned by the div function. */
+Ntypedef struct ldiv_t { long int quot, rem; } ldiv_t;
+N   /* type of the value returned by the ldiv function. */
+N#if !defined(__STRICT_ANSI__) || __USE_C99_STDLIB
+X#if !0L || __USE_C99_STDLIB
+Ntypedef struct lldiv_t { __int64 quot, rem; } lldiv_t;
+N   /* type of the value returned by the lldiv function. */
+N#endif
+N
+N#ifdef __EXIT_FAILURE
+S#  define EXIT_FAILURE __EXIT_FAILURE
+S   /*
+S    * an integral expression which may be used as an argument to the exit
+S    * function to return unsuccessful termination status to the host
+S    * environment.
+S    */
+N#else
+N#  define EXIT_FAILURE 1  /* unixoid */
+N#endif
+N#define EXIT_SUCCESS 0
+N   /*
+N    * an integral expression which may be used as an argument to the exit
+N    * function to return successful termination status to the host
+N    * environment.
+N    */
+N
+N   /*
+N    * Defining __USE_ANSI_EXAMPLE_RAND at compile time switches to
+N    * the example implementation of rand() and srand() provided in
+N    * the ANSI C standard. This implementation is very poor, but is
+N    * provided for completeness.
+N    */
+N#ifdef __USE_ANSI_EXAMPLE_RAND
+S#define srand _ANSI_srand
+S#define rand _ANSI_rand
+S#define RAND_MAX 0x7fff
+N#else
+N#define RAND_MAX 0x7fffffff
+N#endif
+N   /*
+N    * RAND_MAX: an integral constant expression, the value of which
+N    * is the maximum value returned by the rand function.
+N    */
+Nextern _ARMABI int __aeabi_MB_CUR_MAX(void);
+Xextern __declspec(__nothrow) int __aeabi_MB_CUR_MAX(void);
+N#define MB_CUR_MAX ( __aeabi_MB_CUR_MAX() )
+N   /*
+N    * a positive integer expression whose value is the maximum number of bytes
+N    * in a multibyte character for the extended character set specified by the
+N    * current locale (category LC_CTYPE), and whose value is never greater
+N    * than MB_LEN_MAX.
+N    */
+N
+N   /*
+N    * If the compiler supports signalling nans as per N965 then it
+N    * will define __SUPPORT_SNAN__, in which case a user may define
+N    * _WANT_SNAN in order to obtain a compliant version of the strtod
+N    * family of functions.
+N    */
+N#if defined(__SUPPORT_SNAN__) && defined(_WANT_SNAN)
+X#if 0L && 0L
+S#pragma import(__use_snan)
+N#endif
+N
+Nextern _ARMABI double atof(const char * /*nptr*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) double atof(const char *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * converts the initial part of the string pointed to by nptr to double
+N    * representation.
+N    * Returns: the converted value.
+N    */
+Nextern _ARMABI int atoi(const char * /*nptr*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int atoi(const char *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * converts the initial part of the string pointed to by nptr to int
+N    * representation.
+N    * Returns: the converted value.
+N    */
+Nextern _ARMABI long int atol(const char * /*nptr*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) long int atol(const char *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * converts the initial part of the string pointed to by nptr to long int
+N    * representation.
+N    * Returns: the converted value.
+N    */
+N#if !defined(__STRICT_ANSI__) || __USE_C99_STDLIB
+X#if !0L || __USE_C99_STDLIB
+Nextern _ARMABI __int64 atoll(const char * /*nptr*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) __int64 atoll(const char *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * converts the initial part of the string pointed to by nptr to
+N    * long long int representation.
+N    * Returns: the converted value.
+N    */
+N#endif
+N
+Nextern _ARMABI double strtod(const char * __restrict /*nptr*/, char ** __restrict /*endptr*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) double strtod(const char * __restrict  , char ** __restrict  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * converts the initial part of the string pointed to by nptr to double
+N    * representation. First it decomposes the input string into three parts:
+N    * an initial, possibly empty, sequence of white-space characters (as
+N    * specified by the isspace function), a subject sequence resembling a
+N    * floating point constant; and a final string of one or more unrecognised
+N    * characters, including the terminating null character of the input string.
+N    * Then it attempts to convert the subject sequence to a floating point
+N    * number, and returns the result. A pointer to the final string is stored
+N    * in the object pointed to by endptr, provided that endptr is not a null
+N    * pointer.
+N    * Returns: the converted value if any. If no conversion could be performed,
+N    *          zero is returned. If the correct value is outside the range of
+N    *          representable values, plus or minus HUGE_VAL is returned
+N    *          (according to the sign of the value), and the value of the macro
+N    *          ERANGE is stored in errno. If the correct value would cause
+N    *          underflow, zero is returned and the value of the macro ERANGE is
+N    *          stored in errno.
+N    */
+N#if !defined(__STRICT_ANSI__) || __USE_C99_STDLIB
+X#if !0L || __USE_C99_STDLIB
+Nextern _ARMABI float strtof(const char * __restrict /*nptr*/, char ** __restrict /*endptr*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) float strtof(const char * __restrict  , char ** __restrict  ) __attribute__((__nonnull__(1)));
+Nextern _ARMABI long double strtold(const char * __restrict /*nptr*/, char ** __restrict /*endptr*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) long double strtold(const char * __restrict  , char ** __restrict  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * same as strtod, but return float and long double respectively.
+N    */
+N#endif
+Nextern _ARMABI long int strtol(const char * __restrict /*nptr*/,
+Xextern __declspec(__nothrow) long int strtol(const char * __restrict  ,
+N                        char ** __restrict /*endptr*/, int /*base*/) __attribute__((__nonnull__(1)));
+N   /*
+N    * converts the initial part of the string pointed to by nptr to long int
+N    * representation. First it decomposes the input string into three parts:
+N    * an initial, possibly empty, sequence of white-space characters (as
+N    * specified by the isspace function), a subject sequence resembling an
+N    * integer represented in some radix determined by the value of base, and a
+N    * final string of one or more unrecognised characters, including the
+N    * terminating null character of the input string. Then it attempts to
+N    * convert the subject sequence to an integer, and returns the result.
+N    * If the value of base is 0, the expected form of the subject sequence is
+N    * that of an integer constant (described in ANSI Draft, section 3.1.3.2),
+N    * optionally preceded by a '+' or '-' sign, but not including an integer
+N    * suffix. If the value of base is between 2 and 36, the expected form of
+N    * the subject sequence is a sequence of letters and digits representing an
+N    * integer with the radix specified by base, optionally preceded by a plus
+N    * or minus sign, but not including an integer suffix. The letters from a
+N    * (or A) through z (or Z) are ascribed the values 10 to 35; only letters
+N    * whose ascribed values are less than that of the base are permitted. If
+N    * the value of base is 16, the characters 0x or 0X may optionally precede
+N    * the sequence of letters and digits following the sign if present.
+N    * A pointer to the final string is stored in the object
+N    * pointed to by endptr, provided that endptr is not a null pointer.
+N    * Returns: the converted value if any. If no conversion could be performed,
+N    *          zero is returned and nptr is stored in *endptr.
+N    *          If the correct value is outside the range of
+N    *          representable values, LONG_MAX or LONG_MIN is returned
+N    *          (according to the sign of the value), and the value of the
+N    *          macro ERANGE is stored in errno.
+N    */
+Nextern _ARMABI unsigned long int strtoul(const char * __restrict /*nptr*/,
+Xextern __declspec(__nothrow) unsigned long int strtoul(const char * __restrict  ,
+N                                       char ** __restrict /*endptr*/, int /*base*/) __attribute__((__nonnull__(1)));
+N   /*
+N    * converts the initial part of the string pointed to by nptr to unsigned
+N    * long int representation. First it decomposes the input string into three
+N    * parts: an initial, possibly empty, sequence of white-space characters (as
+N    * determined by the isspace function), a subject sequence resembling an
+N    * unsigned integer represented in some radix determined by the value of
+N    * base, and a final string of one or more unrecognised characters,
+N    * including the terminating null character of the input string. Then it
+N    * attempts to convert the subject sequence to an unsigned integer, and
+N    * returns the result. If the value of base is zero, the expected form of
+N    * the subject sequence is that of an integer constant (described in ANSI
+N    * Draft, section 3.1.3.2), optionally preceded by a '+' or '-' sign, but
+N    * not including an integer suffix. If the value of base is between 2 and
+N    * 36, the expected form of the subject sequence is a sequence of letters
+N    * and digits representing an integer with the radix specified by base,
+N    * optionally preceded by a '+' or '-' sign, but not including an integer
+N    * suffix. The letters from a (or A) through z (or Z) stand for the values
+N    * 10 to 35; only letters whose ascribed values are less than that of the
+N    * base are permitted. If the value of base is 16, the characters 0x or 0X
+N    * may optionally precede the sequence of letters and digits following the
+N    * sign, if present. A pointer to the final string is stored in the object
+N    * pointed to by endptr, provided that endptr is not a null pointer.
+N    * Returns: the converted value if any. If no conversion could be performed,
+N    *          zero is returned and nptr is stored in *endptr.
+N    *          If the correct value is outside the range of
+N    *          representable values, ULONG_MAX is returned, and the value of
+N    *          the macro ERANGE is stored in errno.
+N    */
+N
+N/* C90 reserves all names beginning with 'str' */
+Nextern _ARMABI __int64 strtoll(const char * __restrict /*nptr*/,
+Xextern __declspec(__nothrow) __int64 strtoll(const char * __restrict  ,
+N                               char ** __restrict /*endptr*/, int /*base*/) __attribute__((__nonnull__(1)));
+N   /*
+N    * as strtol but returns a long long int value.  If the correct value is
+N    * outside the range of representable values,  LLONG_MAX or LLONG_MIN is
+N    * returned (according to the sign of the value), and the value of the
+N    * macro ERANGE is stored in errno.
+N    */
+Nextern _ARMABI unsigned __int64 strtoull(const char * __restrict /*nptr*/,
+Xextern __declspec(__nothrow) unsigned __int64 strtoull(const char * __restrict  ,
+N                                         char ** __restrict /*endptr*/, int /*base*/) __attribute__((__nonnull__(1)));
+N   /*
+N    * as strtoul but returns an unsigned long long int value.  If the correct
+N    * value is outside the range of representable values, ULLONG_MAX is returned,
+N    * and the value of the macro ERANGE is stored in errno.
+N    */
+N
+Nextern _ARMABI int rand(void);
+Xextern __declspec(__nothrow) int rand(void);
+N   /*
+N    * Computes a sequence of pseudo-random integers in the range 0 to RAND_MAX.
+N    * Uses an additive generator (Mitchell & Moore) of the form:
+N    *   Xn = (X[n-24] + X[n-55]) MOD 2^31
+N    * This is described in section 3.2.2 of Knuth, vol 2. It's period is
+N    * in excess of 2^55 and its randomness properties, though unproven, are
+N    * conjectured to be good. Empirical testing since 1958 has shown no flaws.
+N    * Returns: a pseudo-random integer.
+N    */
+Nextern _ARMABI void srand(unsigned int /*seed*/);
+Xextern __declspec(__nothrow) void srand(unsigned int  );
+N   /*
+N    * uses its argument as a seed for a new sequence of pseudo-random numbers
+N    * to be returned by subsequent calls to rand. If srand is then called with
+N    * the same seed value, the sequence of pseudo-random numbers is repeated.
+N    * If rand is called before any calls to srand have been made, the same
+N    * sequence is generated as when srand is first called with a seed value
+N    * of 1.
+N    */
+N
+Nstruct _rand_state { int __x[57]; };
+Nextern _ARMABI int _rand_r(struct _rand_state *);
+Xextern __declspec(__nothrow) int _rand_r(struct _rand_state *);
+Nextern _ARMABI void _srand_r(struct _rand_state *, unsigned int);
+Xextern __declspec(__nothrow) void _srand_r(struct _rand_state *, unsigned int);
+Nstruct _ANSI_rand_state { int __x[1]; };
+Nextern _ARMABI int _ANSI_rand_r(struct _ANSI_rand_state *);
+Xextern __declspec(__nothrow) int _ANSI_rand_r(struct _ANSI_rand_state *);
+Nextern _ARMABI void _ANSI_srand_r(struct _ANSI_rand_state *, unsigned int);
+Xextern __declspec(__nothrow) void _ANSI_srand_r(struct _ANSI_rand_state *, unsigned int);
+N   /*
+N    * Re-entrant variants of both flavours of rand, which operate on
+N    * an explicitly supplied state buffer.
+N    */
+N
+Nextern _ARMABI void *calloc(size_t /*nmemb*/, size_t /*size*/);
+Xextern __declspec(__nothrow) void *calloc(size_t  , size_t  );
+N   /*
+N    * allocates space for an array of nmemb objects, each of whose size is
+N    * 'size'. The space is initialised to all bits zero.
+N    * Returns: either a null pointer or a pointer to the allocated space.
+N    */
+Nextern _ARMABI void free(void * /*ptr*/);
+Xextern __declspec(__nothrow) void free(void *  );
+N   /*
+N    * causes the space pointed to by ptr to be deallocated (i.e., made
+N    * available for further allocation). If ptr is a null pointer, no action
+N    * occurs. Otherwise, if ptr does not match a pointer earlier returned by
+N    * calloc, malloc or realloc or if the space has been deallocated by a call
+N    * to free or realloc, the behaviour is undefined.
+N    */
+Nextern _ARMABI void *malloc(size_t /*size*/);
+Xextern __declspec(__nothrow) void *malloc(size_t  );
+N   /*
+N    * allocates space for an object whose size is specified by 'size' and whose
+N    * value is indeterminate.
+N    * Returns: either a null pointer or a pointer to the allocated space.
+N    */
+Nextern _ARMABI void *realloc(void * /*ptr*/, size_t /*size*/);
+Xextern __declspec(__nothrow) void *realloc(void *  , size_t  );
+N   /*
+N    * changes the size of the object pointed to by ptr to the size specified by
+N    * size. The contents of the object shall be unchanged up to the lesser of
+N    * the new and old sizes. If the new size is larger, the value of the newly
+N    * allocated portion of the object is indeterminate. If ptr is a null
+N    * pointer, the realloc function behaves like a call to malloc for the
+N    * specified size. Otherwise, if ptr does not match a pointer earlier
+N    * returned by calloc, malloc or realloc, or if the space has been
+N    * deallocated by a call to free or realloc, the behaviour is undefined.
+N    * If the space cannot be allocated, the object pointed to by ptr is
+N    * unchanged. If size is zero and ptr is not a null pointer, the object it
+N    * points to is freed.
+N    * Returns: either a null pointer or a pointer to the possibly moved
+N    *          allocated space.
+N    */
+N#if !defined(__STRICT_ANSI__)
+X#if !0L
+Nextern _ARMABI int posix_memalign(void ** /*ret*/, size_t /*alignment*/, size_t /*size*/);
+Xextern __declspec(__nothrow) int posix_memalign(void **  , size_t  , size_t  );
+N   /*
+N    * allocates space for an object of size 'size', aligned to a
+N    * multiple of 'alignment' (which must be a power of two and at
+N    * least 4).
+N    *
+N    * On success, a pointer to the allocated object is stored in
+N    * *ret, and zero is returned. On failure, the return value is
+N    * either ENOMEM (allocation failed because no suitable piece of
+N    * memory was available) or EINVAL (the 'alignment' parameter was
+N    * invalid).
+N    */
+N#endif
+Ntypedef int (*__heapprt)(void *, char const *, ...);
+Nextern _ARMABI void __heapstats(int (* /*dprint*/)(void * /*param*/,
+Xextern __declspec(__nothrow) void __heapstats(int (*  )(void *  ,
+N                                           char const * /*format*/, ...),
+N                        void * /*param*/) __attribute__((__nonnull__(1)));
+N   /*
+N    * reports current heap statistics (eg. number of free blocks in
+N    * the free-list). Output is as implementation-defined free-form
+N    * text, provided via the dprint function. `param' gives an
+N    * extra data word to pass to dprint. You can call
+N    * __heapstats(fprintf,stdout) by casting fprintf to the above
+N    * function type; the typedef `__heapprt' is provided for this
+N    * purpose.
+N    *
+N    * `dprint' will not be called while the heap is being examined,
+N    * so it can allocate memory itself without trouble.
+N    */
+Nextern _ARMABI int __heapvalid(int (* /*dprint*/)(void * /*param*/,
+Xextern __declspec(__nothrow) int __heapvalid(int (*  )(void *  ,
+N                                           char const * /*format*/, ...),
+N                       void * /*param*/, int /*verbose*/) __attribute__((__nonnull__(1)));
+N   /*
+N    * performs a consistency check on the heap. Errors are reported
+N    * through dprint, like __heapstats. If `verbose' is nonzero,
+N    * full diagnostic information on the heap state is printed out.
+N    *
+N    * This routine probably won't work if the heap isn't a
+N    * contiguous chunk (for example, if __user_heap_extend has been
+N    * overridden).
+N    *
+N    * `dprint' may be called while the heap is being examined or
+N    * even in an invalid state, so it must perform no memory
+N    * allocation. In particular, if `dprint' calls (or is) a stdio
+N    * function, the stream it outputs to must already have either
+N    * been written to or been setvbuf'ed, or else the system will
+N    * allocate buffer space for it on the first call to dprint.
+N    */
+Nextern _ARMABI_NORETURN void abort(void);
+Xextern __declspec(__nothrow) __declspec(__noreturn) void abort(void);
+N   /*
+N    * causes abnormal program termination to occur, unless the signal SIGABRT
+N    * is being caught and the signal handler does not return. Whether open
+N    * output streams are flushed or open streams are closed or temporary
+N    * files removed is implementation-defined.
+N    * An implementation-defined form of the status 'unsuccessful termination'
+N    * is returned to the host environment by means of a call to
+N    * raise(SIGABRT).
+N    */
+N
+Nextern _ARMABI int atexit(void (* /*func*/)(void)) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int atexit(void (*  )(void)) __attribute__((__nonnull__(1)));
+N   /*
+N    * registers the function pointed to by func, to be called without its
+N    * arguments at normal program termination. It is possible to register at
+N    * least 32 functions.
+N    * Returns: zero if the registration succeeds, nonzero if it fails.
+N    */
+N#if defined(__cplusplus) && !defined(__GNUC__)
+X#if 0L && !0L
+S    /* atexit that takes a ptr to a function with C++ linkage 
+S     * but not in GNU mode  
+S     */
+S    typedef void (* __C_exitfuncptr)();
+S    extern "C++"
+S    inline int atexit(void (* __func)()) {
+S      return atexit((__C_exitfuncptr)__func);
+S    }
+N#endif
+N
+N
+Nextern _ARMABI_NORETURN void exit(int /*status*/);
+Xextern __declspec(__nothrow) __declspec(__noreturn) void exit(int  );
+N   /*
+N    * causes normal program termination to occur. If more than one call to the
+N    * exit function is executed by a program, the behaviour is undefined.
+N    * First, all functions registered by the atexit function are called, in the
+N    * reverse order of their registration.
+N    * Next, all open output streams are flushed, all open streams are closed,
+N    * and all files created by the tmpfile function are removed.
+N    * Finally, control is returned to the host environment. If the value of
+N    * status is zero or EXIT_SUCCESS, an implementation-defined form of the
+N    * status 'successful termination' is returned. If the value of status is
+N    * EXIT_FAILURE, an implementation-defined form of the status
+N    * 'unsuccessful termination' is returned. Otherwise the status returned
+N    * is implementation-defined.
+N    */
+N
+Nextern _ARMABI_NORETURN void _Exit(int /*status*/);
+Xextern __declspec(__nothrow) __declspec(__noreturn) void _Exit(int  );
+N   /*
+N    * causes normal program termination to occur. No functions registered
+N    * by the atexit function are called.
+N    * In this implementation, all open output streams are flushed, all
+N    * open streams are closed, and all files created by the tmpfile function
+N    * are removed.
+N    * Control is returned to the host environment. The status returned to
+N    * the host environment is determined in the same way as for 'exit'.
+N    */     
+N
+Nextern _ARMABI char *getenv(const char * /*name*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) char *getenv(const char *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * searches the environment list, provided by the host environment, for a
+N    * string that matches the string pointed to by name. The set of environment
+N    * names and the method for altering the environment list are
+N    * implementation-defined.
+N    * Returns: a pointer to a string associated with the matched list member.
+N    *          The array pointed to shall not be modified by the program, but
+N    *          may be overwritten by a subsequent call to the getenv function.
+N    *          If the specified name cannot be found, a null pointer is
+N    *          returned.
+N    */
+N
+Nextern _ARMABI int  system(const char * /*string*/);
+Xextern __declspec(__nothrow) int  system(const char *  );
+N   /*
+N    * passes the string pointed to by string to the host environment to be
+N    * executed by a command processor in an implementation-defined manner.
+N    * A null pointer may be used for string, to inquire whether a command
+N    * processor exists.
+N    *
+N    * Returns: If the argument is a null pointer, the system function returns
+N    *          non-zero only if a command processor is available. If the
+N    *          argument is not a null pointer, the system function returns an
+N    *          implementation-defined value.
+N    */
+N
+Nextern _ARMABI_THROW void *bsearch(const void * /*key*/, const void * /*base*/,
+Xextern  void *bsearch(const void *  , const void *  ,
+N              size_t /*nmemb*/, size_t /*size*/,
+N              int (* /*compar*/)(const void *, const void *)) __attribute__((__nonnull__(1,2,5)));
+N   /*
+N    * searches an array of nmemb objects, the initial member of which is
+N    * pointed to by base, for a member that matches the object pointed to by
+N    * key. The size of each member of the array is specified by size.
+N    * The contents of the array shall be in ascending sorted order according to
+N    * a comparison function pointed to by compar, which is called with two
+N    * arguments that point to the key object and to an array member, in that
+N    * order. The function shall return an integer less than, equal to, or
+N    * greater than zero if the key object is considered, respectively, to be
+N    * less than, to match, or to be greater than the array member.
+N    * Returns: a pointer to a matching member of the array, or a null pointer
+N    *          if no match is found. If two members compare as equal, which
+N    *          member is matched is unspecified.
+N    */
+N#if defined(__cplusplus) && !defined(__GNUC__)
+X#if 0L && !0L
+S    /* bsearch that takes a ptr to a function with C++ linkage 
+S     * but not in GNU mode
+S     */
+S    typedef int (* __C_compareprocptr)(const void *, const void *);
+S    extern "C++"
+S    void *bsearch(const void * __key, const void * __base,
+S              size_t __nmemb, size_t __size,
+S              int (* __compar)(const void *, const void *)) __attribute__((__nonnull__(1,2,5)));
+S    extern "C++"
+S    inline void *bsearch(const void * __key, const void * __base,
+S              size_t __nmemb, size_t __size,
+S              int (* __compar)(const void *, const void *)) {
+S      return bsearch(__key, __base, __nmemb, __size, (__C_compareprocptr)__compar);
+S    }
+N#endif
+N
+N
+Nextern _ARMABI_THROW void qsort(void * /*base*/, size_t /*nmemb*/, size_t /*size*/,
+Xextern  void qsort(void *  , size_t  , size_t  ,
+N           int (* /*compar*/)(const void *, const void *)) __attribute__((__nonnull__(1,4)));
+N   /*
+N    * sorts an array of nmemb objects, the initial member of which is pointed
+N    * to by base. The size of each object is specified by size.
+N    * The contents of the array shall be in ascending order according to a
+N    * comparison function pointed to by compar, which is called with two
+N    * arguments that point to the objects being compared. The function shall
+N    * return an integer less than, equal to, or greater than zero if the first
+N    * argument is considered to be respectively less than, equal to, or greater
+N    * than the second. If two members compare as equal, their order in the
+N    * sorted array is unspecified.
+N    */
+N
+N#if defined(__cplusplus) && !defined(__GNUC__)
+X#if 0L && !0L
+S    /* qsort that takes a ptr to a function with C++ linkage 
+S     * but not in GNU mode
+S     */    
+S    extern "C++"
+S    void qsort(void * __base, size_t __nmemb, size_t __size,
+S               int (* __compar)(const void *, const void *)) __attribute__((__nonnull__(1,4)));
+S    extern "C++"
+S    inline void qsort(void * __base, size_t __nmemb, size_t __size,
+S                      int (* __compar)(const void *, const void *)) {
+S      qsort(__base, __nmemb, __size, (__C_compareprocptr)__compar);
+S    }
+N#endif
+N
+Nextern _ARMABI_PURE int abs(int /*j*/);
+Xextern __declspec(__nothrow) __pure int abs(int  );
+N   /*
+N    * computes the absolute value of an integer j. If the result cannot be
+N    * represented, the behaviour is undefined.
+N    * Returns: the absolute value.
+N    */
+N
+Nextern _ARMABI_PURE div_t div(int /*numer*/, int /*denom*/);
+Xextern __declspec(__nothrow) __pure div_t div(int  , int  );
+N   /*
+N    * computes the quotient and remainder of the division of the numerator
+N    * numer by the denominator denom. If the division is inexact, the resulting
+N    * quotient is the integer of lesser magnitude that is the nearest to the
+N    * algebraic quotient. If the result cannot be represented, the behaviour is
+N    * undefined; otherwise, quot * denom + rem shall equal numer.
+N    * Returns: a structure of type div_t, comprising both the quotient and the
+N    *          remainder. the structure shall contain the following members,
+N    *          in either order.
+N    *          int quot; int rem;
+N    */
+Nextern _ARMABI_PURE long int labs(long int /*j*/);
+Xextern __declspec(__nothrow) __pure long int labs(long int  );
+N   /*
+N    * computes the absolute value of an long integer j. If the result cannot be
+N    * represented, the behaviour is undefined.
+N    * Returns: the absolute value.
+N    */
+N#ifdef __cplusplus
+S   extern "C++" inline _ARMABI_PURE long abs(long int x) { return labs(x); }
+N#endif
+N
+Nextern _ARMABI_PURE ldiv_t ldiv(long int /*numer*/, long int /*denom*/);
+Xextern __declspec(__nothrow) __pure ldiv_t ldiv(long int  , long int  );
+N   /*
+N    * computes the quotient and remainder of the division of the numerator
+N    * numer by the denominator denom. If the division is inexact, the sign of
+N    * the resulting quotient is that of the algebraic quotient, and the
+N    * magnitude of the resulting quotient is the largest integer less than the
+N    * magnitude of the algebraic quotient. If the result cannot be represented,
+N    * the behaviour is undefined; otherwise, quot * denom + rem shall equal
+N    * numer.
+N    * Returns: a structure of type ldiv_t, comprising both the quotient and the
+N    *          remainder. the structure shall contain the following members,
+N    *          in either order.
+N    *          long int quot; long int rem;
+N    */
+N#ifdef __cplusplus
+S   extern "C++" inline _ARMABI_PURE ldiv_t div(long int __numer, long int __denom) {
+S       return ldiv(__numer, __denom);
+S   }
+N#endif
+N
+N#if !defined(__STRICT_ANSI__) || __USE_C99_STDLIB
+X#if !0L || __USE_C99_STDLIB
+Nextern _ARMABI_PURE __int64 llabs(__int64 /*j*/);
+Xextern __declspec(__nothrow) __pure __int64 llabs(__int64  );
+N   /*
+N    * computes the absolute value of a __int64 integer j. If the
+N    * result cannot be represented, the behaviour is undefined.
+N    * Returns: the absolute value.
+N    */
+N#ifdef __cplusplus
+S   extern "C++" inline _ARMABI_PURE __int64 abs(__int64 x) { return llabs(x); }
+N#endif
+N
+Nextern _ARMABI_PURE lldiv_t lldiv(__int64 /*numer*/, __int64 /*denom*/);
+Xextern __declspec(__nothrow) __pure lldiv_t lldiv(__int64  , __int64  );
+N   /*
+N    * computes the quotient and remainder of the division of the numerator
+N    * numer by the denominator denom. If the division is inexact, the sign of
+N    * the resulting quotient is that of the algebraic quotient, and the
+N    * magnitude of the resulting quotient is the largest integer less than the
+N    * magnitude of the algebraic quotient. If the result cannot be represented,
+N    * the behaviour is undefined; otherwise, quot * denom + rem shall equal
+N    * numer.
+N    * Returns: a structure of type lldiv_t, comprising both the quotient and the
+N    *          remainder. the structure shall contain the following members,
+N    *          in either order.
+N    *          long long quot; long long rem;
+N    */
+N#ifdef __cplusplus
+S   extern "C++" inline _ARMABI_PURE lldiv_t div(__int64 __numer, __int64 __denom) {
+S       return lldiv(__numer, __denom);
+S   }
+N#endif
+N#endif
+N
+N/*
+N * ARM real-time divide functions for guaranteed performance
+N */
+Ntypedef struct __sdiv32by16 { int quot, rem; } __sdiv32by16;
+Ntypedef struct __udiv32by16 { unsigned int quot, rem; } __udiv32by16;
+N   /* used int so that values return in separate regs, although 16-bit */
+Ntypedef struct __sdiv64by32 { int rem, quot; } __sdiv64by32;
+N
+N__value_in_regs extern _ARMABI_PURE __sdiv32by16 __rt_sdiv32by16(
+X__value_in_regs extern __declspec(__nothrow) __pure __sdiv32by16 __rt_sdiv32by16(
+N     int /*numer*/,
+N     short int /*denom*/);
+N   /*
+N    * Signed divide: (16-bit quot), (16-bit rem) = (32-bit) / (16-bit)
+N    */
+N__value_in_regs extern _ARMABI_PURE __udiv32by16 __rt_udiv32by16(
+X__value_in_regs extern __declspec(__nothrow) __pure __udiv32by16 __rt_udiv32by16(
+N     unsigned int /*numer*/,
+N     unsigned short /*denom*/);
+N   /*
+N    * Unsigned divide: (16-bit quot), (16-bit rem) = (32-bit) / (16-bit)
+N    */
+N__value_in_regs extern _ARMABI_PURE __sdiv64by32 __rt_sdiv64by32(
+X__value_in_regs extern __declspec(__nothrow) __pure __sdiv64by32 __rt_sdiv64by32(
+N     int /*numer_h*/, unsigned int /*numer_l*/,
+N     int /*denom*/);
+N   /*
+N    * Signed divide: (32-bit quot), (32-bit rem) = (64-bit) / (32-bit)
+N    */
+N
+N/*
+N * ARM floating-point mask/status function (for both hardfp and softfp)
+N */
+Nextern _ARMABI unsigned int __fp_status(unsigned int /*mask*/, unsigned int /*flags*/);
+Xextern __declspec(__nothrow) unsigned int __fp_status(unsigned int  , unsigned int  );
+N   /*
+N    * mask and flags are bit-fields which correspond directly to the
+N    * floating point status register in the FPE/FPA and fplib.  
+N    * __fp_status returns the current value of the status register,
+N    * and also sets the writable bits of the word
+N    * (the exception control and flag bytes) to:
+N    *
+N    *     new = (old & ~mask) ^ flags;
+N    */
+N#define __fpsr_IXE  0x100000
+N#define __fpsr_UFE  0x80000
+N#define __fpsr_OFE  0x40000
+N#define __fpsr_DZE  0x20000
+N#define __fpsr_IOE  0x10000
+N
+N#define __fpsr_IXC  0x10
+N#define __fpsr_UFC  0x8
+N#define __fpsr_OFC  0x4
+N#define __fpsr_DZC  0x2
+N#define __fpsr_IOC  0x1
+N
+N/*
+N * Multibyte Character Functions.
+N * The behaviour of the multibyte character functions is affected by the
+N * LC_CTYPE category of the current locale. For a state-dependent encoding,
+N * each function is placed into its initial state by a call for which its
+N * character pointer argument, s, is a null pointer. Subsequent calls with s
+N * as other than a null pointer cause the internal state of the function to be
+N * altered as necessary. A call with s as a null pointer causes these functions
+N * to return a nonzero value if encodings have state dependency, and a zero
+N * otherwise. After the LC_CTYPE category is changed, the shift state of these
+N * functions is indeterminate.
+N */
+Nextern _ARMABI int mblen(const char * /*s*/, size_t /*n*/);
+Xextern __declspec(__nothrow) int mblen(const char *  , size_t  );
+N   /*
+N    * If s is not a null pointer, the mblen function determines the number of
+N    * bytes compromising the multibyte character pointed to by s. Except that
+N    * the shift state of the mbtowc function is not affected, it is equivalent
+N    * to   mbtowc((wchar_t *)0, s, n);
+N    * Returns: If s is a null pointer, the mblen function returns a nonzero or
+N    *          zero value, if multibyte character encodings, respectively, do
+N    *          or do not have state-dependent encodings. If s is not a null
+N    *          pointer, the mblen function either returns a 0 (if s points to a
+N    *          null character), or returns the number of bytes that compromise
+N    *          the multibyte character (if the next n of fewer bytes form a
+N    *          valid multibyte character), or returns -1 (they do not form a
+N    *          valid multibyte character).
+N    */
+Nextern _ARMABI int mbtowc(wchar_t * __restrict /*pwc*/,
+Xextern __declspec(__nothrow) int mbtowc(wchar_t * __restrict  ,
+N                   const char * __restrict /*s*/, size_t /*n*/);
+N   /*
+N    * If s is not a null pointer, the mbtowc function determines the number of
+N    * bytes that compromise the multibyte character pointed to by s. It then
+N    * determines the code for value of type wchar_t that corresponds to that
+N    * multibyte character. (The value of the code corresponding to the null
+N    * character is zero). If the multibyte character is valid and pwc is not a
+N    * null pointer, the mbtowc function stores the code in the object pointed
+N    * to by pwc. At most n bytes of the array pointed to by s will be examined.
+N    * Returns: If s is a null pointer, the mbtowc function returns a nonzero or
+N    *          zero value, if multibyte character encodings, respectively, do
+N    *          or do not have state-dependent encodings. If s is not a null
+N    *          pointer, the mbtowc function either returns a 0 (if s points to
+N    *          a null character), or returns the number of bytes that
+N    *          compromise the converted multibyte character (if the next n of
+N    *          fewer bytes form a valid multibyte character), or returns -1
+N    *          (they do not form a valid multibyte character).
+N    */
+Nextern _ARMABI int wctomb(char * /*s*/, wchar_t /*wchar*/);
+Xextern __declspec(__nothrow) int wctomb(char *  , wchar_t  );
+N   /*
+N    * determines the number of bytes need to represent the multibyte character
+N    * corresponding to the code whose value is wchar (including any change in
+N    * shift state). It stores the multibyte character representation in the
+N    * array object pointed to by s (if s is not a null pointer). At most
+N    * MB_CUR_MAX characters are stored. If the value of wchar is zero, the
+N    * wctomb function is left in the initial shift state).
+N    * Returns: If s is a null pointer, the wctomb function returns a nonzero or
+N    *          zero value, if multibyte character encodings, respectively, do
+N    *          or do not have state-dependent encodings. If s is not a null
+N    *          pointer, the wctomb function returns a -1 if the value of wchar
+N    *          does not correspond to a valid multibyte character, or returns
+N    *          the number of bytes that compromise the multibyte character
+N    *          corresponding to the value of wchar.
+N    */
+N
+N/*
+N * Multibyte String Functions.
+N * The behaviour of the multibyte string functions is affected by the LC_CTYPE
+N * category of the current locale.
+N */
+Nextern _ARMABI size_t mbstowcs(wchar_t * __restrict /*pwcs*/,
+Xextern __declspec(__nothrow) size_t mbstowcs(wchar_t * __restrict  ,
+N                      const char * __restrict /*s*/, size_t /*n*/) __attribute__((__nonnull__(2)));
+N   /*
+N    * converts a sequence of multibyte character that begins in the initial
+N    * shift state from the array pointed to by s into a sequence of
+N    * corresponding codes and stores not more than n codes into the array
+N    * pointed to by pwcs. No multibyte character that follow a null character
+N    * (which is converted into a code with value zero) will be examined or
+N    * converted. Each multibyte character is converted as if by a call to
+N    * mbtowc function, except that the shift state of the mbtowc function is
+N    * not affected. No more than n elements will be modified in the array
+N    * pointed to by pwcs. If copying takes place between objects that overlap,
+N    * the behaviour is undefined.
+N    * Returns: If an invalid multibyte character is encountered, the mbstowcs
+N    *          function returns (size_t)-1. Otherwise, the mbstowcs function
+N    *          returns the number of array elements modified, not including
+N    *          a terminating zero code, if any.
+N    */
+Nextern _ARMABI size_t wcstombs(char * __restrict /*s*/,
+Xextern __declspec(__nothrow) size_t wcstombs(char * __restrict  ,
+N                      const wchar_t * __restrict /*pwcs*/, size_t /*n*/) __attribute__((__nonnull__(2)));
+N   /*
+N    * converts a sequence of codes that correspond to multibyte characters
+N    * from the array pointed to by pwcs into a sequence of multibyte
+N    * characters that begins in the initial shift state and stores these
+N    * multibyte characters into the array pointed to by s, stopping if a
+N    * multibyte character would exceed the limit of n total bytes or if a
+N    * null character is stored. Each code is converted as if by a call to the
+N    * wctomb function, except that the shift state of the wctomb function is
+N    * not affected. No more than n elements will be modified in the array
+N    * pointed to by s. If copying takes place between objects that overlap,
+N    * the behaviour is undefined.
+N    * Returns: If a code is encountered that does not correspond to a valid
+N    *          multibyte character, the wcstombs function returns (size_t)-1.
+N    *          Otherwise, the wcstombs function returns the number of bytes
+N    *          modified, not including a terminating null character, if any.
+N    */
+N
+Nextern _ARMABI void __use_realtime_heap(void);
+Xextern __declspec(__nothrow) void __use_realtime_heap(void);
+Nextern _ARMABI void __use_realtime_division(void);
+Xextern __declspec(__nothrow) void __use_realtime_division(void);
+Nextern _ARMABI void __use_two_region_memory(void);
+Xextern __declspec(__nothrow) void __use_two_region_memory(void);
+Nextern _ARMABI void __use_no_heap(void);
+Xextern __declspec(__nothrow) void __use_no_heap(void);
+Nextern _ARMABI void __use_no_heap_region(void);
+Xextern __declspec(__nothrow) void __use_no_heap_region(void);
+N
+Nextern _ARMABI char const *__C_library_version_string(void);
+Xextern __declspec(__nothrow) char const *__C_library_version_string(void);
+Nextern _ARMABI int __C_library_version_number(void);
+Xextern __declspec(__nothrow) int __C_library_version_number(void);
+N
+N    #ifdef __cplusplus
+S         }  /* extern "C" */
+S      }  /* namespace std */
+N    #endif /* __cplusplus */
+N  #endif /* __STDLIB_DECLS */
+N
+N  #if _AEABI_PORTABILITY_LEVEL != 0 && !defined _AEABI_PORTABLE
+X  #if _AEABI_PORTABILITY_LEVEL != 0 && !0L
+S    #define _AEABI_PORTABLE
+N  #endif
+N
+N  #ifdef __cplusplus
+S    #ifndef __STDLIB_NO_EXPORTS
+S      #if !defined(__STRICT_ANSI__) || __USE_C99_STDLIB
+S        using ::std::atoll;
+S        using ::std::lldiv_t;
+S      #endif /* !defined(__STRICT_ANSI__) || __USE_C99_STDLIB */
+S      using ::std::div_t;
+S      using ::std::ldiv_t;
+S      using ::std::atof;
+S      using ::std::atoi;
+S      using ::std::atol;
+S      using ::std::strtod;
+S#if !defined(__STRICT_ANSI__) || __USE_C99_STDLIB
+S      using ::std::strtof;
+S      using ::std::strtold;
+S#endif
+S      using ::std::strtol;
+S      using ::std::strtoul;
+S      using ::std::strtoll;
+S      using ::std::strtoull;
+S      using ::std::rand;
+S      using ::std::srand;
+S      using ::std::_rand_state;
+S      using ::std::_rand_r;
+S      using ::std::_srand_r;
+S      using ::std::_ANSI_rand_state;
+S      using ::std::_ANSI_rand_r;
+S      using ::std::_ANSI_srand_r;
+S      using ::std::calloc;
+S      using ::std::free;
+S      using ::std::malloc;
+S      using ::std::realloc;
+S#if !defined(__STRICT_ANSI__)
+S      using ::std::posix_memalign;
+S#endif
+S      using ::std::__heapprt;
+S      using ::std::__heapstats;
+S      using ::std::__heapvalid;
+S      using ::std::abort;
+S      using ::std::atexit;
+S      using ::std::exit;
+S      using ::std::_Exit;
+S      using ::std::getenv;
+S      using ::std::system;
+S      using ::std::bsearch;
+S      using ::std::qsort;
+S      using ::std::abs;
+S      using ::std::div;
+S      using ::std::labs;
+S      using ::std::ldiv;
+S      #if !defined(__STRICT_ANSI__) || __USE_C99_STDLIB
+S        using ::std::llabs;
+S        using ::std::lldiv;
+S      #endif /* !defined(__STRICT_ANSI__) || __USE_C99_STDLIB */
+S      using ::std::__sdiv32by16;
+S      using ::std::__udiv32by16;
+S      using ::std::__sdiv64by32;
+S      using ::std::__rt_sdiv32by16;
+S      using ::std::__rt_udiv32by16;
+S      using ::std::__rt_sdiv64by32;
+S      using ::std::__fp_status;
+S      using ::std::mblen;
+S      using ::std::mbtowc;
+S      using ::std::wctomb;
+S      using ::std::mbstowcs;
+S      using ::std::wcstombs;
+S      using ::std::__use_realtime_heap;
+S      using ::std::__use_realtime_division;
+S      using ::std::__use_two_region_memory;
+S      using ::std::__use_no_heap;
+S      using ::std::__use_no_heap_region;
+S      using ::std::__C_library_version_string;
+S      using ::std::__C_library_version_number;
+S      using ::std::size_t;
+S      using ::std::__aeabi_MB_CUR_MAX;
+S    #endif /* __STDLIB_NO_EXPORTS */
+N  #endif /* __cplusplus */
+N
+N#endif
+N/* end of stdlib.h */
+N
+L 25 "Setup\USBH_Config_LPC24xx.c" 2
+N#include "USBH.h"
+L 1 "USBH\USBH.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile        : USBH.h
+NPurpose     : API of the USB host stack
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef _USBH_H_
+N#define _USBH_H_
+N
+N#include <stdarg.h>
+L 1 "C:\Program Files (x86)\Keil\V473\ARM\ARMCC\bin\..\include\stdarg.h" 1
+N/* stdarg.h: ANSI 'C' (X3J11 Oct 88) library header, section 4.8 */
+N/* Copyright (C) Codemist Ltd., 1988                            */
+N/* Copyright (C) ARM Ltd., 1991-1999. All rights reserved */
+N
+N/*
+N * RCS $Revision: 178085 $
+N * Checkin $Date: 2012-12-11 14:54:17 +0000 (Tue, 11 Dec 2012) $
+N * Revising $Author: agrant $
+N */
+N
+N#ifndef __stdarg_h
+N#define __stdarg_h
+N#define __ARMCLIB_VERSION 5030076
+N
+N  #ifndef __STDARG_DECLS
+N  #define __STDARG_DECLS
+N
+N    #undef __CLIBNS
+N
+N    #ifdef __cplusplus
+S      namespace std {
+S          #define __CLIBNS ::std::
+S          extern "C" {
+N    #else
+N      #define __CLIBNS
+N    #endif  /* __cplusplus */
+N
+N/*
+N * stdarg.h declares a type and defines macros for advancing through a
+N * list of arguments whose number and types are not known to the called
+N * function when it is translated. A function may be called with a variable
+N * number of arguments of differing types. Its parameter list contains one or
+N * more parameters. The rightmost parameter plays a special role in the access
+N * mechanism, and will be called parmN in this description.
+N */
+N
+N/* N.B. <stdio.h> is required to declare vfprintf() without defining      */
+N/* va_list.  Clearly the type __va_list there must keep in step.          */
+N  typedef struct __va_list { void *__ap; } va_list;
+N
+N   /*
+N    * an array type suitable for holding information needed by the macro va_arg
+N    * and the function va_end. The called function shall declare a variable
+N    * (referred to as ap) having type va_list. The variable ap may be passed as
+N    * an argument to another function.
+N    * Note: va_list is an array type so that when an object of that type
+N    * is passed as an argument it gets passed by reference.
+N    */
+N  #define va_start(ap, parmN) __va_start(ap, parmN)
+N
+N   /*
+N    * The va_start macro shall be executed before any access to the unnamed
+N    * arguments. The parameter ap points to an object that has type va_list.
+N    * The va_start macro initialises ap for subsequent use by va_arg and
+N    * va_end. The parameter parmN is the identifier of the rightmost parameter
+N    * in the variable parameter list in the function definition (the one just
+N    * before the '...'). If the parameter parmN is declared with the register
+N    * storage class an error is given.
+N    * If parmN is a narrow type (char, short, float) an error is given in
+N    * strict ANSI mode, or a warning otherwise.
+N    * Returns: no value.
+N    */
+N  #define va_arg(ap, type) __va_arg(ap, type)
+N
+N   /*
+N    * The va_arg macro expands to an expression that has the type and value of
+N    * the next argument in the call. The parameter ap shall be the same as the
+N    * va_list ap initialised by va_start. Each invocation of va_arg modifies
+N    * ap so that successive arguments are returned in turn. The parameter
+N    * 'type' is a type name such that the type of a pointer to an object that
+N    * has the specified type can be obtained simply by postfixing a * to
+N    * 'type'. If type is a narrow type, an error is given in strict ANSI
+N    * mode, or a warning otherwise. If the type is an array or function type,
+N    * an error is given.
+N    * In non-strict ANSI mode, 'type' is allowed to be any expression.
+N    * Returns: The first invocation of the va_arg macro after that of the
+N    *          va_start macro returns the value of the argument after that
+N    *          specified by parmN. Successive invocations return the values of
+N    *          the remaining arguments in succession.
+N    *          The result is cast to 'type', even if 'type' is narrow.
+N    */
+N
+N#define __va_copy(dest, src) ((void)((dest) = (src)))
+N
+N#if !defined(__STRICT_ANSI__) || (defined(__STDC_VERSION__) && 199901L <= __STDC_VERSION__)
+X#if !0L || (1L && 199901L <= 199409L)
+N   /* va_copy is in C99 and non-strict C90 and non-strict C++
+N    * __va_copy is always present.
+N    */
+N  #define va_copy(dest, src) ((void)((dest) = (src)))
+N
+N   /* The va_copy macro makes the va_list dest be a copy of
+N    * the va_list src, as if the va_start macro had been applied
+N    * to it followed by the same sequence of uses of the va_arg
+N    * macro as had previously been used to reach the present state
+N    * of src.
+N    */
+N#endif
+N
+N#define va_end(ap) __va_end(ap)
+N   /*
+N    * The va_end macro facilitates a normal return from the function whose
+N    * variable argument list was referenced by the expansion of va_start that
+N    * initialised the va_list ap. If the va_end macro is not invoked before
+N    * the return, the behaviour is undefined.
+N    * Returns: no value.
+N    */
+N
+N    #ifdef __cplusplus
+S         }  /* extern "C" */
+S      }  /* namespace std */
+N    #endif /* __cplusplus */
+N
+N    #ifdef __GNUC__
+S     /* be cooperative with glibc */
+S     typedef __CLIBNS va_list __gnuc_va_list;
+S     #define __GNUC_VA_LIST
+S     #undef __need___va_list
+N    #endif
+N
+N  #endif /* __STDARG_DECLS */
+N
+N  #ifdef __cplusplus
+S    #ifndef __STDARG_NO_EXPORTS
+S      using ::std::va_list;
+S    #endif
+N  #endif /* __cplusplus */
+N
+N#endif
+N
+N/* end of stdarg.h */
+N
+L 22 "USBH\USBH.h" 2
+N#include "SEGGER.h"
+L 1 "Inc\SEGGER.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : SEGGER.h
+NPurpose : Global types etc & general purpose utility functions
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef SEGGER_H            // Guard against multiple inclusion
+N#define SEGGER_H
+N
+N#include "Global.h"         // Type definitions: U8, U16, U32, I8, I16, I32
+L 1 "GUI\Global.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : GLOBAL.h
+NPurpose : Global types etc.
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef GLOBAL_H            // Guard against multiple inclusion
+N#define GLOBAL_H
+N
+N/*********************************************************************
+N*
+N*       Macros
+N*
+N**********************************************************************
+N*/
+N#define U8    unsigned char
+N#define U16   unsigned short
+N#define U32   unsigned long
+N#define I8    signed char
+N#define I16   signed short
+N#define I32   signed long
+N
+N#endif                      // Avoid multiple inclusion
+N
+N/*************************** End of file ****************************/
+L 22 "Inc\SEGGER.h" 2
+N
+N#if defined(__cplusplus)
+X#if 0L
+Sextern "C" {     /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N
+N/*********************************************************************
+N*
+N*       Function-like macros
+N*
+N**********************************************************************
+N*/
+N
+N#define SEGGER_COUNTOF(a)          (sizeof(a)/sizeof(a[0]))
+N#define SEGGER_MIN(a,b)            (((a) < (b)) ? (a) : (b))
+N#define SEGGER_MAX(a,b)            (((a) > (b)) ? (a) : (b))
+N
+N/*********************************************************************
+N*
+N*       Utiliy functions
+N*
+N**********************************************************************
+N*/
+Nvoid SEGGER_ARM_memcpy(void * pDest, const void * pSrc, int NumBytes);
+Nvoid SEGGER_memcpy    (void * pDest, const void * pSrc, int NumBytes);
+Nvoid SEGGER_snprintf(char * pBuffer, int BufferSize, const char * sFormat, ...);
+N
+N#if defined(__cplusplus)
+X#if 0L
+S}                /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N#endif                      // Avoid multiple inclusion
+N
+N/*************************** End of file ****************************/
+L 23 "USBH\USBH.h" 2
+N#include "USBH_ConfDefaults.h"
+L 1 "USBH\USBH_ConfDefaults.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : USBH_ConfDefaults.h
+NPurpose :
+N--------------------------  END-OF-HEADER  ---------------------------
+N*/
+N
+N#ifndef   USBH_CONFDEFAULTS_H
+N#define   USBH_CONFDEFAULTS_H
+N
+N#include "USBH_Conf.h"
+L 1 "Setup\USBH_Conf.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : USB_Conf.h
+NPurpose : Config file. Modify to reflect your configuration
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N#ifndef USBH_CONF_H      // Avoid multiple inclusion
+N
+N#define USBH_CONF_H
+N
+N#if defined(__cplusplus) // Make sure we have C-declarations in C++ programs
+X#if 0L 
+S  extern "C" {
+N#endif
+N
+N#ifdef DEBUG
+S#if DEBUG
+S  #define USBH_DEBUG   2 // Debug level: 1: Support "Panic" checks, 2: Support warn & log
+S#endif
+N#endif
+N
+N
+N// Make sure we have C-declarations in C++ programs
+N#if defined(__cplusplus)
+X#if 0L
+S
+S}
+S
+N#endif
+N
+N#endif // Avoid multiple inclusion
+N
+N/********************************* EOF ******************************/
+L 22 "USBH\USBH_ConfDefaults.h" 2
+N
+N/*********************************************************************
+N*
+N*       Basic types
+N*/
+N#define     USBH_BOOL char
+N
+N#ifndef     FALSE
+N  #define   FALSE        (1 == 0)
+N#endif
+N#ifndef     TRUE
+N  #define   TRUE         (1 == 1)
+N#endif
+N#ifndef     USBH_DEBUG
+N  #define   USBH_DEBUG   (0)
+N#endif
+N#ifndef     USBH_MEMCPY
+N  #define   USBH_MEMCPY  memcpy
+N#endif
+N#ifndef     USBH_MEMSET
+N  #define   USBH_MEMSET  memset
+N#endif
+N#ifndef     USBH_MEMMOVE
+N  #define   USBH_MEMMOVE memmove
+N#endif
+N#ifndef     USBH_MEMCMP
+N  #define   USBH_MEMCMP  memcmp
+N#endif
+N#ifndef     USBH_OPTIMIZE
+N  #define   USBH_OPTIMIZE
+N#endif
+N#ifndef     USBH_IS_BIG_ENDIAN
+N  #define   USBH_IS_BIG_ENDIAN 0      // Little endian is default
+N#endif
+N
+N#ifndef     USBH_PANIC
+N  #if       USBH_DEBUG
+X  #if       (0)
+S    #define USBH_PANIC(s) USBH_Panic(s)
+N  #else
+N    #define USBH_PANIC(s)
+N  #endif
+N#endif
+N#ifndef     USBH_SUPPORT_LOG
+N  #if       USBH_DEBUG > 1
+X  #if       (0) > 1
+S    #define USBH_SUPPORT_LOG   1
+N  #else
+N    #define USBH_SUPPORT_LOG   0
+N  #endif
+N#endif
+N#ifndef     USBH_SUPPORT_WARN
+N  #if       USBH_DEBUG > 1
+X  #if       (0) > 1
+S    #define USBH_SUPPORT_WARN  1
+N  #else
+N    #define USBH_SUPPORT_WARN  0
+N  #endif
+N#endif
+N
+N#ifndef    USBH_SUPPORT_ISO_TRANSFER
+N  #define  USBH_SUPPORT_ISO_TRANSFER                     1
+N#endif
+N
+N#define USBH_TRANSFER_BUFFER_ALIGNMENT                   1
+N#define USBH_IS_VALID_TRANSFER_BUFFER_RANGE(    pBuffer) (TRUE)
+N#define USBH_IS_VALID_TRANSFER_BUFFER_ALIGNMENT(pBuffer) (FALSE)
+N#define USBH_IS_VALID_TRANSFER_MEM(             pBuffer) (USBH_IS_VALID_TRANSFER_BUFFER_RANGE(pBuffer) && USBH_IS_VALID_TRANSFER_BUFFER_ALIGNMENT(pBuffer) ? TRUE : FALSE)
+N
+N//#if HC_ISO_ENABLE && (HC_DEVICE_ISO_ENDPOINTS==0)
+N//  #error error HC_DEVICE_ISO_ENDPOINTS
+N//#endif
+N
+N#ifndef USBH_MSD_EP0_TIMEOUT
+N  #define USBH_MSD_EP0_TIMEOUT 5000            // Specifies the default timeout, in milliseconds, to be used for synchronous operations on the control endpoint.
+N#endif
+N#ifndef USBH_MSD_READ_TIMEOUT
+N  #define USBH_MSD_READ_TIMEOUT      3000 // Specifies the maximum time in milliseconds, for reading all bytes with the bulk read operation.
+N#endif
+N#ifndef USBH_MSD_WRITE_TIMEOUT
+N  #define USBH_MSD_WRITE_TIMEOUT     1000 // Specifies the maximum time, in milliseconds, for writing all bytes with the bulk write operation.
+N#endif
+N// Must be a multiple of the maximum packet length for bulk data endpoints.
+N// That are 64 bytes for a USB 1.1 device and 512 bytes for a USB 2.0 high speed device.
+N#ifndef USBH_MSD_MAX_TRANSFER_SIZE
+N  #define USBH_MSD_MAX_TRANSFER_SIZE (32 * 1024) // [bytes]
+N#endif
+N#ifndef USBH_MSD_DEFAULT_SECTOR_SIZE
+N  #define USBH_MSD_DEFAULT_SECTOR_SIZE    512 // Specifies the default sector size in bytes to be used for reading and writing.
+N#endif
+N#ifndef USBH_MSD_MAX_DEVICES
+N  #define USBH_MSD_MAX_DEVICES            1   // Maximum number of USB Mass Storage devices that are supported from the library. A lower value saves memory.
+N#endif
+N#ifndef USBH_MSD_MAX_LUNS_PER_DEVICE
+N  #define USBH_MSD_MAX_LUNS_PER_DEVICE    2   // Maximum number of logical units per device that are supported from the library. A lower value saves memory.
+N#endif
+N
+N#define DEFAULT_RESET_TIMEOUT        40  // The reset on the root hub is aborted after this time
+N// The host controller waits this time after reset before the Set Address command is sent. Some devices require some time
+N// before they can answer correctly. It is not required by the USB specification but Windows makes this gap with 80 ms.
+N#define WAIT_AFTER_RESET            80
+N// The bus driver waits this time before the next command is sent after Set Address. The device must answer to SetAddress on USB address 0 with the
+N// handshake and than set the new address. This is a potential racing condition if this step is performed in the firmware.
+N// Give the device this time to set the new address.
+N#define WAIT_AFTER_SETADDRESS       30
+N// If the device makes an error during USB reset and set address the enumeration process is repeated. The repeat count is defined by this define.
+N// Possible errors are OverCurrent, remove during reset, no answer to SetAddress.
+N#define RESET_RETRY_COUNTER         10
+N#define DELAY_FOR_REENUM            1000 // Describes the time before a USB reset is restarted if the last try has failed.
+N// The bus controller waits this time after a USB device connect event is detected
+N// before a USB bus reset is applied to the device
+N#define WAIT_AFTER_CONNECT          200
+N// The default size of the buffer to get descriptors from the device. If the buffer is too small for the configuration descriptor,
+N// a new buffer is dynamically allocated. The default size must be at least 256 bytes to read all possible string descriptors.
+N#define DEFAULT_TRANSFERBUFFER_SIZE 256
+N#define DEFAULT_SETUP_TIMEOUT       500  // Default timeout for all setup requests. After this time a not completed setup request is terminated.
+N// If the enumeration of the device (get descriptors, set configuration) fails, it is repeated after a time gap of this value
+N#define DEFAULT_RETRY_TIMEOUT       1000
+N
+N// In order to avoid warnings for undefined parameters
+N#ifndef USBH_USE_PARA
+N  #if defined(NC30) || defined(NC308)
+X  #if 0L || 0L
+S    #define USBH_USE_PARA(para)
+N  #else
+N    #define USBH_USE_PARA(para) para=para;
+N  #endif
+N#endif
+N
+N#endif
+N
+N/*************************** End of file ****************************/
+L 24 "USBH\USBH.h" 2
+N
+N#if defined(__cplusplus)
+X#if 0L
+S  extern "C" {                 // Make sure we have C-declarations in C++ programs
+N#endif
+N
+N#define USBH_VERSION   10401 // Format: Mmmrr. Example: 10201 is 1.02a
+N
+Ntypedef struct USBH_HOST_CONTROLLER   USBH_HOST_CONTROLLER;
+Ntypedef struct USB_DEVICE             USB_DEVICE;
+Ntypedef struct USBH_OHCI_DEVICE       USBH_OHCI_DEVICE;
+Ntypedef struct USBH_HUB_PORT          USBH_HUB_PORT;
+Ntypedef struct USB_HUB                USB_HUB;
+Ntypedef struct USBH_OHCI_DUMMY_INT_EP USBH_OHCI_DUMMY_INT_EP;
+Ntypedef struct USB_INTERFACE          USB_INTERFACE;
+N
+N/*********************************************************************
+N*
+N*       USBH_MTYPE
+N*
+N*  IDs to distinguish different message types
+N*
+N**********************************************************************
+N*/
+N#define USBH_MTYPE_INIT          (1UL <<  0)
+N#define USBH_MTYPE_CORE          (1UL <<  1)
+N#define USBH_MTYPE_TIMER         (1UL <<  2)
+N#define USBH_MTYPE_DRIVER        (1UL <<  3)
+N#define USBH_MTYPE_MEM           (1UL <<  4)
+N#define USBH_MTYPE_URB           (1UL <<  5)
+N#define USBH_MTYPE_OHCI          (1UL <<  6)
+N#define USBH_MTYPE_UBD           (1UL <<  7)
+N#define USBH_MTYPE_PNP           (1UL <<  8)
+N#define USBH_MTYPE_DEVICE        (1UL <<  9)
+N#define USBH_MTYPE_EP            (1UL << 10)
+N#define USBH_MTYPE_HUB           (1UL << 11)
+N#define USBH_MTYPE_MSD           (1UL << 12)
+N#define USBH_MTYPE_MSD_INTERN    (1UL << 13)
+N#define USBH_MTYPE_MSD_PHYS      (1UL << 14)
+N#define USBH_MTYPE_HID           (1UL << 15)
+N#define USBH_MTYPE_PRINTER_CLASS (1UL << 16)
+N#define USBH_MTYPE_APPLICATION   (1UL << 19)
+N
+Nvoid USBH_Logf_Application   (const char * sFormat, ...);
+Nvoid USBH_Warnf_Application  (const char * sFormat, ...);
+Nvoid USBH_sprintf_Application(      char * pBuffer, unsigned BufferSize, const char * sFormat, ...);
+N
+N/*********************************************************************
+N*
+N*       Log/Warn functions
+N*
+N**********************************************************************
+N*/
+Nvoid USBH_Log          (const char * s);
+Nvoid USBH_Warn         (const char * s);
+Nvoid USBH_SetLogFilter (U32 FilterMask);
+Xvoid USBH_SetLogFilter (unsigned long FilterMask);
+Nvoid USBH_SetWarnFilter(U32 FilterMask);
+Xvoid USBH_SetWarnFilter(unsigned long FilterMask);
+Nvoid USBH_AddLogFilter (U32 FilterMask);
+Xvoid USBH_AddLogFilter (unsigned long FilterMask);
+Nvoid USBH_AddWarnFilter(U32 FilterMask);
+Xvoid USBH_AddWarnFilter(unsigned long FilterMask);
+Nvoid USBH_Logf         (U32 Type,             const char * sFormat, ...);
+Xvoid USBH_Logf         (unsigned long Type,             const char * sFormat, ...);
+Nvoid USBH_Warnf        (U32 Type,             const char * sFormat, ...);
+Xvoid USBH_Warnf        (unsigned long Type,             const char * sFormat, ...);
+Nvoid USBH_PrintfSafe   (char       * pBuffer, const char * sFormat, int BufferSize, va_list * pParamList);
+Nvoid USBH_Panic        (const char * sError);
+N
+N/*********************************************************************
+N*
+N*       USBH_OS_
+N*
+N**********************************************************************
+N*/
+Nvoid USBH_OS_Delay           (unsigned ms);
+Nvoid USBH_OS_DisableInterrupt(void);
+Nvoid USBH_OS_EnableInterrupt (void);
+Nvoid USBH_OS_Init            (void);
+Nvoid USBH_OS_Unlock          (void);
+Nvoid USBH_OS_AssertLock      (void);
+Nvoid USBH_OS_Lock            (void);
+NU32  USBH_OS_GetTime32       (void);
+Xunsigned long  USBH_OS_GetTime32       (void);
+N
+N// Lock / Unlock mutex / resource semaphore used for memory operations
+Nvoid USBH_OS_LockSys       (void);
+Nvoid USBH_OS_UnlockSys     (void);
+N// Wait and signal for USBH Main Task
+Nvoid USBH_OS_WaitNetEvent  (unsigned ms);
+Nvoid USBH_OS_SignalNetEvent(void);
+N// Wait and signal for USBH ISR Task
+Nvoid USBH_OS_WaitISR       (void);
+Nvoid USBH_OS_SignalISR     (void);
+N
+N/*********************************************************************
+N*
+N*       USBH_OS_ - Event objects
+N*
+N**********************************************************************
+N*/
+N#define USBH_OS_EVENT_SIGNALED 0
+N
+Ntypedef struct      USBH_OS_EVENT_OBJ     USBH_OS_EVENT_OBJ;
+NUSBH_OS_EVENT_OBJ * USBH_OS_AllocEvent    (void);                       // Allocates and returns an event object.
+Nvoid                USBH_OS_FreeEvent     (USBH_OS_EVENT_OBJ * pEvent); // Releases an object event.
+Nvoid                USBH_OS_SetEvent      (USBH_OS_EVENT_OBJ * pEvent); // Sets the state of the specified event object to signaled.
+Nvoid                USBH_OS_ResetEvent    (USBH_OS_EVENT_OBJ * pEvent); // Sets the state of the specified event object to none-signaled.
+Nvoid                USBH_OS_WaitEvent     (USBH_OS_EVENT_OBJ * pEvent);
+Nint                 USBH_OS_WaitEventTimed(USBH_OS_EVENT_OBJ * pEvent, U32 milliSeconds);
+Xint                 USBH_OS_WaitEventTimed(USBH_OS_EVENT_OBJ * pEvent, unsigned long milliSeconds);
+N
+N// Wait and signal for application tasks
+Nvoid USBH_OS_WaitItem     (void * pWaitItem);
+Nvoid USBH_OS_WaitItemTimed(void * pWaitItem, unsigned Timeout);
+Nvoid USBH_OS_SignalItem   (void * pWaitItem);
+Nvoid USBH_OS_AddTickHook  (void(* pfHook)(void));
+N
+Nvoid USBH_Task                (void);
+Nchar USBH_IsExpired           (I32 Time);
+Xchar USBH_IsExpired           (signed long Time);
+Nint  USBH_GetVersion          (void);
+Nvoid USBH_Init                (void);
+Nvoid USBH_X_Config            (void);
+Nvoid USBH_AssignMemory        (U32 * pMem, U32 NumBytes);
+Xvoid USBH_AssignMemory        (unsigned long * pMem, unsigned long NumBytes);
+Nvoid USBH_AssignTransferMemory(U32 * pMem, U32 NumBytes);
+Xvoid USBH_AssignTransferMemory(unsigned long * pMem, unsigned long NumBytes);
+N
+N// Direction types
+N#define USB_IN_DIRECTION      0x80
+N#define USB_OUT_DIRECTION     0x00
+N
+N// Request Type Direction
+N#define USB_TO_DEVICE         0
+N#define USB_TO_HOST           0x80
+N
+N// End Point types
+N#define USB_EP_TYPE_CONTROL   0x00
+N#define USB_EP_TYPE_ISO       0x01
+N#define USB_EP_TYPE_BULK      0x02
+N#define USB_EP_TYPE_INT       0x03
+N
+N// bcdUSB
+N#define USB_1                 0x0110
+N#define USB_2                 0x0210
+N
+N// USB descriptor types
+N#define USB_DEVICE_DESCRIPTOR_TYPE                    0x01
+N#define USB_CONFIGURATION_DESCRIPTOR_TYPE             0x02
+N#define USB_STRING_DESCRIPTOR_TYPE                    0x03
+N#define USB_INTERFACE_DESCRIPTOR_TYPE                 0x04
+N#define USB_ENDPOINT_DESCRIPTOR_TYPE                  0x05
+N#define USB_DEVICE_QUALIFIER_DESCRIPTOR_TYPE          0x06
+N#define USB_OTHER_SPEED_CONFIGURATION_DESCRIPTOR_TYPE 0x07
+N#define USB_INTERFACE_ASSOCIATION_TYPE                0x0B
+N#define USB_HID_DESCRIPTOR_TYPE                       0x21
+N#define USB_HID_DESCRIPTOR_TYPE_REPORT                0x22
+N
+N// Defines for Standard Configruation pDescriptor
+N// bmAttributes
+N#define USB_CONF_BUSPWR                               0x80 // Config. attribute: Bus powered
+N#define USB_CONF_SELFPWR                              0x40 // Config. attribute: Self powered
+N#define USB_CONF_REMOTE_WAKEUP                        0x20 // Config. attribute: Remote Wakeup
+N
+N// USB classes
+N#define USB_DEVICE_CLASS_RESERVED                     0x00
+N#define USB_DEVICE_CLASS_AUDIO                        0x01
+N#define USB_DEVICE_CLASS_COMMUNICATIONS               0x02
+N#define USB_DEVICE_CLASS_HUMAN_INTERFACE              0x03
+N#define USB_DEVICE_CLASS_MONITOR                      0x04
+N#define USB_DEVICE_CLASS_PHYSICAL_INTERFACE           0x05
+N#define USB_DEVICE_CLASS_POWER                        0x06
+N#define USB_DEVICE_CLASS_PRINTER                      0x07
+N#define USB_DEVICE_CLASS_STORAGE                      0x08
+N#define USB_DEVICE_CLASS_HUB                          0x09
+N#define USB_DEVICE_CLASS_DATA                         0x0A
+N#define USB_DEVICE_CLASS_VENDOR_SPECIFIC              0xFF
+N
+N// HID protocol and subclass definitions
+N#define HID_DEVICE_BOOT_INTERFACE_SUBCLASS            0x01
+N#define HID_DEVICE_KEYBOARD_PROTOCOL                  0x01
+N#define HID_DEVICE_MOUSE_PROTOCOL                     0x02
+N
+N// USB endpoint types
+N#define USB_ENDPOINT_TYPE_CONTROL                     0x00
+N#define USB_ENDPOINT_TYPE_ISOCHRONOUS                 0x01
+N#define USB_ENDPOINT_TYPE_BULK                        0x02
+N#define USB_ENDPOINT_TYPE_INTERRUPT                   0x03
+N
+N// Setup Request Types
+N#define USB_REQTYPE_MASK                              0x60 // Used to mask off request type
+N#define USB_REQTYPE_STANDARD                          0x00 // Standard Request
+N#define USB_REQTYPE_CLASS                             0x20 // Class Request
+N#define USB_REQTYPE_VENDOR                            0x40 // Vendor Request
+N#define USB_REQTYPE_RESERVED                          0x60 // Reserved or illegal request
+N
+N// Request Type Recipient
+N#define USB_RECIPIENT_MASK                            0x1F // Bitsd D0..D4
+N#define USB_DEVICE_RECIPIENT                          0
+N#define USB_INTERFACE_RECIPIENT                       1
+N#define USB_ENDPOINT_RECIPIENT                        2
+N#define USB_OTHER_RECIPIENT                           3
+N#define USB_RESERVED_RECIPIENT                        4
+N
+N// bRequest in USB Device Request
+N// Standard Request Codes
+N#define USB_REQ_GET_STATUS                            0x00
+N#define USB_REQ_CLEAR_FEATURE                         0x01
+N#define USB_REQ_SET_FEATURE                           0x03
+N#define USB_REQ_SET_ADDRESS                           0x05
+N#define USB_REQ_GET_DESCRIPTOR                        0x06
+N#define USB_REQ_SET_DESCRIPTOR                        0x07
+N#define USB_REQ_GET_CONFIGURATION                     0x08
+N#define USB_REQ_SET_CONFIGURATION                     0x09
+N#define USB_REQ_GET_INTERFACE                         0x0A
+N#define USB_REQ_SET_INTERFACE                         0x0B
+N#define USB_REQ_SYNCH_FRAME                           0x0C
+N
+N// GetStatus Requests Recipients and STATUS Codes
+N#define USB_STATUS_DEVICE                             0x80 // Get Status: Device
+N#define USB_STATUS_INTERFACE                          0x81 // Get Status: Interface
+N#define USB_STATUS_ENDPOINT                           0x82 // Get Status: End Point
+N#define USB_STATUS_SELF_POWERED                       0x01
+N#define USB_STATUS_REMOTE_WAKEUP                      0x02
+N#define USB_STATUS_ENDPOINT_HALT                      0x01
+N#define USB_STATUS_LENGTH                             2 // 2 byte
+N
+N// Standard Feature Selectors
+N#define USB_FEATURE_REMOTE_WAKEUP                     0x01
+N#define USB_FEATURE_STALL                             0x00
+N#define USB_FEATURE_TEST_MODE                         0x02
+N
+N// Common descriptor indexes
+N#define USB_DESC_LENGTH_INDEX                         0
+N#define USB_DESC_TYPE_INDEX                           1
+N
+Ntypedef struct USB_DEVICE_DESCRIPTOR { // Device descriptor
+N  U8  bLength;
+X  unsigned char  bLength;
+N  U8  bDescriptorType;
+X  unsigned char  bDescriptorType;
+N  U16 bcdUSB;
+X  unsigned short bcdUSB;
+N  U8  bDeviceClass;
+X  unsigned char  bDeviceClass;
+N  U8  bDeviceSubClass;
+X  unsigned char  bDeviceSubClass;
+N  U8  bDeviceProtocol;
+X  unsigned char  bDeviceProtocol;
+N  U8  bMaxPacketSize0;
+X  unsigned char  bMaxPacketSize0;
+N  U16 idVendor;
+X  unsigned short idVendor;
+N  U16 idProduct;
+X  unsigned short idProduct;
+N  U16 bcdDevice;
+X  unsigned short bcdDevice;
+N  U8  iManufacturer;
+X  unsigned char  iManufacturer;
+N  U8  iProduct;
+X  unsigned char  iProduct;
+N  U8  iSerialNumber;
+X  unsigned char  iSerialNumber;
+N  U8  bNumConfigurations;
+X  unsigned char  bNumConfigurations;
+N} USB_DEVICE_DESCRIPTOR;
+N
+N#define USB_DEVICE_DESCRIPTOR_LENGTH                  (18)
+N
+Ntypedef struct USB_CONFIGURATION_DESCRIPTOR { // Configuration descriptor
+N  U8  bLength;
+X  unsigned char  bLength;
+N  U8  bDescriptorType;
+X  unsigned char  bDescriptorType;
+N  U16 wTotalLength;
+X  unsigned short wTotalLength;
+N  U8  bNumInterfaces;
+X  unsigned char  bNumInterfaces;
+N  U8  bConfigurationValue;
+X  unsigned char  bConfigurationValue;
+N  U8  iConfiguration;
+X  unsigned char  iConfiguration;
+N  U8  bmAttributes;
+X  unsigned char  bmAttributes;
+N  U8  MaxPower;
+X  unsigned char  MaxPower;
+N} USB_CONFIGURATION_DESCRIPTOR;
+N
+N#define USB_CONFIGURATION_DESCRIPTOR_LENGTH             (9)
+N#define USB_CONFIGURATION_DESCRIPTOR_BMATTRIBUTES_INDEX (7)
+N#define USB_CONFIGURATION_DESCRIPTOR_WTOTALLENGTH_INDEX (2)
+N#define USB_CONFIGURATION_DESCRIPTOR_POWER_INDEX        (8)
+N
+Ntypedef struct USB_INTERFACE_DESCRIPTOR { // Interface descriptor
+N  U8 bLength;
+X  unsigned char bLength;
+N  U8 bDescriptorType;
+X  unsigned char bDescriptorType;
+N  U8 bInterfaceNumber;
+X  unsigned char bInterfaceNumber;
+N  U8 bAlternateSetting;
+X  unsigned char bAlternateSetting;
+N  U8 bNumEndpoints;
+X  unsigned char bNumEndpoints;
+N  U8 bInterfaceClass;
+X  unsigned char bInterfaceClass;
+N  U8 bInterfaceSubClass;
+X  unsigned char bInterfaceSubClass;
+N  U8 bInterfaceProtocol;
+X  unsigned char bInterfaceProtocol;
+N  U8 iInterface;
+X  unsigned char iInterface;
+N} USB_INTERFACE_DESCRIPTOR;
+N
+N#define USB_INTERFACE_DESCRIPTOR_LENGTH               (9)
+N#define USB_INTERFACE_DESC_NUMBER_OFS                 2
+N#define USB_INTERFACE_DESC_CLASS_OFS                  5
+N#define USB_INTERFACE_DESC_SUBCLASS_OFS               6
+N#define USB_INTERFACE_DESC_PROTOCOL_OFS               7
+N
+Ntypedef struct USB_ENDPOINT_DESCRIPTOR { // Endpoint descriptor
+N  U8  bLength;
+X  unsigned char  bLength;
+N  U8  bDescriptorType;
+X  unsigned char  bDescriptorType;
+N  U8  bEndpointAddress;
+X  unsigned char  bEndpointAddress;
+N  U8  bmAttributes;
+X  unsigned char  bmAttributes;
+N  U16 wMaxPacketSize;
+X  unsigned short wMaxPacketSize;
+N  U8  bInterval;
+X  unsigned char  bInterval;
+N} USB_ENDPOINT_DESCRIPTOR;
+N
+N#define USB_ENDPOINT_DESCRIPTOR_LENGTH                (7)
+N#define USB_EP_DESC_ADDRESS_OFS                       2
+N#define USB_EP_DESC_ATTRIB_OFS                        3
+N#define USB_EP_DESC_PACKET_SIZE_OFS                   4
+N#define USB_EP_DESC_INTERVAL_OFS                      6
+N#define USB_EP_DESC_ATTRIB_MASK                       0x03
+N#define USB_EP_DESC_DIR_MASK                          0x80
+N
+Ntypedef struct USB_STRING_DESCRIPTOR { // String descriptor
+N  U8  bLength;
+X  unsigned char  bLength;
+N  U8  bDescriptorType;
+X  unsigned char  bDescriptorType;
+N  U16 bString[1];                        // Variable size
+X  unsigned short bString[1];                        
+N} USB_STRING_DESCRIPTOR;
+N
+N#define USB_STRING_HEADER_LENGTH                      2
+N#define USB_LANGUAGE_DESC_LENGTH                      (4)
+N#define USB_LANGUAGE_ID                               (0x0409)
+N
+Ntypedef struct USB_DEVICE_QUALIFIER_DESCRIPTOR { // Device qualifier descriptor
+N  U8  bLength;
+X  unsigned char  bLength;
+N  U8  bDescriptorType;
+X  unsigned char  bDescriptorType;
+N  U16 bcdUSB;
+X  unsigned short bcdUSB;
+N  U8  bDeviceClass;
+X  unsigned char  bDeviceClass;
+N  U8  bDeviceSubClass;
+X  unsigned char  bDeviceSubClass;
+N  U8  bDeviceProtocol;
+X  unsigned char  bDeviceProtocol;
+N  U8  bMaxPacketSize0;
+X  unsigned char  bMaxPacketSize0;
+N  U8  bNumConfigurations;
+X  unsigned char  bNumConfigurations;
+N  U8  bReserved;
+X  unsigned char  bReserved;
+N} USB_DEVICE_QUALIFIER_DESCRIPTOR;
+N
+N#define USB_DEVICE_QUALIFIER_DESCRIPTOR_LENGTH        (10)
+N
+Ntypedef struct USB_INTERFACE_ASSOCIATION_DESCRIPTOR { // Interface association descriptor
+N  U8 bLength;
+X  unsigned char bLength;
+N  U8 bDescriptorType;
+X  unsigned char bDescriptorType;
+N  U8 bFirstInterface;
+X  unsigned char bFirstInterface;
+N  U8 bInterfaceCount;
+X  unsigned char bInterfaceCount;
+N  U8 bFunctionClass;
+X  unsigned char bFunctionClass;
+N  U8 bFunctionSubClass;
+X  unsigned char bFunctionSubClass;
+N  U8 bFunctionProtocol;
+X  unsigned char bFunctionProtocol;
+N  U8 iFunction;
+X  unsigned char iFunction;
+N} USB_INTERFACE_ASSOCIATION_DESCRIPTOR;
+N
+Ntypedef struct USB_COMMON_DESCRIPTOR { // Common descriptor header
+N  U8 bLength;
+X  unsigned char bLength;
+N  U8 bDescriptorType;
+X  unsigned char bDescriptorType;
+N} USB_COMMON_DESCRIPTOR;
+N
+Ntypedef struct USB_SETUP_PACKET { // CS Endpoint
+N  U8  Type;
+X  unsigned char  Type;
+N  U8  Request;
+X  unsigned char  Request;
+N  U16 Value;
+X  unsigned short Value;
+N  U16 Index;
+X  unsigned short Index;
+N  U16 Length;
+X  unsigned short Length;
+N} USBH_SETUP_PACKET;
+N
+N#define USB_SETUP_PACKET_LEN                          8
+N#define USB_SETUP_TYPE_INDEX                          0
+N#define USB_SETUP_LENGTH_INDEX_LSB                    6
+N#define USB_SETUP_LENGTH_INDEX_MSB                    7
+N
+N/*********************************************************************
+N*
+N*       pHub Device Class (HDC) *
+N*
+N**********************************************************************
+N*/
+N
+N// HDC specific descriptor types
+N#define CDC_CS_INTERFACE_DESCRIPTOR_TYPE              0x24
+N#define CDC_CS_ENDPOINT_DESCRIPTOR_TYPE               0x25
+N
+N// HDC Port Type Recipient. All other are device recipients!
+N#define HDC_PORT_RECIPIENT USB_OTHER_RECIPIENT
+N
+N// pHub class descriptor
+N#define HDC_MAX_HUB_DESCRIPTOR_LENGTH                 71
+N#define USB_HUB_DESCRIPTOR_TYPE                       0x29
+N
+N// Class specific hub  descriptor
+N#define HDC_DESC_PORT_NUMBER_OFS                      2
+N#define HDC_DESC_CHARACTERISTICS_LOW_OFS              3
+N#define HDC_DESC_CHARACTERISTICS_HIGH_OFS             4
+N#define HDC_DESC_POWER_GOOD_TIME_OFS                  5
+N#define HDC_DESC_MAX_CUURENT_OFS                      6
+N#define HDC_DESC_DEVICE_REMOVABLE_OFS                 7
+N#define HDC_DESC_POWER_SWITCH_MASK                    0x3
+N#define HDC_DESC_ALL_POWER_SWITCH_VALUE               0x0
+N#define HDC_DESC_SINGLE_POWER_SWITCH_VALUE            0x1
+N#define HDC_DESC_COMPOUND_DEVICE_MASK                 0x4
+N#define HDC_DESC_OVERCURRENT_MASK                     0x18
+N#define HDC_DESC_OVERCURRENT_GLOBAL_VAL               0x0
+N#define HDC_DESC_OVERCURRENT_SELECTIVE_VAL            0x08
+N#define HDC_DESC_NO_OVERCURRENT_MASK                  0x10
+N#define HDC_DESC_SUPPORT_INIDCATOR_MASK               0x80
+N
+N// pHub status request length
+N#define HCD_GET_STATUS_LENGTH                         4
+N#define HDC_DESC_MIN_LENGTH                           8
+N
+N// bRequest in USB Class Request
+N// HDC Standard Request Codes
+N#define HDC_REQTYPE_GET_STATUS                        0
+N#define HDC_REQTYPE_CLEAR_FEATRUE                     1
+N// RESERVED (used in previous specifications for GET_STATE)
+N#define HDC_REQTYPE_GET_STATUS_OLD                    2
+N#define HDC_REQTYPE_SET_FEATRUE                       3
+N// RESERVED 4 and 5
+N#define HDC_REQTYPE_GET_DESCRIPTOR                    6
+N#define HDC_REQTYPE_SET_DESCRIPTOR                    7
+N#define HDC_REQTYPE_CLEAR_TT_BUFFER                   8
+N#define HDC_REQTYPE_RESET_TT                          9
+N#define HDC_REQTYPE_GET_TT_STATE                      10
+N#define HDC_REQTYPE_STOP_TT                           11
+N
+N// pHub class hub feature selectors
+N// pHub change bits
+N#define HDC_SELECTOR_C_HUB_LOCAL_POWER                0
+N#define HDC_SELECTOR_C_HUB_OVER_CURRENT               1
+N
+N// pHub class port feature selectors
+N// Port Selectors
+N#define HDC_SELECTOR_PORT_CONNECTION                  0
+N#define HDC_SELECTOR_PORT_ENABLE                      1
+N#define HDC_SELECTOR_PORT_SUSPEND                     2
+N#define HDC_SELECTOR_PORT_OVER_CURREWNT               3
+N#define HDC_SELECTOR_PORT_RESET                       4
+N#define HDC_SELECTOR_PORT_POWER                       8
+N#define HDC_SELECTOR_PORT_LOW_SPEED                   9
+N
+N// Port change bits
+N#define HDC_SELECTOR_C_PORT_CONNECTION                16
+N#define HDC_SELECTOR_C_PORT_ENABLE                    17
+N#define HDC_SELECTOR_C_PORT_SUSPEND                   18
+N#define HDC_SELECTOR_C_PORT_OVER_CURRENT              19
+N#define HDC_SELECTOR_C_PORT_RESET                     20
+N
+N// Port Selectors
+N#define HDC_SELECTOR_PORT_TEST                        21
+N#define HDC_SELECTOR_PORT_INDICATOR                   22
+N#define HDC_GET_SELECTOR_MASK(Selector)               (((U32)0x0001)<<(Selector))
+N
+N// Port status bits
+N#define PORT_STATUS_CONNECT                           0x00000001
+N#define PORT_STATUS_ENABLED                           0x00000002
+N#define PORT_STATUS_SUSPEND                           0x00000004
+N#define PORT_STATUS_OVER_CURRENT                      0x00000008
+N#define PORT_STATUS_RESET                             0x00000010
+N#define PORT_STATUS_POWER                             0x00000100
+N#define PORT_STATUS_LOW_SPEED                         0x00000200
+N#define PORT_STATUS_HIGH_SPEED                        0x00000400
+N#define PORT_C_ALL_MASK                               0x001F0000UL
+N#define PORT_C_STATUS_CONNECT                         0x00010000UL
+N#define PORT_C_STATUS_ENABLE                          0x00020000UL
+N#define PORT_C_STATUS_SUSPEND                         0x00040000UL
+N#define PORT_C_STATUS_OVER_CURRENT                    0x00080000UL
+N#define PORT_C_STATUS_RESET                           0x00100000UL
+N
+N// pHub status bits
+N#define HUB_STATUS_LOCAL_POWER                        0x00000001
+N#define HUB_STATUS_OVER_CURRENT                       0x00000002
+N#define HUB_STATUS_C_LOCAL_POWER                      0x00010000UL
+N#define HUB_STATUS_C_OVER_CURRENT                     0x00020000UL
+N
+Ntypedef unsigned int USBH_STATUS;
+N// Status Codes
+N#define USBH_STATUS_SUCCESS                            0x0000
+N
+N// Host controller error codes
+N#define USBH_STATUS_CRC                                0x0001
+N#define USBH_STATUS_BITSTUFFING                        0x0002
+N#define USBH_STATUS_DATATOGGLE                         0x0003
+N#define USBH_STATUS_STALL                              0x0004
+N#define USBH_STATUS_NOTRESPONDING                      0x0005
+N#define USBH_STATUS_PID_CHECK                          0x0006
+N#define USBH_STATUS_UNEXPECTED_PID                     0x0007
+N#define USBH_STATUS_DATA_OVERRUN                       0x0008
+N#define USBH_STATUS_DATA_UNDERRUN                      0x0009
+N#define USBH_STATUS_BUFFER_OVERRUN                     0x000C
+N#define USBH_STATUS_BUFFER_UNDERRUN                    0x000D
+N#define USBH_STATUS_NOT_ACCESSED                       0x000F
+N
+N// EHCI error codes
+N#define USBH_STATUS_BUFFER                             0x00010
+N#define USBH_STATUS_BABBLE                             0x00011
+N#define USBH_STATUS_XACT                               0x00012
+N
+N#define USBH_STATUS_CHANNEL_HALTED                     0x00020
+N#define USBH_STATUS_CHANNEL_NAK                        0x00021
+N
+N// Maximum error code for an hardware error number
+N#define USBH_STATUS_MAX_HARDWARE_ERROR                 0x00FF
+N
+N// Bus driver error codes
+N#define USBH_STATUS_ERROR                              0x0101
+N#define USBH_STATUS_BUFFER_OVERFLOW                    0x0102
+N#define USBH_STATUS_INVALID_PARAM                      0x0103
+N#define USBH_STATUS_PENDING                            0x0104
+N#define USBH_STATUS_DEVICE_REMOVED                     0x0105
+N#define USBH_STATUS_CANCELED                           0x0106
+N
+N// The endpoint, interface or device has pending requests and the operation requires no pending requests
+N#define USBH_STATUS_BUSY                               0x0109
+N
+N// Returned on an invalid descriptor
+N#define USBH_STATUS_INVALID_DESCRIPTOR                 0x0110
+N
+N// The endpoint has been halted. This error is reported by the USB host controller driver layer.
+N// A pipe will be halted when a data transmission error (CRC, bit stuff, DATA toggle) occurs.
+N#define USBH_STATUS_ENDPOINT_HALTED                    0x0111
+N#define USBH_STATUS_TIMEOUT                            0x0112
+N#define USBH_STATUS_PORT                               0x0113
+N
+N// The following additional error codes are used from the USB Mass Storage Class Driver.
+N#define USBH_STATUS_LENGTH                             (0x0200)
+N#define USBH_STATUS_COMMAND_FAILED                     (0x0202)
+N#define USBH_STATUS_INTERFACE_PROTOCOL                 (0x0203)
+N#define USBH_STATUS_INTERFACE_SUB_CLASS                (0x0204)
+N#define USBH_STATUS_SENSE_STOP                         (0x0205)
+N#define USBH_STATUS_SENSE_REPEAT                       (0x0206)
+N#define USBH_STATUS_WRITE_PROTECT                      (0x0207)
+N
+N// System errors
+N#define USBH_STATUS_INVALID_ALIGNMENT                  0x1007
+N#define USBH_STATUS_MEMORY                             0x1008
+N#define USBH_STATUS_RESOURCES                          0x1009
+N#define USBH_STATUS_DEMO                               0x2000
+N
+N// URBs HcFlags allowed values
+N#define URB_CANCEL_PENDING_MASK                       0x01 // Pending URB must be canceled
+N
+N// pHub initialization state machine
+Ntypedef enum {
+N  USBH_SUBSTATE_IDLE,                                     // Idle, if an URB is completed or if no URb is submitted and an Timeout occurrs!
+N  USBH_SUBSTATE_TIMER,                                    // USBH_URB_SubStateWait on success
+N  USBH_SUBSTATE_TIMERURB,                                 // USBH_URB_SubStateSubmitRequest on success
+N  USBH_SUBSTATE_TIMEOUT_PENDING_URB                       // On Timeout and pending URB
+N} USBH_SUBSTATE_STATE;
+N
+Ntypedef void USBH_SUBSTATE_FUNC(void *context); // Is only called on an Timeout.
+N
+N// @doc
+N// @module USBH_DLIST <en-> Double Linked List |
+N// The module USBH_DLIST provides an implementation of a double linked list.
+N// The USBH_DLIST structure and the related macros may be used for general purpose.
+N
+N/*********************************************************************
+N*
+N*       Public part (interface)
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       Private part (implementation)
+N*
+N**********************************************************************
+N*/
+N
+N
+N// Double linked list structure. Can be used as either a list head, or as link words.
+N
+N// @struct USBH_DLIST |
+N//   The USBH_DLIST structure is the link element of the double linked list. It is used as either a list head, or as link entry.
+N// @field  struct tDLIST * | Flink |
+N//   Pointer to the successor (forward link).
+N// @field  struct tDLIST * | pPrev |
+N//   Pointer to the predecessor (backward link).
+N// @comm By means of such elements any structures may be handled as a double linked list. The USBH_DLIST structure is to be inserted
+N//   into the structure which is to be handled. A pointer to the original structure can be obtained by means of the macro <f STRUCT_BASE_POINTER>.
+Ntypedef struct USBH_DLIST USBH_DLIST;
+Nstruct USBH_DLIST {
+N  USBH_DLIST * pNext;
+N  USBH_DLIST * pPrev;
+N};
+N
+N
+N#define HCM_ASSERT_ITEMHEADER_ADDRESS(pPool,Itemheader)                          \
+N        USBH_ASSERT(    (void*) (Itemheader) >= (void*)(pPool)->pItemHeaderStartAddr \
+N                  && (void*) (Itemheader) <= (void*)(pPool)->pItemHeaderEndAddr)
+X#define HCM_ASSERT_ITEMHEADER_ADDRESS(pPool,Itemheader)                                  USBH_ASSERT(    (void*) (Itemheader) >= (void*)(pPool)->pItemHeaderStartAddr                   && (void*) (Itemheader) <= (void*)(pPool)->pItemHeaderEndAddr)
+N
+N#define HCM_PHY_ADDR_IN_POOL(pPool, PhyAddr)                                     \
+N        (    (PhyAddr) >= (pPool) ->ContiguousMemoryPhyAddr                      \
+N          && (PhyAddr) <= (pPool) ->EndContiguousMemoryPhyAddr)
+X#define HCM_PHY_ADDR_IN_POOL(pPool, PhyAddr)                                             (    (PhyAddr) >= (pPool) ->ContiguousMemoryPhyAddr                                && (PhyAddr) <= (pPool) ->EndContiguousMemoryPhyAddr)
+N
+N#define HCM_ASSERT_PHY_MEMORY(pPool,PhyAddr) USBH_ASSERT(HCM_PHY_ADDR_IN_POOL((pPool), (PhyAddr))
+N
+N//
+N// Generic pool handling
+N//
+N#define HcmPoolEmpty(pPool) ((pPool)->pHead == NULL) // Returns true if pool is empty
+N
+N#if (USBH_DEBUG > 1)                            // Get an item from pool / MUST ONLY be called if pool is NOT empty!
+X#if ((0) > 1)                            
+S  #define HcmPoolGet(pPool, Item) {    \
+S    (Item)       = (pPool)->pHead;      \
+S    (pPool)->RefCount++;               \
+S    (pPool)->pHead = (Item)->Link.Next; \
+S  }
+X  #define HcmPoolGet(pPool, Item) {        (Item)       = (pPool)->pHead;          (pPool)->RefCount++;                   (pPool)->pHead = (Item)->Link.Next;   }
+N#else
+N  #define HcmPoolGet(pPool, Item) {    \
+N    (Item)       = (pPool)->pHead;      \
+N    (pPool)->pHead = (Item)->Link.Next; \
+N  }
+X  #define HcmPoolGet(pPool, Item) {        (Item)       = (pPool)->pHead;          (pPool)->pHead = (Item)->Link.Next;   }
+N#endif
+N
+N#if (USBH_DEBUG > 1)                              // Put an item into pool / implements a LIFO scheme
+X#if ((0) > 1)                              
+S  #define HcmPoolPut(pPool, Item)      {   \
+S    (Item)->Link.Next = (pPool)->pHead;  \
+S    USBH_ASSERT((pPool)->RefCount != 0); \
+S    (pPool)->RefCount--;                 \
+S    (pPool)->pHead      = (Item);        \
+S  }
+X  #define HcmPoolPut(pPool, Item)      {       (Item)->Link.Next = (pPool)->pHead;      USBH_ASSERT((pPool)->RefCount != 0);     (pPool)->RefCount--;                     (pPool)->pHead      = (Item);          }
+N#else
+N  #define HcmPoolPut(pPool, Item) {     \
+N    (Item)->Link.Next = (pPool)->pHead; \
+N    (pPool)->pHead      = (Item);       \
+N  }
+X  #define HcmPoolPut(pPool, Item) {         (Item)->Link.Next = (pPool)->pHead;     (pPool)->pHead      = (Item);         }
+N#endif
+N
+N// With USBH_HCM_ITEM_HEADER begins every pool item allocated in virtual memory. The user can extend this pool header by the
+N// parameter SizeOfExtension in the function  Hcm_AllocPool.
+Ntypedef struct USBH_HCM_ITEM_HEADER {
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S  U32                 Magic;
+N#endif
+N  // link element, used to create chains
+N  union {
+N    struct USBH_HCM_ITEM_HEADER * Next;
+N    USBH_DLIST                    ListEntry;
+N  } Link;
+N  volatile U32           PhyAddr;            // Physical start address of associated contiguous memory
+X  volatile unsigned long           PhyAddr;            
+N  struct USBH_HCM_POOL * pOwningPool;         // Pointer to pool the descriptor was allocated from
+N} USBH_HCM_ITEM_HEADER;
+N
+Ntypedef struct USBH_HCM_POOL {
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S  U32 Magic;
+N#endif
+N  U32               ContiguousMemoryPhyAddr;
+X  unsigned long               ContiguousMemoryPhyAddr;
+N  void            * pItemHeaderStartAddr;      // Start address of not contiguous memory, used to release the memory
+N  USBH_HCM_ITEM_HEADER * pHead;                     // Pointer to first buffer, pHead==NULL if pool is empty
+N
+N  // Additional fields used for calculations
+N  U32               NumberOfItems;            // Number of items should be grater than zero
+X  unsigned long               NumberOfItems;            
+N  U32               SizeOfItem;               // Size in bytes of item in contiguous non paged physical memory
+X  unsigned long               SizeOfItem;               
+N  U32               SizeOfExtension;          // Size in bytes of an item in not contiguous memory
+X  unsigned long               SizeOfExtension;          
+N
+N  // Only for debug
+N  void            * pItemHeaderEndAddr;
+N  U32               EndContiguousMemoryPhyAddr;
+X  unsigned long               EndContiguousMemoryPhyAddr;
+N  U32               RefCount;                 // GetItem and PutItem validation ref.counter*/
+X  unsigned long               RefCount;                 
+N} USBH_HCM_POOL;
+N
+N// Get USBH_HCM_ITEM_HEADER pointer from pointer to embedded USBH_DLIST ListEntry
+N
+N// Get pointer to extra space allocated after USBH_HCM_ITEM_HEADER
+N#define HCM_ITEM_HEADER_EXTRA_SPACE(ItemHeaderPtr) ((void*)((ItemHeaderPtr) + 1))
+N
+N// Get USBH_HCM_ITEM_HEADER pointer from pointer to extra space
+N// lint -emacro((740),HCM_ITEM_HEADER_FROM_EXTRA_SPACE)
+N#define HCM_ITEM_HEADER_FROM_EXTRA_SPACE(pes) (((USBH_HCM_ITEM_HEADER *)(void *)(pes)) - 1)
+N
+NUSBH_STATUS            USBH_HCM_AllocPool         (USBH_HCM_POOL        * Pool,    U32 NumberOfItems, U32 SizeOfPhysItem, U32 SizeOfExtension, U32 Alignment);
+XUSBH_STATUS            USBH_HCM_AllocPool         (USBH_HCM_POOL        * Pool,    unsigned long NumberOfItems, unsigned long SizeOfPhysItem, unsigned long SizeOfExtension, unsigned long Alignment);
+Nvoid                   USBH_HCM_FreePool          (USBH_HCM_POOL        * MemPool);
+NUSBH_HCM_ITEM_HEADER * USBH_HCM_GetItem           (USBH_HCM_POOL        * MemPool);
+NUSBH_HCM_ITEM_HEADER * USBH_HCM_GetItemFromPhyAddr(USBH_HCM_POOL        * MemPool, U32 PhyAddr);
+XUSBH_HCM_ITEM_HEADER * USBH_HCM_GetItemFromPhyAddr(USBH_HCM_POOL        * MemPool, unsigned long PhyAddr);
+Nvoid                   USBH_HCM_PutItem           (USBH_HCM_ITEM_HEADER * Item);
+Nvoid                   USBH_HCM_FillPhyMemory     (USBH_HCM_ITEM_HEADER * Item,    U8 Val);
+Xvoid                   USBH_HCM_FillPhyMemory     (USBH_HCM_ITEM_HEADER * Item,    unsigned char Val);
+NU32                    USBH_HCM_IsPhysAddrInPool  (USBH_HCM_POOL        * MemPool, U32 PhyAddr);
+Xunsigned long                    USBH_HCM_IsPhysAddrInPool  (USBH_HCM_POOL        * MemPool, unsigned long PhyAddr);
+N
+N// The following defines must not be changed!
+N#define OH_DEV_MAX_TRANSFER_DESC      (9)                           // default value: 7 (reserved for enumeration)
+N#define OH_DEV_ENUMERATION_CONTROL_EP 7                             // +1=dummy endpoint
+N#define USBH_OHCI_MAX_BULK_EP            (USBH_Global.Config.NumBulkEndpoints + 1) // +1=dummy endpoint
+N#define USBH_OHCI_MAX_CONTROL_EP         (USBH_Global.Config.NumUSBDevices + OH_DEV_ENUMERATION_CONTROL_EP + 1)
+N#define USBH_OHCI_MAX_INT_EP             (USBH_Global.Config.NumIntEndpoints)
+N#define USBH_OHCI_MAX_ISO_EP             (USBH_Global.Config.NumIsoEndpoints)
+N
+N
+N
+N#define OH_DEV_MAX_ISO_TD             (USBH_OHCI_MAX_ISO_EP * OH_DEV_MAX_TRANSFER_DESC)                         // Maximum number of ISO pEp host controller TD's
+N#define OH_DEV_MAX_BULK_TD            (USBH_OHCI_MAX_BULK_EP * OH_DEV_MAX_TRANSFER_DESC)                              // Maximum number of BULK pEp host controller TD's
+N#define OH_DEV_MAX_INT_TD             (USBH_OHCI_MAX_INT_EP * OH_DEV_MAX_TRANSFER_DESC)                   // Maximum number of INTERRUPT pEp host controller TD's*, dummy endpoint have not transfer descriptors !!!
+N#define OH_DEV_MAX_CONTROL_TD         (USBH_OHCI_MAX_CONTROL_EP + (USBH_OHCI_MAX_CONTROL_EP * OH_DEV_MAX_TRANSFER_DESC)) // Maximum number of CONTROL pEp host controller TD's
+N
+N#define OH_TOTAL_GTD                  (OH_DEV_MAX_BULK_TD + OH_DEV_MAX_CONTROL_TD)                                 // Number transfer and endpoint descriptors.
+N#define OH_TOTAL_ED                   (USBH_OHCI_MAX_ISO_EP + USBH_OHCI_MAX_INT_EP + USBH_OHCI_MAX_BULK_EP + USBH_OHCI_MAX_CONTROL_EP + OHD_DUMMY_INT_NUMBER)
+N
+N#define OH_MAX_ED_SIZE                (OH_ED_SIZE + OH_ED_ALIGNMENT)
+N#define OH_MAX_TD_SIZE                (OH_GTD_SIZE + OH_GTD_ALIGNMENT)
+N
+N// HCCA
+N#define OH_HCCA_LENGTH         256
+N#define OH_HCCA_ALIGNMENT      256
+N#define OH_HCCA_MAX_SIZE       (OH_HCCA_LENGTH+OH_HCCA_ALIGNMENT)
+N
+N// This defines includes also the setup buffer for all control endpoint and the additional transfer buffer in the host driver.
+N// It does not include any from user allocated physical buffer
+N#define OH_OHCI_MEMORY_SIZE           ((OH_MAX_ED_SIZE*OH_TOTAL_ED) + (OH_TOTAL_GTD*OH_MAX_TD_SIZE) + OH_HCCA_MAX_SIZE + (OH_DEV_MAX_CONTROL_TD*8))
+N
+N// OHD_BULK_INT_EP AbortMask values
+N#define EP_ABORT_MASK                 0x0001UL // 1. Endpoint is skipped and an timer with an Timeout of about two frames is started
+N#define EP_ABORT_SKIP_TIME_OVER_MASK  0x0002UL // 2. Endpoint skip Timeout is over
+N#define EP_ABORT_PROCESS_FLAG_MASK    0x0004UL // 3. temporary flag to process the aborted endpoint
+N#define EP_ABORT_START_TIMER_MASK     0x0008UL // additional flag to restart the abort timer in the timer routine if another endpoint
+N
+N// Only handled interrupts generate are enabled. Unrecoverable error (HC_INT_UE) and ownerchip change (HC_INT_OC) are enabled
+N// because of detecting invalid host controller states!
+N#define OH_ENABLED_INTERRUPTS     (HC_INT_WDH |  HC_INT_FNO | HC_INT_RHSC | HC_INT_UE | HC_INT_OC)
+N
+N// Unhandled interrupts status bits are also checked. Process interrupts does nothing with the following interrupt status bits
+N#define OH_NOT_HANDLED_INTERRUPTS (HC_INT_SO | HC_INT_SF | HC_INT_RD | HC_INT_UE | HC_INT_OC)
+N
+N// Frame interval in bit times
+N#define OH_DEV_NOT_USED_BITTIMES    (210 )
+N#define OH_DEV_FRAME_INTERVAL       (11999) /* 12000 bits per frame (-1) */
+N#define OH_DEV_LARGEST_DATA_PACKET  ((6 * (OH_DEV_FRAME_INTERVAL - OH_DEV_NOT_USED_BITTIMES)) / 7)
+N#define OH_DEV_DEFAULT_FMINTERVAL   ((OH_DEV_LARGEST_DATA_PACKET << 16 ) | OH_DEV_FRAME_INTERVAL)
+N#define OH_DEV_LOW_SPEED_THRESHOLD  0x0628
+N
+N#define OH_STOP_DELAY_TIME  2 // Delay time in ms until an stopped endpoint list is not processed for the HC
+N
+N// Default addresses used e.g. for creating dummy endpoints
+N#define OH_DEFAULT_DEV_ADDR                 0
+N#define OH_DEFAULT_EP_ADDR                  0
+N#define OH_DEFAULT_SPEED                    USBH_FULL_SPEED
+N#define OH_DEFAULT_MAX_PKT_SIZE             64
+N
+N// Maximum wait time in the initialization routine to wait for clearing the interrupt routing bit from BIOS after Ownerchangerequest was set!
+N#define OH_OWNER_CHANGE_WAIT_TIME 500000 // in us = 500 ms
+N#define OH_OWNER_CHANGE_TEST_TIME   1000 // in us = 1 ms
+N#define OH_TIME_SOFTWARE_RESET        30 // in us
+N#define OH_RESUME_TIME             30000 // 30ms in us
+N#define OH_RESET_STATE_TIMEOUT     30000 // 10ms in us - Timout where the OHCI controller is hold in the reset state
+N
+N/*********************************************************************
+N*
+N*       Endpoint and transfer descriptor definitions and macros
+N*
+N**********************************************************************
+N*/
+Ntypedef enum {
+N  USBH_OHCI_DEV_STATE_HALT,
+N  USBH_OHCI_DEV_STATE_SUSPEND, // From USBH_OHCI_DEV_STATE_SUSPEND only halt or resume is allowed, if the host is reset then the host not be in suspend!
+N  USBH_OHCI_DEV_STATE_RESUME,
+N  USBH_OHCI_DEV_STATE_RUNNING
+N} USBH_OHCI_DEV_STATE;
+N
+N// Used to transfer data from bulk control and interrupt endpoints if the transfer memory does not support bus master transfer
+Ntypedef struct USBH_OHCI_TRANSFER_BUFFER {
+N  USBH_HCM_ITEM_HEADER   ItemHeader;
+N  U8              * pUrbBuffer;       // Current buffer pointer
+X  unsigned char              * pUrbBuffer;       
+N  U32               Transferred;     // Transferred length
+X  unsigned long               Transferred;     
+N  U32               RemainingLength; // IN: size of URB buffer OUT:not transferred bytes
+X  unsigned long               RemainingLength; 
+N  int               UsbToHostFlag;   // True: USB IN transfer
+N} USBH_OHCI_TRANSFER_BUFFER;
+N
+N
+N/*********************************************************************
+N*
+N* The USB Bus Driver Core is a software which handles the complete basic function of a USB host controller. It provides a
+N* software interface that can be used to implement applications or class drivers on an abstract level.
+N*
+N* The USB Bus Driver Core manages the
+N* - enumeration of the devices
+N* - hot plug and play handling
+N* - PnP notification events
+N* - band width management
+N* - priority schedule for the transfer types
+N* - external HUB's (optional)
+N*
+N* The USB Bus Driver must be synchronized externally. The USB Bus Driver requires functions from an OS
+N* like "Wait on an event" or "Wait for a time". See the OS abstraction layer for details.
+N*
+N**********************************************************************
+N*/
+N
+N// The API interface uses the prefix UBD for USB Bus Driver. This should prevent conflicts with other libraries.
+N
+Ntypedef void * USBH_NOTIFICATION_HANDLE; // Handle for the notification
+N
+N/*********************************************************************
+N*
+N*       PnP and enumeration
+N*
+N**********************************************************************
+N*/
+N
+Ntypedef unsigned int USBH_INTERFACE_ID; // This ID identifies an interface in a unique way, a value of zero represents an invalid ID!
+Ntypedef unsigned int USBH_DEVICE_ID;    // This ID identifies a device in a unique way
+N
+N// Mask bits for device mask
+N#define USBH_INFO_MASK_VID       0x0001
+N#define USBH_INFO_MASK_PID       0x0002
+N#define USBH_INFO_MASK_DEVICE    0x0004
+N#define USBH_INFO_MASK_INTERFACE 0x0008
+N#define USBH_INFO_MASK_CLASS     0x0010
+N#define USBH_INFO_MASK_SUBCLASS  0x0020
+N#define USBH_INFO_MASK_PROTOCOL  0x0040
+N
+N// This structure is used to describe a device. The mask contains the information, which fields are valid.
+N// If the Mask is 0 the function USBH_ON_PNP_EVENT_FUNC is called for all interfaces.
+Ntypedef struct USBH_INTERFACE_MASK {
+N  U16 Mask;
+X  unsigned short Mask;
+N  U16 VendorId;
+X  unsigned short VendorId;
+N  U16 ProductId;
+X  unsigned short ProductId;
+N  U16 bcdDevice;
+X  unsigned short bcdDevice;
+N  U8  Interface;
+X  unsigned char  Interface;
+N  U8  Class;
+X  unsigned char  Class;
+N  U8  SubClass;
+X  unsigned char  SubClass;
+N  U8  Protocol;
+X  unsigned char  Protocol;
+N} USBH_INTERFACE_MASK;
+N
+Ntypedef void * USBH_INTERFACE_LIST_HANDLE; // Handle to the interface list
+N
+Ntypedef enum {
+N  USBH_SPEED_UNKNOWN,
+N  USBH_LOW_SPEED,
+N  USBH_FULL_SPEED,
+N  USBH_HIGH_SPEED
+N} USBH_SPEED;
+N
+N// This structure contains information about a USB interface and the related device
+Ntypedef struct USBH_INTERFACE_INFO {
+N  USBH_INTERFACE_ID InterfaceId;
+N  USBH_DEVICE_ID    DeviceId;
+N  U16               VendorId;
+X  unsigned short               VendorId;
+N  U16               ProductId;
+X  unsigned short               ProductId;
+N  U16               bcdDevice;
+X  unsigned short               bcdDevice;
+N  U8                Interface;
+X  unsigned char                Interface;
+N  U8                Class;
+X  unsigned char                Class;
+N  U8                SubClass;
+X  unsigned char                SubClass;
+N  U8                Protocol;
+X  unsigned char                Protocol;
+N  unsigned int      OpenCount;
+N  U8                ExclusiveUsed;
+X  unsigned char                ExclusiveUsed;
+N  USBH_SPEED        Speed;
+N  U8                acSerialNumber[256]; // The serial number in UNICODE format, not zero terminated
+X  unsigned char                acSerialNumber[256]; 
+N  U8                SerialNumberSize;  // The size of the serial number, 0 means not available or error during request
+X  unsigned char                SerialNumberSize;  
+N} USBH_INTERFACE_INFO;
+N
+N/*********************************************************************
+N*
+N*       Compatibility macros
+N*
+N**********************************************************************
+N*/
+N#define USBH_GetInterfaceID(hInterfaceList, Index)   USBH_GetInterfaceId(hInterfaceList, Index)
+N
+NUSBH_INTERFACE_LIST_HANDLE USBH_CreateInterfaceList (USBH_INTERFACE_MASK        * pInterfaceMask, unsigned int * pInterfaceCount);
+Nvoid                       USBH_DestroyInterfaceList(USBH_INTERFACE_LIST_HANDLE   hInterfaceList);
+NUSBH_INTERFACE_ID          USBH_GetInterfaceId      (USBH_INTERFACE_LIST_HANDLE   hInterfaceList, unsigned int Index);
+NUSBH_STATUS                USBH_GetInterfaceInfo    (USBH_INTERFACE_ID            InterfaceId, USBH_INTERFACE_INFO * pInterfaceInfo);
+N
+N// Events for the PnP function
+Ntypedef enum {
+N  USBH_ADD_DEVICE,
+N  USBH_REMOVE_DEVICE
+N} USBH_PNP_EVENT;
+N
+N// This function is called by the USB Bus Driver Core if a PnP event occurs.
+N// It is typically called the first time in the pContext of USBH_RegisterPnPNotification.
+Ntypedef void USBH_ON_PNP_EVENT_FUNC(void * pContext, USBH_PNP_EVENT Event, USBH_INTERFACE_ID InterfaceId);
+N
+N// struct USBH_PNP_NOTIFICATION is used as parameter to notification functions
+Ntypedef struct USBH_PNP_NOTIFICATION {
+N  USBH_ON_PNP_EVENT_FUNC * pfPnpNotification; // The notification function
+N  void                   * pContext;         // The notification pContext, passed to USBH_RegisterPnPNotification
+N  USBH_INTERFACE_MASK      InterfaceMask;   // Mask to the interface
+N} USBH_PNP_NOTIFICATION;
+N
+NUSBH_NOTIFICATION_HANDLE           USBH_RegisterPnPNotification    (USBH_PNP_NOTIFICATION    * pPnPNotification);
+Nvoid                               USBH_UnregisterPnPNotification  (USBH_NOTIFICATION_HANDLE   Handle);
+Ntypedef void                     * USBH_ENUM_ERROR_HANDLE; // Handle for the notification
+N
+N// Error type
+N#define UDB_ENUM_ERROR_EXTHUBPORT_FLAG  0x01 // The device is connected to an external hub
+N#define USBH_ENUM_ERROR_RETRY_FLAG      0x02 // The enumeration is retried
+N#define USBH_ENUM_ERROR_STOP_ENUM_FLAG  0x04 // The enumeration is stopped after retries
+N#define USBH_ENUM_ERROR_DISCONNECT_FLAG 0x08
+N// Additional information. The parent port status is disconnected, this means the USB device is not connected or it is connected
+N// and has an error. USBH_RestartEnumError() does nothing if  the  port status is disconnected.
+N
+N// Error location
+N#define USBH_ENUM_ERROR_ROOT_PORT_RESET 0x10 // Error during reset of a USB device on an root hub port
+N#define USBH_ENUM_ERROR_HUB_PORT_RESET  0x20 // Error during reset of a USB device on an external hub port
+N#define UDB_ENUM_ERROR_INIT_DEVICE      0x30 // Error during initialization of an device until it is in the configured state
+N#define UDB_ENUM_ERROR_INIT_HUB         0x40 // Error during initialization of an configured external hub device until the installation of an interrupt IN status pipe
+N#define USBH_ENUM_ERROR_LOCATION_MASK  (USBH_ENUM_ERROR_ROOT_PORT_RESET      | \
+N                                        USBH_ENUM_ERROR_HUB_PORT_RESET       | \
+N                                        UDB_ENUM_ERROR_INIT_DEVICE           | \
+N                                        UDB_ENUM_ERROR_INIT_HUB)
+X#define USBH_ENUM_ERROR_LOCATION_MASK  (USBH_ENUM_ERROR_ROOT_PORT_RESET      |                                         USBH_ENUM_ERROR_HUB_PORT_RESET       |                                         UDB_ENUM_ERROR_INIT_DEVICE           |                                         UDB_ENUM_ERROR_INIT_HUB)
+N
+N// This struct is only for information
+Ntypedef struct USBH_ENUM_ERROR {
+N  int         Flags;
+N  int         PortNumber;
+N  USBH_STATUS Status;
+N  int         ExtendedErrorInformation; // For internal contains an state value
+N} USBH_ENUM_ERROR;
+N
+N// This function is called by the USB Bus Driver Core if a error during USB device enumeration occurs.
+N// To install this notification routine USBH_RegisterEnumErrorNotification() must be called.
+Ntypedef void           USBH_ON_ENUM_ERROR_FUNC             (void * pContext, const USBH_ENUM_ERROR   * pfEnumError);
+NUSBH_ENUM_ERROR_HANDLE USBH_RegisterEnumErrorNotification  (void * pContext, USBH_ON_ENUM_ERROR_FUNC * pfEnumErrorCallback);
+Nvoid                   USBH_UnregisterEnumErrorNotification(USBH_ENUM_ERROR_HANDLE Handle);
+Nvoid                   USBH_RestartEnumError               (void);
+N
+N// Used to access an interface
+Ntypedef void        * USBH_INTERFACE_HANDLE;
+NUSBH_STATUS           USBH_OpenInterface  (USBH_INTERFACE_ID InterfaceId, U8 Exclusive, USBH_INTERFACE_HANDLE * InterfaceHandle);
+XUSBH_STATUS           USBH_OpenInterface  (USBH_INTERFACE_ID InterfaceId, unsigned char Exclusive, USBH_INTERFACE_HANDLE * InterfaceHandle);
+Nvoid                  USBH_CloseInterface (USBH_INTERFACE_HANDLE hInterface);
+N
+N/*******************************************************************************
+N*
+N*       Information requests
+N*
+N********************************************************************************
+N*/
+N
+NUSBH_STATUS USBH_GetDeviceDescriptor              (USBH_INTERFACE_HANDLE hInterface, U8 * pBuffer, unsigned int * pBufferSize);
+XUSBH_STATUS USBH_GetDeviceDescriptor              (USBH_INTERFACE_HANDLE hInterface, unsigned char * pBuffer, unsigned int * pBufferSize);
+NUSBH_STATUS USBH_GetCurrentConfigurationDescriptor(USBH_INTERFACE_HANDLE hInterface, U8 * pBuffer, unsigned int * pBufferSize);
+XUSBH_STATUS USBH_GetCurrentConfigurationDescriptor(USBH_INTERFACE_HANDLE hInterface, unsigned char * pBuffer, unsigned int * pBufferSize);
+NUSBH_STATUS USBH_GetSerialNumber                  (USBH_INTERFACE_HANDLE hInterface, U8 * pBuffer, unsigned int * pBufferSize);
+XUSBH_STATUS USBH_GetSerialNumber                  (USBH_INTERFACE_HANDLE hInterface, unsigned char * pBuffer, unsigned int * pBufferSize);
+NUSBH_STATUS USBH_GetInterfaceDescriptor           (USBH_INTERFACE_HANDLE hInterface, U8 AlternateSetting, U8 * pBuffer,   unsigned int * pBufferSize);
+XUSBH_STATUS USBH_GetInterfaceDescriptor           (USBH_INTERFACE_HANDLE hInterface, unsigned char AlternateSetting, unsigned char * pBuffer,   unsigned int * pBufferSize);
+N
+N// Mask bits for device mask
+N#define USBH_EP_MASK_INDEX     0x0001
+N#define USBH_EP_MASK_ADDRESS   0x0002
+N#define USBH_EP_MASK_TYPE      0x0004
+N#define USBH_EP_MASK_DIRECTION 0x0008
+N
+Ntypedef struct USBH_EP_MASK {
+N  U32 Mask;
+X  unsigned long Mask;
+N  U8  Index;
+X  unsigned char  Index;
+N  U8  Address;
+X  unsigned char  Address;
+N  U8  Type;
+X  unsigned char  Type;
+N  U8  Direction;
+X  unsigned char  Direction;
+N} USBH_EP_MASK;
+N
+N// It returns the endpoint descriptor for a given endpoint or returns with status invalid parameter.
+NUSBH_STATUS USBH_GetEndpointDescriptor(USBH_INTERFACE_HANDLE hInterface, U8 AlternateSetting, const USBH_EP_MASK * pMask, U8 * pBuffer, unsigned int * pBufferSize);
+XUSBH_STATUS USBH_GetEndpointDescriptor(USBH_INTERFACE_HANDLE hInterface, unsigned char AlternateSetting, const USBH_EP_MASK * pMask, unsigned char * pBuffer, unsigned int * pBufferSize);
+NUSBH_STATUS USBH_GetDescriptor        (USBH_INTERFACE_HANDLE hInterface, U8 AlternateSetting,   U8 Type, U8 * pBuffer, unsigned * pBufferSize);
+XUSBH_STATUS USBH_GetDescriptor        (USBH_INTERFACE_HANDLE hInterface, unsigned char AlternateSetting,   unsigned char Type, unsigned char * pBuffer, unsigned * pBufferSize);
+NUSBH_STATUS USBH_GetDescriptorEx      (USBH_INTERFACE_HANDLE hInterface, U8 Type, U8 DescIndex, U16 LangId, U8 * pBuffer, unsigned * pBufferSize);
+XUSBH_STATUS USBH_GetDescriptorEx      (USBH_INTERFACE_HANDLE hInterface, unsigned char Type, unsigned char DescIndex, unsigned short LangId, unsigned char * pBuffer, unsigned * pBufferSize);
+N
+N// Return the operating speed of the device.
+NUSBH_STATUS USBH_GetSpeed        (USBH_INTERFACE_HANDLE hInterface, USBH_SPEED * pSpeed);
+NUSBH_STATUS USBH_GetFrameNumber  (USBH_INTERFACE_HANDLE hInterface, U32 * pFrameNumber);
+XUSBH_STATUS USBH_GetFrameNumber  (USBH_INTERFACE_HANDLE hInterface, unsigned long * pFrameNumber);
+N
+N// Returns the interface ID for a given handle
+NUSBH_STATUS USBH_GetInterfaceIdByHandle(USBH_INTERFACE_HANDLE hInterface, USBH_INTERFACE_ID * pInterfaceId);
+N
+N/*********************************************************************
+N*
+N*       Async URB based requests
+N*
+N**********************************************************************
+N*/
+N
+N// Function codes
+Ntypedef enum USBH_FUNCTION_TAG {
+N  USBH_FUNCTION_CONTROL_REQUEST,   // use USBH_CONTROL_REQUEST
+N  USBH_FUNCTION_BULK_REQUEST,      // use USBH_BULK_INT_REQUEST
+N  USBH_FUNCTION_INT_REQUEST,       // use USBH_BULK_INT_REQUEST
+N  USBH_FUNCTION_ISO_REQUEST,       // use USBH_ISO_REQUEST
+N  // A device reset starts a new enumeration of the device. PnP events for all related interfaces occur.
+N  USBH_FUNCTION_RESET_DEVICE,      // use USBH_HEADER
+N  USBH_FUNCTION_RESET_ENDPOINT,    // use USBH_ENDPOINT_REQUEST
+N  USBH_FUNCTION_ABORT_ENDPOINT,    // use USBH_ENDPOINT_REQUEST
+N  USBH_FUNCTION_SET_CONFIGURATION, // use USBH_SET_CONFIGURATION
+N  USBH_FUNCTION_SET_INTERFACE,     // use USBH_SET_INTERFACE
+N  USBH_FUNCTION_SET_POWER_STATE
+N} USBH_FUNCTION;
+N
+Ntypedef struct USBH_URB USBH_URB;
+Ntypedef void USBH_ON_COMPLETION_FUNC(USBH_URB * Urb); // The completion function
+Ntypedef void USBH_ON_COMPLETION_USER_FUNC(void * pContextData);
+N
+Ntypedef struct USBH_HEADER_TAG {                            // Is common for all URB based requests
+N  USBH_FUNCTION                  Function;                       // Function code defines the operation of the URB
+N  USBH_STATUS                    Status;                         // Is returned by the USB Bus Driver Core
+N  USBH_ON_COMPLETION_FUNC      * pfOnCompletion;                 // Completion function, must be a valid pointer is not optional
+N  void                         * pContext;                       // This member can be used by the caller to store a pContext, it is not changed by the USB Bus Driver Core
+N  USBH_DLIST                     ListEntry;                      // List entry to keep the URB in a list, the owner can use this entry
+N  // For internal use
+N  void                         * pUbdContext;                     // Context used from the UBD driver
+N  USBH_ON_COMPLETION_FUNC      * pfOnInternalCompletion;          // Completion function, must be a valid pointer is not optional
+N  void                         * pInternalContext;                // This member can be used by the caller to store a pContext, it is not changed by the USB Bus Driver Core
+N  U32                            HcFlags;                         // Context used from the Host controller driver
+X  unsigned long                            HcFlags;                         
+N  USBH_ON_COMPLETION_USER_FUNC * pfOnUserCompletion;
+N  void                         * pUserContext;
+N} USBH_HEADER;
+N
+N
+N// Used with USBH_FUNCTION_CONTROL_REQUEST
+Ntypedef struct USBH_CONTROL_REQUEST {
+N  USBH_SETUP_PACKET   Setup;    // The setup packet, direction of data phase, the length field must be valid!
+N  U8                  Endpoint; // Use 0 for default endpoint
+X  unsigned char                  Endpoint; 
+N  void              * pBuffer;   // Pointer to the caller provided storage, can be NULL
+N  U32                 Length;   // IN:- OUT: bytes transferred
+X  unsigned long                 Length;   
+N} USBH_CONTROL_REQUEST;
+N
+N// Used with USBH_FUNCTION_BULK_REQUEST and USBH_FUNCTION_INT_REQUEST
+Ntypedef struct USBH_BULK_INT_REQUEST {
+N  U8     Endpoint; // With direction bit
+X  unsigned char     Endpoint; 
+N  void * pBuffer;
+N  U32    Length;   // IN: length in bytes of buffer OUT: bytes transferred
+X  unsigned long    Length;   
+N} USBH_BULK_INT_REQUEST;
+N
+N// A helper struct to define ISO requests. Each struct of this type describes the amount of data for one USB frame.
+N// The data structure ISO_REQUEST ends with an array of such structures.
+Ntypedef struct USBH_ISO_PACKET_DESCRIPTOR {
+N  U32         Offset;
+X  unsigned long         Offset;
+N  U32         Length;
+X  unsigned long         Length;
+N  USBH_STATUS Status;
+N} USBH_ISO_PACKET_DESCRIPTOR;
+N
+N// Start the transfer as soon as possible
+N#define USBH_ISO_ASAP 0x01
+N#define USBH_URB_GET_ISO_URB_SIZE(NumPackets) (sizeof(USBH_HEADER) + sizeof(USBH_ISO_REQUEST) + (NumPackets) * sizeof(USBH_ISO_PACKET_DESCRIPTOR))
+N
+N
+N// Used with USBH_FUNCTION_ISO_REQUEST. At the end of this data structure is an variable sized array of ISO_FRAME.
+N// The macro GET_ISO_URB_SIZE returns the size of this URB for a given number of frames.
+Ntypedef struct USBH_ISO_REQUEST {
+N  U8             Endpoint;   // With direction bit
+X  unsigned char             Endpoint;   
+N  void         * pBuffer; // Pointer to the caller provided storage, can be NULL
+N  U32            Length;    // IN: buffer size, OUT: bytes transferred
+X  unsigned long            Length;    
+N  unsigned int   Flags;
+N  unsigned int   StartFrame;
+N  unsigned int                NumPackets;
+N  unsigned int                ErrorCount;
+N  USBH_ISO_PACKET_DESCRIPTOR  aIsoPacket[1];
+N} USBH_ISO_REQUEST;
+N
+Ntypedef struct USBH_ENDPOINT_REQUEST {  // Used with USBH_FUNCTION_ABORT_ENDPOINT and USBH_FUNCTION_RESET_ENDPOINT.
+N  U8 Endpoint;                          // With direction bit
+X  unsigned char Endpoint;                          
+N} USBH_ENDPOINT_REQUEST;
+N
+Ntypedef struct USBH_SET_CONFIGURATION { // Used with USBH_FUNCTION_SET_CONFIGURATION. Changing the configuration caused PnP events for all interfaces.
+N  U8 ConfigurationDescriptorIndex;      // Zero based
+X  unsigned char ConfigurationDescriptorIndex;      
+N} USBH_SET_CONFIGURATION;
+N
+Ntypedef struct USBH_SET_INTERFACE {     // Used with USBH_FUNCTION_SET_INTERFACE. The interface is given by the handle.
+N  U8 AlternateSetting;                  // Zero based
+X  unsigned char AlternateSetting;                  
+N} USBH_SET_INTERFACE;
+N
+Ntypedef enum USBH_POWER_STATE {
+N  USBH_NORMAL_POWER,
+N  USBH_SUSPEND
+N} USBH_POWER_STATE;
+N
+Ntypedef struct USBH_SET_POWER_STATE {
+N  USBH_POWER_STATE PowerState;
+N} USBH_SET_POWER_STATE;
+N
+Nstruct USBH_URB {                    // Common USB request block structure. It is used for all async. Requests
+N  USBH_HEADER Header;
+N  union {
+N    USBH_CONTROL_REQUEST   ControlRequest;
+N    USBH_BULK_INT_REQUEST  BulkIntRequest;
+N    USBH_ISO_REQUEST       IsoRequest;
+N    USBH_ENDPOINT_REQUEST  EndpointRequest;
+N    USBH_SET_CONFIGURATION SetConfiguration;
+N    USBH_SET_INTERFACE     SetInterface;
+N    USBH_SET_POWER_STATE   SetPowerState;
+N  } Request;
+N};
+N
+N// Interface function for all asynchronous requests. If the function returns USBH_STATUS_PENDING the completion routine is called.
+N// On each other status code the completion routine is never called. The storage of the URB must be provided by the caller and
+N// must be permanent until the URB is returned by the completion routine.
+NUSBH_STATUS   USBH_SubmitUrb(USBH_INTERFACE_HANDLE hInterface, USBH_URB * Urb);
+Nconst char  * USBH_GetStatusStr(USBH_STATUS x);
+N
+Ntypedef void * USBH_HC_BD_HANDLE; // Handle of the bus driver of a host controller
+Ntypedef void * USBH_HC_HANDLE;    // Context for the host controller driver
+N
+NUSBH_STATUS USBH_BD_PreInit     (void);
+NUSBH_STATUS USBH_BD_Init        (void);
+Nvoid        USBH_Exit            (void);
+Nvoid        USBH_EnumerateDevices(USBH_HC_BD_HANDLE HcBdHandle);
+N
+Ntypedef enum USBH_HOST_STATE {
+N  USBH_HOST_RESET,                                                                          // Do nothing on the ports, power off
+N  USBH_HOST_RUNNING,                                                                        // Turn on generation of SOF
+N  USBH_HOST_SUSPEND                                                                         // Stop processing of all queues, stop SOF's
+N} USBH_HOST_STATE;
+N
+Ntypedef void *      USBH_HC_EP_HANDLE;                                                           // Handle to an endpoint
+Ntypedef enum {
+N  USBH_PORT_POWER_RUNNING,
+N  USBH_PORT_POWER_SUSPEND
+N} USBH_PORT_POWER_STATE;
+N
+N
+N/*********************************************************************
+N*
+N*       Host controller interface
+N*
+N**********************************************************************
+N*/
+N
+Ntypedef void        USBH_ROOT_HUB_NOTIFICATION_FUNC(void * pContext, U32 Notification); // bit0 indicates a status change of the HUB, bit 1 of port 1 of the hub and so on.
+Xtypedef void        USBH_ROOT_HUB_NOTIFICATION_FUNC(void * pContext, unsigned long Notification); 
+N// Is called in the pContext of USBH_AddHostController make a basic initialization of the hardware,
+N// reset the hardware, setup internal lists, leave the host in the state  UBB_HOST_RESET
+Ntypedef USBH_STATUS USBH_HOST_INIT_FUNC(USBH_HC_HANDLE hHostController, USBH_ROOT_HUB_NOTIFICATION_FUNC * pfUbdRootHubNotification, void * pRootHubNotificationContext);
+N
+N// Is the last call on this interface. It is called after all URB's are returned, all endpoints are released and no further
+N// reference to the host controller exists. In this call the host controller driver can check that all lists (URB's, Endpoints)
+N// are empty and delete all resources, disable interrupts. The HC state is USBH_HOST_RESET if this function is called
+Ntypedef USBH_STATUS USBH_HOST_EXIT_FUNC(USBH_HC_HANDLE hHostController);
+N
+N
+Ntypedef USBH_STATUS USBH_SET_HC_STATE_FUNC       (USBH_HC_HANDLE   hHostController, USBH_HOST_STATE HostState); // Set the state of the HC
+Ntypedef U32         USBH_GET_HC_FRAME_NUMBER_FUNC(USBH_HC_HANDLE   hHostController);                       // Returns the frame number as a 32 bit value
+Xtypedef unsigned long         USBH_GET_HC_FRAME_NUMBER_FUNC(USBH_HC_HANDLE   hHostController);                       
+Ntypedef void        USBH_HC_ON_COMPLETION_FUNC   (void          * Context,  USBH_URB           * Urb);
+N// Returns an endpoint handle for a new created endpoint
+N// EndpointType :   Type of the endpoint, one of USB_EP_TYPE_CONTROL, ...
+N// DeviceAddress:   Device address, 0 is allowed
+N// EndpointAddress: Endpoint address with direction bit
+N// MaxFifoSize:     Maximum transfer FIFO size in the host controller for that endpoint
+N// IntervalTime:    Interval time in or the NAK rate if this is an USB high speed bulk endpoint (in milliseconds)
+N// Speed:           The speed of the endpoint
+Ntypedef USBH_HC_EP_HANDLE USBH_ADD_ENDPOINT_FUNC(USBH_HC_HANDLE hHostController, U8 EndpointType, U8 DeviceAddress, U8 EndpointAddress, U16 MaxFifoSize, U16 IntervalTime, USBH_SPEED Speed);
+Xtypedef USBH_HC_EP_HANDLE USBH_ADD_ENDPOINT_FUNC(USBH_HC_HANDLE hHostController, unsigned char EndpointType, unsigned char DeviceAddress, unsigned char EndpointAddress, unsigned short MaxFifoSize, unsigned short IntervalTime, USBH_SPEED Speed);
+N// The bus driver calls these functions with valid handles. The HC must not take care to check the handles.
+Ntypedef void        USBH_RELEASE_EP_COMPLETION_FUNC(void * pContext);                         // This is the  USBH_ReleaseEndpoint completion function.
+Ntypedef void        USBH_RELEASE_ENDPOINT_FUNC     (USBH_HC_EP_HANDLE hEndPoint, USBH_RELEASE_EP_COMPLETION_FUNC * pfReleaseEpCompletion, void * pContext);                      // Releases that endpoint. This function returns immediately. If the Completion function is called the endpoint is removed.
+Ntypedef USBH_STATUS USBH_ABORT_ENDPOINT_FUNC       (USBH_HC_EP_HANDLE hEndPoint);             // Complete all pending requests. This function returns immediately. But the URB's may completed delayed, if the hardware require this.
+Ntypedef USBH_STATUS USBH_RESET_ENDPOINT_FUNC       (USBH_HC_EP_HANDLE hEndPoint);             // Resets the data toggle bit to 0. The bus driver takes care that this function is called only if no pending URB for this EP is scheduled.
+Ntypedef USBH_STATUS USBH_SUBMIT_REQUEST_FUNC       (USBH_HC_EP_HANDLE hEndPoint, USBH_URB * pUrb); // Submit a request to the HC. If USBH_STATUS_PENDING is returned the request is in the queue and the completion routine is called later.
+N
+N/*********************************************************************
+N*
+N*       Root pHub Functions
+N*
+N**********************************************************************
+N*/
+N
+Ntypedef unsigned int USBH_GET_PORT_COUNT_FUNC     (USBH_HC_HANDLE hHostController); // Returns the number of root hub ports. An zero value is returned on an error.
+Ntypedef unsigned int USBH_GET_POWER_GOOD_TIME_FUNC(USBH_HC_HANDLE hHostController); // Returns the power on to power good time in ms
+Ntypedef U32          USBH_GET_HUB_STATUS_FUNC     (USBH_HC_HANDLE hHostController); // Returns the HUB status as defined in the USB specification 11.24.2.6
+Xtypedef unsigned long          USBH_GET_HUB_STATUS_FUNC     (USBH_HC_HANDLE hHostController); 
+N
+N// This request is identical to an hub class ClearHubFeature request with the restriction that only HUB CHANGE bits can be cleared.
+N// For all other hub features other root hub functions must be used. The physical change bits are cleared in the root hub interrupt routine.
+Ntypedef void USBH_CLEAR_HUB_STATUS_FUNC (USBH_HC_HANDLE hHostController, U16 FeatureSelector);
+Xtypedef void USBH_CLEAR_HUB_STATUS_FUNC (USBH_HC_HANDLE hHostController, unsigned short FeatureSelector);
+Ntypedef U32  USBH_GET_PORT_STATUS_FUNC  (USBH_HC_HANDLE hHostController, U8  Port); // One based index of the port / return the port status as defined in the USB specification 11.24.2.7
+Xtypedef unsigned long  USBH_GET_PORT_STATUS_FUNC  (USBH_HC_HANDLE hHostController, unsigned char  Port); 
+N
+N// This request is identical to an hub class ClearPortFeature request with the restriction that only PORT CHANGE bits can be cleared.
+N// For all other port features other root hub functions must be used. The physical change bits are cleared in the root hub interrupt routine.
+Ntypedef void USBH_CLEAR_PORT_STATUS_FUNC(USBH_HC_HANDLE hHostController, U8  Port, U16 FeatureSelector); // One based index of the port
+Xtypedef void USBH_CLEAR_PORT_STATUS_FUNC(USBH_HC_HANDLE hHostController, unsigned char  Port, unsigned short FeatureSelector); 
+N
+N// Set the power State of a port. If the HC cannot handle the power switching for individual ports, it must turn on all ports if
+N// at least one port requires power. It turns off the power if no port requires power
+Ntypedef void USBH_SET_PORT_POWER_FUNC   (USBH_HC_HANDLE hHostController, U8  Port, U8 PowerOn); // one based index of the port / 1 to turn the power on or 0 for off
+Xtypedef void USBH_SET_PORT_POWER_FUNC   (USBH_HC_HANDLE hHostController, unsigned char  Port, unsigned char PowerOn); 
+N
+N// Reset the port (USB Reset) and send a port change notification if ready.
+N// If reset was successful the port is enabled after reset and the speed is detected
+Ntypedef void USBH_RESET_PORT_FUNC       (USBH_HC_HANDLE hHostController, U8  Port); // One based index of the port
+Xtypedef void USBH_RESET_PORT_FUNC       (USBH_HC_HANDLE hHostController, unsigned char  Port); 
+Ntypedef void USBH_DISABLE_PORT_FUNC     (USBH_HC_HANDLE hHostController, U8  Port); // One based index of the port// Disable the port, no requests and SOF's are issued on this port
+Xtypedef void USBH_DISABLE_PORT_FUNC     (USBH_HC_HANDLE hHostController, unsigned char  Port); 
+Ntypedef void USBH_SET_PORT_SUSPEND_FUNC (USBH_HC_HANDLE hHostController, U8  Port, USBH_PORT_POWER_STATE State); // One based index of the port / Switch the port power between running and suspend
+Xtypedef void USBH_SET_PORT_SUSPEND_FUNC (USBH_HC_HANDLE hHostController, unsigned char  Port, USBH_PORT_POWER_STATE State); 
+Ntypedef int  USBH_CHECK_INTERRUPT_FUNC  (USBH_HC_HANDLE hHostController);
+Ntypedef void USBH_ISR_FUNC              (USBH_HC_HANDLE hHostController);
+N
+Ntypedef struct USBH_HOST_DRIVER {
+N  // Global HC functions
+N  USBH_HOST_INIT_FUNC           * pfHostInit;        // Is called by the bus driver in the pContext of USBH_AddHostController
+N  USBH_HOST_EXIT_FUNC           * pfHostExit;
+N  USBH_SET_HC_STATE_FUNC        * pfSetHcState;
+N  USBH_GET_HC_FRAME_NUMBER_FUNC * pfGetFrameNumber;
+N  // Endpoint functions
+N  USBH_ADD_ENDPOINT_FUNC        * pfAddEndpoint;     // Add an endpoint to the HC
+N  USBH_RELEASE_ENDPOINT_FUNC    * pfReleaseEndpoint; // Release the endpoint, free the endpoint structure
+N  USBH_ABORT_ENDPOINT_FUNC      * pfAbortEndpoint;   // Return all pending requests from this endpoint with status USBH_STATUS_CANCELLED.
+N  // The requests must not completed with in the function call.
+N  USBH_RESET_ENDPOINT_FUNC      * pfResetEndpoint;   // Reset the endpoint data toggle bit
+N  USBH_SUBMIT_REQUEST_FUNC      * pfSubmitRequest;   // Submit a request
+N  // Root pHub functions
+N  USBH_GET_PORT_COUNT_FUNC      * pfGetPortCount;
+N  USBH_GET_POWER_GOOD_TIME_FUNC * pfGetPowerGoodTime;
+N  USBH_GET_HUB_STATUS_FUNC      * pfGetHubStatus;
+N  USBH_CLEAR_HUB_STATUS_FUNC    * pfClearHubStatus;
+N  USBH_GET_PORT_STATUS_FUNC     * pfGetPortStatus;
+N  USBH_CLEAR_PORT_STATUS_FUNC   * pfClearPortStatus;
+N  USBH_SET_PORT_POWER_FUNC      * SetPortPower;
+N  USBH_RESET_PORT_FUNC          * pfResetPort;
+N  USBH_DISABLE_PORT_FUNC        * pfDisablePort;
+N  USBH_SET_PORT_SUSPEND_FUNC    * pfSetPortSuspend;
+N  USBH_CHECK_INTERRUPT_FUNC     * pfCheckIsr;
+N  USBH_ISR_FUNC                 * pfIsr;
+N} USBH_HOST_DRIVER;
+N
+NUSBH_HC_BD_HANDLE USBH_AddHostController   (USBH_HOST_DRIVER      * pDriver, USBH_HC_HANDLE hController);
+Nvoid              USBH_RemoveHostController(USBH_HC_BD_HANDLE       HcBdHandle);
+NUSBH_STATUS       USBH_ResetEndpoint       (USBH_INTERFACE_HANDLE   IfaceHandle, USBH_URB * urb, U8 Endpoint, USBH_ON_COMPLETION_FUNC Completion, void * Context);
+XUSBH_STATUS       USBH_ResetEndpoint       (USBH_INTERFACE_HANDLE   IfaceHandle, USBH_URB * urb, unsigned char Endpoint, USBH_ON_COMPLETION_FUNC Completion, void * Context);
+N
+N
+Ntypedef void * USBH_TIMER_HANDLE;                                                                   // Handle to a TAL timer object
+Ntypedef void   USBH_TIMER_FUNC(void * pContext);                                              // Typedef callback function which is called on a timer Timeout
+N
+NUSBH_TIMER_HANDLE USBH_AllocTimer (USBH_TIMER_FUNC * pfTimerCallbackRoutine, void * Context); // Allocates a timer object and returns the timer handle.
+Nvoid              USBH_FreeTimer  (USBH_TIMER_HANDLE hTimer);                                  // Frees a timer object via timer handle.
+Nvoid              USBH_StartTimer (USBH_TIMER_HANDLE hTimer, U32 ms);                          // Starts a timer. The timer is restarted again if it is running.
+Xvoid              USBH_StartTimer (USBH_TIMER_HANDLE hTimer, unsigned long ms);                          
+Nvoid              USBH_CancelTimer(USBH_TIMER_HANDLE hTimer);                                  // Cancels an timer if running, the completion routine is not called.
+N
+N/*********************************************************************
+N*
+N*       Structs
+N*
+N**********************************************************************
+N*/
+N
+N
+NUSBH_BOOL USBH_IsTimeOver(U32 Waittime, U32 StartTime);
+Xchar USBH_IsTimeOver(unsigned long Waittime, unsigned long StartTime);
+N
+N
+Ntypedef struct URB_SUB_STATE {
+N  U8                           TimerCancelFlag; // Timer to for detecting an Timeout
+X  unsigned char                           TimerCancelFlag; 
+N  USBH_TIMER_HANDLE            hTimer;
+N  USBH_SUBSTATE_STATE               State;
+N  USBH_URB                   * pUrb;
+N  // Additional pointer for faster accesses
+N  USBH_HOST_CONTROLLER       * pHostController;
+N  USBH_HC_EP_HANDLE          * phEP;
+N  USBH_SUBMIT_REQUEST_FUNC   * pfSubmitRequest;
+N  USBH_ABORT_ENDPOINT_FUNC   * pfAbortEndpoint;
+N  USB_DEVICE                 * pDevRefCnt;
+N  USBH_SUBSTATE_FUNC         * pfCallback; // This callback routine is called if an URB is complete or on an timer Timeout
+N  // started with USBH_URB_SubStateWait. If the timer routine runs and an pending pUrb exist
+N  // then the pUrb ios aborted and the CallbackRoutine is not called.
+N  void                       * pContext;
+N} URB_SUB_STATE;
+N
+NURB_SUB_STATE * USBH_URB_SubStateAllocInit    (USBH_HOST_CONTROLLER * pHostController, USBH_HC_EP_HANDLE * phEP, USBH_SUBSTATE_FUNC * pfRoutine, void * pContext);
+NUSBH_STATUS     USBH_URB_SubStateInit         (URB_SUB_STATE * pSubState, USBH_HOST_CONTROLLER * pHostController, USBH_HC_EP_HANDLE * phEP, USBH_SUBSTATE_FUNC * pfRoutine, void * pContext);
+NUSBH_STATUS     USBH_URB_SubStateSubmitRequest(URB_SUB_STATE * pSubState, USBH_URB * pUrb, U32 Timeout, USB_DEVICE * pDevRefCnt);
+XUSBH_STATUS     USBH_URB_SubStateSubmitRequest(URB_SUB_STATE * pSubState, USBH_URB * pUrb, unsigned long Timeout, USB_DEVICE * pDevRefCnt);
+Nvoid            USBH_URB_SubStateWait         (URB_SUB_STATE * pSubState, U32 Timeout, USB_DEVICE * pDevRefCnt);
+Xvoid            USBH_URB_SubStateWait         (URB_SUB_STATE * pSubState, unsigned long Timeout, USB_DEVICE * pDevRefCnt);
+Nvoid            USBH_URB_SubStateExit         (URB_SUB_STATE * pSubState);
+Nvoid            USBH_URB_SubStateFree         (URB_SUB_STATE * pSubState);
+NUSBH_BOOL       USBH_URB_SubStateIsIdle       (URB_SUB_STATE * pSubState);
+Xchar       USBH_URB_SubStateIsIdle       (URB_SUB_STATE * pSubState);
+N
+NUSBH_STATUS USBH_OHCI_TRANSFER_SubmitRequest       (USBH_HC_EP_HANDLE hEP, USBH_URB * pUrb);
+Nvoid        USBH_OHCI_TRANSFER_ProcessDoneInterrupt(USBH_OHCI_DEVICE * pDev);
+N
+N// URBs HcFlags allowed values
+N#define URB_CANCEL_PENDING_MASK 0x01 // Pending URB must be canceled
+N
+N
+Ntypedef struct USBH_DEFAULT_EP {
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S  U32                  Magic;
+N#endif
+N  USB_DEVICE         * pUsbDevice; // Pointer to the owning host controller
+N  USBH_HC_EP_HANDLE    hEP;  // Endpoint handle must be used to submit an URB
+N  unsigned int         UrbCount;
+N} USBH_DEFAULT_EP;
+N
+N
+N// State for device enumeration
+Ntypedef enum {
+N  DEV_ENUM_IDLE,                 // No enumeration running
+N  DEV_ENUM_START,                // First state
+N  DEV_ENUM_GET_DEVICE_DESC_PART, // Get the first 8 bytes of the device descriptor
+N  DEV_ENUM_GET_DEVICE_DESC,      // Get the complete device descriptor
+N  DEV_ENUM_GET_CONFIG_DESC_PART, // Get the first part of the configuration descriptor
+N  DEV_ENUM_GET_CONFIG_DESC,      // Get the complete configuration descriptor
+N  DEV_ENUM_GET_LANG_ID,          // Get the language ID's
+N  DEV_ENUM_GET_SERIAL_DESC,      // Get the serial number
+N  DEV_ENUM_SET_CONFIGURATION,    // Set the configuration
+N  DEV_ENUM_INIT_HUB,             // The device is an hub and is  initialized
+N  DEV_ENUM_RESTART,              // A transaction fails and a timer runs to restart
+N  DEV_ENUM_REMOVED               // The device is removed, clean up enumeration
+N} DEV_ENUM_STATE;
+N
+Ntypedef enum { // Do not modify the sequence
+N  DEV_STATE_UNKNOWN = 0,
+N  DEV_STATE_REMOVED,
+N  DEV_STATE_ENUMERATE,
+N  DEV_STATE_WORKING,
+N  DEV_STATE_SUSPEND
+N} USB_DEV_STATE;
+N
+N// Is called after the standard enumeration has been completed
+Ntypedef void POST_ENUM_FUNC(void* pContext);
+N
+Nstruct USB_DEVICE {
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S  U32                          Magic;
+N#endif
+N  USBH_DLIST                   ListEntry;              // To store this object in the host controller object
+N  USBH_DLIST                   TempEntry;              // To store this object in an temporary list
+N  USBH_BOOL                    TempFlag;
+X  char                    TempFlag;
+N  long                         RefCount;
+N  USBH_HOST_CONTROLLER       * pHostController;         // Pointer to the owning host controller
+N  USBH_DLIST                   UsbInterfaceList;       // List for interfaces
+N  unsigned int                 InterfaceCount;
+N  USBH_HUB_PORT              * pParentPort;             // This is the hub port where this device is connected to
+N  U8                           UsbAddress;             // This is the USB address of the device
+X  unsigned char                           UsbAddress;             
+N  USBH_SPEED                   DeviceSpeed;            // pSpeed of the device connection
+N  U8                           MaxFifoSize;            // The FIFO size
+X  unsigned char                           MaxFifoSize;            
+N  U8                           ConfigurationIndex;     // The index of the current configuration
+X  unsigned char                           ConfigurationIndex;     
+N  U8                           NumConfigurations;      // The index of the current configuration
+X  unsigned char                           NumConfigurations;      
+N  // Descriptors
+N  USB_DEVICE_DESCRIPTOR        DeviceDescriptor;       // A typed copy
+N  U8                           aDeviceDescriptorBuffer[USB_DEVICE_DESCRIPTOR_LENGTH];
+X  unsigned char                           aDeviceDescriptorBuffer[(18)];
+N  U8                         * pConfigDescriptor;       // Points to the current configuration descriptor
+X  unsigned char                         * pConfigDescriptor;       
+N  U16                          ConfigDescriptorSize;
+X  unsigned short                          ConfigDescriptorSize;
+N  U16                          LanguageId;             // First language ID
+X  unsigned short                          LanguageId;             
+N  U8                         * pSerialNumber;           // Serial number without header, UNICODE
+X  unsigned char                         * pSerialNumber;           
+N  unsigned int                 SerialNumberSize;
+N  U16                          DevStatus;              // Device status returned from USB GetStatus
+X  unsigned short                          DevStatus;              
+N  USBH_DEFAULT_EP              DefaultEp;              // Embedded default endpoint
+N  USB_HUB                    * pUsbHub;                 // This pointer is valid if the device is a hub
+N  USB_DEV_STATE                State;                  // Current device state
+N  USBH_URB                     EnumUrb;                // Embedded URB
+N  void                       * pCtrlTransferBuffer;     // Used from USBH_BD_ProcessEnum and ProcessEnumHub()
+N  unsigned int                 CtrlTransferBufferSize;
+N  // State variables for device enumeration
+N  // Enumeration state
+N  URB_SUB_STATE                SubState;
+N  DEV_ENUM_STATE               EnumState;
+N  USBH_BOOL                    EnumSubmitFlag;         // Used during enumeration if the device is as an hub
+X  char                    EnumSubmitFlag;         
+N  // Post enumeration
+N  POST_ENUM_FUNC             * pfPostEnumFunction;
+N  void                       * pPostEnumerationContext;
+N  USBH_DEVICE_ID               DeviceId;               // Device ID for this device
+N};
+N
+N
+Ntypedef struct USB_ENDPOINT {
+N  USBH_DLIST          ListEntry;          // to store this object in the interface object */
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S  U32                 Magic;
+N#endif
+N  USB_INTERFACE     * pUsbInterface;       // Backward pointer
+N  U8                * pEndpointDescriptor; // Descriptors
+X  unsigned char                * pEndpointDescriptor; 
+N  USBH_HC_EP_HANDLE   hEP;           // Endpoint handle must be used to submit an URB
+N  U32                 UrbCount;
+X  unsigned long                 UrbCount;
+N} USB_ENDPOINT;
+N
+N
+N#define USB_MAX_ENDPOINTS 32 // Needs the struct and the name of the list entry inside the struct.
+N
+N// Make a index in the range between 0 and 31 from an EP address IN EP's in the range from 0x10 to 0x1f, OUT EP's are in the range 0x00 to 0x0f
+N#define USBH_EP_INDEX(EpAddr) ((EpAddr) & 0x80) ? (((EpAddr)&0xf) | 0x10) : ((EpAddr)&0xf)
+N
+Nstruct USB_INTERFACE {
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S  U32                 Magic;
+N#endif
+N  USBH_DLIST          ListEntry;                // To store this object in the device object
+N  USB_DEVICE        * pDevice;                   // Backward pointer
+N  USBH_DLIST          UsbEndpointList;          // List for endpoints
+N  unsigned int        EndpointCount;
+N  U8                  CurrentAlternateSetting;
+X  unsigned char                  CurrentAlternateSetting;
+N  U8                * pInterfaceDescriptor;
+X  unsigned char                * pInterfaceDescriptor;
+N  U8                * pAlternateSettingDescriptor;
+X  unsigned char                * pAlternateSettingDescriptor;
+N  U8                  NewAlternateSetting;
+X  unsigned char                  NewAlternateSetting;
+N  U8                * pNewAlternateSettingDescriptor;
+X  unsigned char                * pNewAlternateSettingDescriptor;
+N  unsigned int        OpenCount;
+N  U8                  ExclusiveUsed;
+X  unsigned char                  ExclusiveUsed;
+N  USB_ENDPOINT      * pEpMap[USB_MAX_ENDPOINTS]; // A map for fast access to endpoint structures
+X  USB_ENDPOINT      * pEpMap[32]; 
+N  USBH_INTERFACE_ID   InterfaceId;              // ID of this interface
+N};
+N
+NUSBH_STATUS USBH_BD_InitDefaultEndpoint            (USB_DEVICE    * pUsbDevice);
+NUSBH_STATUS USBH_BD_DefaultEpSubmitUrb             (USB_DEVICE    * Dev,       USBH_URB * Urb);
+NUSBH_STATUS USBH_BD_SubmitSetInterface             (USB_INTERFACE * UsbInterface, U16 Interface, U16 AlternateSetting, USBH_ON_COMPLETION_FUNC * Completion, USBH_URB * OriginalUrb);
+XUSBH_STATUS USBH_BD_SubmitSetInterface             (USB_INTERFACE * UsbInterface, unsigned short Interface, unsigned short AlternateSetting, USBH_ON_COMPLETION_FUNC * Completion, USBH_URB * OriginalUrb);
+NUSBH_STATUS USBH_BD_SubmitClearFeatureEndpointStall(USBH_DEFAULT_EP   * DefaultEp, USBH_URB * Urb, U8 Endpoint, USBH_ON_COMPLETION_FUNC * InternalCompletion, void * HcContext);
+XUSBH_STATUS USBH_BD_SubmitClearFeatureEndpointStall(USBH_DEFAULT_EP   * DefaultEp, USBH_URB * Urb, unsigned char Endpoint, USBH_ON_COMPLETION_FUNC * InternalCompletion, void * HcContext);
+Nvoid        USBH_BD_ReleaseDefaultEndpoint         (USBH_DEFAULT_EP   * UsbEndpoint);
+Nvoid        USBH_BD_DefaultEpUrbCompletion         (USBH_URB          * Urb);
+N
+N// Dump the info of an allocated device /DBG_ADDREMOVE must be set
+N#define DUMP_USB_DEVICE_INFO(UsbDev)                                                               \
+NUSBH_LOG((USBH_MTYPE_DEVICE, "Device: Added Dev: USB addr: %d Id:%u speed: %s parent port: %d %s", \
+N      (UsbDev)->DeviceId,                                                                          \
+N      (int)(UsbDev)->UsbAddress,                                                                   \
+N      USBH_PortSpeed2Str((UsbDev)->DeviceSpeed),                                                      \
+N      (UsbDev)->pParentPort != NULL ? (int)(UsbDev)->pParentPort->HubPortNumber: -1,                 \
+N      ((UsbDev)->DevStatus & USB_STATUS_SELF_POWERED) ? "self powered" : "bus powered"))
+X#define DUMP_USB_DEVICE_INFO(UsbDev)                                                               USBH_LOG((USBH_MTYPE_DEVICE, "Device: Added Dev: USB addr: %d Id:%u speed: %s parent port: %d %s",       (UsbDev)->DeviceId,                                                                                (int)(UsbDev)->UsbAddress,                                                                         USBH_PortSpeed2Str((UsbDev)->DeviceSpeed),                                                            (UsbDev)->pParentPort != NULL ? (int)(UsbDev)->pParentPort->HubPortNumber: -1,                       ((UsbDev)->DevStatus & USB_STATUS_SELF_POWERED) ? "self powered" : "bus powered"))
+N
+N// Needs the struct and the name of the list entry inside the struct
+N#define INC_REF(devPtr) (devPtr)->RefCount++ // Reference counting macros to the USB_DEVICE object
+N
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S#define DEC_REF(devPtr)                                                                       \
+S  (devPtr)->RefCount--;                                                                       \
+S  if ((devPtr)->RefCount == 1) {                                                              \
+S    USBH_LOG((USBH_MTYPE_CORE, "DEC_REF RefCount is 1 %s(%d)\n", __FILE__, __LINE__));        \
+S  }                                                                                           \
+S  if ((devPtr)->RefCount <  0) {                                                              \
+S    USBH_LOG((USBH_MTYPE_CORE, "DEC_REF RefCount less than 0 %s(%d)\n", __FILE__, __LINE__)); \
+S  }                                                                                           \
+S  if ((devPtr)->RefCount == 0) {                                                              \
+S    USBH_LOG((USBH_MTYPE_CORE, "DEC_REF RefCount is 0 %s(%d)\n", __FILE__, __LINE__));        \
+S    USBH_DeleteDevice(devPtr);                                                                  \
+S  }
+X#define DEC_REF(devPtr)                                                                         (devPtr)->RefCount--;                                                                         if ((devPtr)->RefCount == 1) {                                                                  USBH_LOG((USBH_MTYPE_CORE, "DEC_REF RefCount is 1 %s(%d)\n", __FILE__, __LINE__));          }                                                                                             if ((devPtr)->RefCount <  0) {                                                                  USBH_LOG((USBH_MTYPE_CORE, "DEC_REF RefCount less than 0 %s(%d)\n", __FILE__, __LINE__));   }                                                                                             if ((devPtr)->RefCount == 0) {                                                                  USBH_LOG((USBH_MTYPE_CORE, "DEC_REF RefCount is 0 %s(%d)\n", __FILE__, __LINE__));            USBH_DeleteDevice(devPtr);                                                                    }
+N#else
+N#define DEC_REF(devPtr)          \
+N  (devPtr)->RefCount--;          \
+N  if ((devPtr)->RefCount == 0) { \
+N    USBH_DeleteDevice(devPtr);     \
+N  }
+X#define DEC_REF(devPtr)            (devPtr)->RefCount--;            if ((devPtr)->RefCount == 0) {     USBH_DeleteDevice(devPtr);       }
+N#endif
+N
+NUSB_DEVICE * USBH_CreateNewUsbDevice(USBH_HOST_CONTROLLER * HostController);
+N
+Nvoid         USBH_StartEnumeration                  (USB_DEVICE * Dev, POST_ENUM_FUNC * PostEnumFunction, void * Context);
+Nvoid         USBH_DeleteDevice                      (USB_DEVICE * Dev);
+Nvoid         USBH_DeleteInterfaces                  (USB_DEVICE * Dev);
+Nvoid         USBH_MarkDeviceAsRemoved               (USB_DEVICE * Dev);
+Nvoid         USBH_MarkParentAndChildDevicesAsRemoved(USB_DEVICE * Dev);
+Nvoid         UbdProcessSetConf                      (USB_DEVICE * Dev);
+NU8         * USBH_GetNextInterfaceDesc              (USB_DEVICE * Dev, U8  * Start, U8 InterfaceNumber, unsigned int AlternateSetting);
+Xunsigned char         * USBH_GetNextInterfaceDesc              (USB_DEVICE * Dev, unsigned char  * Start, unsigned char InterfaceNumber, unsigned int AlternateSetting);
+NU8         * USBH_GetNextEndpointDesc               (USB_DEVICE * Dev, U8  * Start, U8 Endpoint);
+Xunsigned char         * USBH_GetNextEndpointDesc               (USB_DEVICE * Dev, unsigned char  * Start, unsigned char Endpoint);
+Nvoid         USBH_CreateInterfaces                  (void * Context);
+NU16          USBH_GetUshortFromDesc                 (void * Buffer,    U16   Offset);
+Xunsigned short          USBH_GetUshortFromDesc                 (void * Buffer,    unsigned short   Offset);
+NU8           USBH_GetUcharFromDesc                  (void * Buffer,    U16   Offset);
+Xunsigned char           USBH_GetUcharFromDesc                  (void * Buffer,    unsigned short   Offset);
+N
+N/*********************************************************************
+N*
+N*       Helper functions
+N*
+N**********************************************************************
+N*/
+N
+Nvoid         USBH_BD_EnumTimerFunction      (void       * Context);
+Nvoid         USBH_BD_SetConfTimerFunction   (void       * Context);
+Nvoid         USBH_BD_ProcessEnum            (void       * usbDevice);
+Nunsigned int USBH_GetPendingUrbCount        (USB_DEVICE * Dev);
+Nint          USBH_CheckCtrlTransferBuffer   (USB_DEVICE * Dev, U16                   RequestLength);
+Xint          USBH_CheckCtrlTransferBuffer   (USB_DEVICE * Dev, unsigned short                   RequestLength);
+Nvoid         USBH_EnumParentPortRestart     (USB_DEVICE * Dev, USBH_STATUS           status);
+Nvoid         USBH_ProcessEnumPortError      (USB_DEVICE * dev, USBH_STATUS           enumStatus);
+NUSBH_STATUS  USBH_SearchUsbInterface        (USB_DEVICE * dev, USBH_INTERFACE_MASK * iMask, USB_INTERFACE * * iface);
+N
+NUSBH_STATUS    USBH_GetEndpointDescriptorFromInterface(USB_INTERFACE * usbInterface, U8 alternateSetting, const USBH_EP_MASK * mask, U8 * * descriptor);
+XUSBH_STATUS    USBH_GetEndpointDescriptorFromInterface(USB_INTERFACE * usbInterface, unsigned char alternateSetting, const USBH_EP_MASK * mask, unsigned char * * descriptor);
+NUSBH_STATUS    USBH_GetDescriptorFromInterface(USB_INTERFACE * pUsbInterface, U8 alternateSetting, U8 Type, U8 ** ppDescriptor);
+XUSBH_STATUS    USBH_GetDescriptorFromInterface(USB_INTERFACE * pUsbInterface, unsigned char alternateSetting, unsigned char Type, unsigned char ** ppDescriptor);
+NUSB_ENDPOINT * USBH_BD_NewEndpoint    (USB_INTERFACE * UsbInterface, U8 * EndpointDescriptor);
+XUSB_ENDPOINT * USBH_BD_NewEndpoint    (USB_INTERFACE * UsbInterface, unsigned char * EndpointDescriptor);
+Nvoid           USBH_BD_DeleteEndpoint (USB_ENDPOINT  * UsbEndpoint);
+NUSBH_STATUS    USBH_BD_EpSubmitUrb    (USB_ENDPOINT  * UsbEndpoint, USBH_URB * Urb);
+Nvoid           USBH_BD_EpUrbCompletion(USBH_URB      * Urb);
+N
+N// Needs the struct and the name of the list entry inside the struct
+N#define GET_EP_FROM_ADDRESS(uif,ep)     uif->pEpMap[((ep) & 0xf) | (((ep) & 0x80) >> 3)]
+N#define SET_EP_FOR_ADDRESS( uif,ep,uep) uif->pEpMap[((ep) & 0xf) | (((ep) & 0x80) >> 3)] = (uep)
+N
+NUSB_INTERFACE * USBH_BD_NewUsbInterface    (USB_DEVICE    * pDevice);
+Nvoid            USBH_BD_DeleteUsbInterface (USB_INTERFACE * pUsbInterface);
+NUSBH_STATUS     USBH_BD_CreateEndpoints    (USB_INTERFACE * pUsbInterface);
+Nvoid            USBH_BD_RemoveEndpoints    (USB_INTERFACE * pUsbInterface);
+Nvoid            USBH_BD_AddUsbEndpoint     (USB_ENDPOINT  * pUsbEndpoint);
+Nvoid            USBH_RemoveUsbEndpoint     (USB_ENDPOINT  * pUsbEndpoint);
+NUSBH_STATUS     USBH_BD_CompareUsbInterface(USB_INTERFACE * pInterface, USBH_INTERFACE_MASK * pInterfaceMask, USBH_BOOL EnableHubInterfaces);
+XUSBH_STATUS     USBH_BD_CompareUsbInterface(USB_INTERFACE * pInterface, USBH_INTERFACE_MASK * pInterfaceMask, char EnableHubInterfaces);
+Nunsigned int    USBH_BD_GetPendingUrbCount (USB_INTERFACE * pInterface);
+Nvoid            USBH_BD_AddUsbInterface    (USB_INTERFACE * pUsbInterface);
+Nvoid            USBH_BD_RemoveUsbInterface (USB_INTERFACE * pUsbInterface);
+N
+NUSB_ENDPOINT  * USBH_BD_SearchUsbEndpointInInterface(USB_INTERFACE * Interface, const USBH_EP_MASK * mask);
+N
+Ntypedef struct USBH_HOST_DRIVER_INST { // The global driver object
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S  U32               Magic;
+N#endif
+N  USBH_DLIST        HostControllerList;
+N  U32               HostControllerCount;
+X  unsigned long               HostControllerCount;
+N  // Registered PNP notifications
+N  USBH_DLIST        NotificationList;
+N  U32               NotificationCount;
+X  unsigned long               NotificationCount;
+N  // Delayed Pnp notifications, called in an timer routine
+N  USBH_DLIST        DelayedPnPNotificationList;
+N  U32               DelayedPnPNotificationCount;
+X  unsigned long               DelayedPnPNotificationCount;
+N  USBH_TIMER_HANDLE DelayedPnPNotifyTimer;
+N  USBH_DLIST        EnumErrorNotificationList;
+N  U32               EnumErrorNotificationCount;
+X  unsigned long               EnumErrorNotificationCount;
+N  // Next free ID's for a new enumerated device
+N  USBH_INTERFACE_ID NextInterfaceId;
+N  USBH_DEVICE_ID    NextDeviceId;
+N} USBH_HOST_DRIVER_INST;
+N
+Nvoid USBH_BD_AddHostController            (USBH_HOST_CONTROLLER * HostController);
+Nvoid USBH_BD_RemoveHostController         (USBH_HOST_CONTROLLER * HostController);
+Nvoid USBH_BD_ProcessDevicePnpNotifications(USB_DEVICE * Device, USBH_PNP_EVENT event);
+Nvoid USBH_BD_AddNotification              (USB_DEVICE * Device);
+Nvoid USBH_BD_RemoveNotification           (USB_DEVICE * Device);
+N
+NUSBH_INTERFACE_ID   USBH_BD_GetNextInterfaceId(void);
+NUSBH_DEVICE_ID      USBH_BD_GetNextDeviceId   (void);
+NUSB_DEVICE        * USBH_BD_GetDeviceById     (USBH_DEVICE_ID    DeviceId);
+NUSB_INTERFACE     * USBH_BD_GetInterfaceById     (USBH_INTERFACE_ID InterfaceId);
+N
+N
+Ntypedef enum {
+N  RH_PORTRESET_IDLE, // Only this state allows an new root hub port reset
+N  RH_PORTRESET_REMOVED,
+N  RH_PORTRESET_INIT, // RH_PORTRESET_INIT prevents starting of root hub enumeration until power good time is elapsed!
+N  RH_PORTRESET_START,
+N  RH_PORTRESET_RESTART,
+N  // Following states are always entered in the pContext of a callback completion routine never by direct calling of RootHubProcessDeviceReset()
+N  RH_PORTRESET_WAIT_RESTART,
+N  RH_PORTRESET_RES,
+N  RH_PORTRESET_WAIT_RESET,
+N  RH_PORTRESET_SET_ADDRESS,
+N  RH_PORTRESET_WAIT_ADDRESS
+N} USBH_ROOT_HUB_PORTRESET_STATE;
+N
+Ntypedef struct ROOT_HUB {                       // The global driver object
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S  U32                             Magic;
+N#endif
+N  USBH_HOST_CONTROLLER          * pHostController;      // Backward pointer to the host controller
+N  unsigned int                    PowerGoodTime;       // Power on to power good time in ms
+N  unsigned int                    PortCount;           // Number of ports
+N  USBH_DLIST                      PortList;
+N  URB_SUB_STATE                   SubState;            // Sub state machine for device reset and set address,  easier handling if both an timer and URB is started!
+N  URB_SUB_STATE                   InitHubPortSubState;
+N  USBH_ROOT_HUB_PORTRESET_STATE   PortResetEnumState;
+N  USBH_HUB_PORT                 * pEnumPort;
+N  USB_DEVICE                    * pEnumDevice;
+N  USBH_URB                        EnumUrb;             // Embedded URB
+N  USBH_HC_EP_HANDLE               hEnumEP;
+N} ROOT_HUB;
+N
+NUSBH_STATUS     USBH_ROOTHUB_Init                      (USBH_HOST_CONTROLLER * pHostController);
+Nvoid            USBH_ROOTHUB_OnNotification            (void     * pRootHubContext, U32 Notification);
+Xvoid            USBH_ROOTHUB_OnNotification            (void     * pRootHubContext, unsigned long Notification);
+Nvoid            USBH_ROOTHUB_Release                   (ROOT_HUB * pRootHub);
+NUSBH_STATUS     USBH_ROOTHUB_AddPortsStartPowerGoodTime(ROOT_HUB * pRootHub);
+NUSBH_BOOL       USBH_ROOTHUB_ServicePorts              (ROOT_HUB * pRootHub);
+Xchar       USBH_ROOTHUB_ServicePorts              (ROOT_HUB * pRootHub);
+NUSBH_HUB_PORT * USBH_ROOTHUB_GetPortByNumber           (ROOT_HUB * pRootHub, U8 Port);
+XUSBH_HUB_PORT * USBH_ROOTHUB_GetPortByNumber           (ROOT_HUB * pRootHub, unsigned char Port);
+N
+N#define DEFAULT_NOTIFY_RETRY_TIMEOUT      100
+N#define USBHUB_DEFAULT_ALTERNATE_SETTING  0
+N#define USBHUB_DEFAULT_INTERFACE          0
+N
+Ntypedef enum {
+N  PORT_UNKNOWN,
+N  PORT_REMOVED,               // Set from notification
+N  PORT_CONNECTED,             // Set from notification
+N  PORT_RESTART,               // Set from notification or enumeration (both functions are synchronized)
+N  PORT_SUSPEND,               // Set from notification
+N  PORT_RESET,                 // Set from enumeration
+N  PORT_ENABLED,               // Set from enumeration
+N  PORT_ERROR                  // Errors during port enumeration
+N} PORT_STATE;
+N
+Nstruct USBH_HUB_PORT {              // Global driver object
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S  U32                  Magic;
+N#endif
+N  USBH_DLIST           ListEntry;          // Entry for hub or root hub
+N  ROOT_HUB           * RootHub;            // Null if no root hub port
+N  USB_HUB            * ExtHub;             // Null if no external hub
+N  U32                  PortStatus;         // A copy of the port status returned from the HUB
+X  unsigned long                  PortStatus;         
+N  U32                  PortStatusShadow;   // Shadow register
+X  unsigned long                  PortStatusShadow;   
+N  USBH_SPEED           PortSpeed;          // The current speed of the device
+N  PORT_STATE           PortState;          // The current port state of the port
+N  USB_DEVICE         * Device;             // Device connected to this port, for tree operation
+N  U8                   HubPortNumber;      // The one based index of the hub port
+X  unsigned char                   HubPortNumber;      
+N  unsigned int         RetryCounter;       // Counts the number of retries
+N  U8                   ConfigurationIndex; // This is the configuration index for the device
+X  unsigned char                   ConfigurationIndex; 
+N  USBH_BOOL            HighPowerFlag;      // True if the port is an high powered port min.500ma
+X  char            HighPowerFlag;      
+N};
+N
+Ntypedef enum { // Device reset
+N  USBH_HUB_PORTRESET_IDLE,
+N  USBH_HUB_PORTRESET_REMOVED,               // Port or Hub is not connected
+N  USBH_HUB_PORTRESET_START,
+N  USBH_HUB_PORTRESET_RESTART,
+N  USBH_HUB_PORTRESET_WAIT_RESTART,
+N  USBH_HUB_PORTRESET_RES,
+N  USBH_HUB_PORTRESET_IS_ENABLED,
+N  USBH_HUB_PORTRESET_WAIT_RESET,
+N  USBH_HUB_PORTRESET_SET_ADDRESS,
+N  USBH_HUB_PORTRESET_WAIT_SET_ADDRESS,
+N  USBH_HUB_PORTRESET_START_DEVICE_ENUM,
+N  USBH_HUB_PORTRESET_DISABLE_PORT
+N} USBH_HUB_PORTRESET_STATE;
+N
+Ntypedef enum { // Hub initialization state machine
+N  USBH_HUB_ENUM_IDLE,                  // Idle
+N  USBH_HUB_ENUM_START,                 // Start the state machine
+N  USBH_HUB_ENUM_GET_STATUS,            // Get the device status
+N  USBH_HUB_ENUM_HUB_DESC,              // Check the hub descriptor
+N  USBH_HUB_ENUM_SET_POWER,             // Set power for all ports
+N  USBH_HUB_ENUM_POWER_GOOD,            // Power good time elapsed
+N  USBH_HUB_ENUM_PORT_STATE,            // Get all port status, set the port state
+N  USBH_HUB_ENUM_ADD_DEVICE,            // Add the hub device to the hosts device list
+N  USBH_HUB_ENUM_REMOVED                // Active if the parent port is removed
+N} USBH_HUB_ENUM_STATE;
+N
+N// This states are used in conjunction with the NotifySubState
+Ntypedef enum {
+N  USBH_HUB_NOTIFY_IDLE,               // Idle
+N  USBH_HUB_NOTIFY_START,              // Start state
+N  USBH_HUB_NOTIFY_GET_HUB_STATUS,     // Start the state machine
+N  USBH_HUB_NOTIFY_CLEAR_HUB_STATUS,
+N  USBH_HUB_NOTIFY_GET_PORT_STATUS,    // Set power for all ports
+N  USBH_HUB_NOTIFY_CLR_PORT_STATUS,    // Power good time elapsed
+N  USBH_HUB_NOTIFY_CHECK_OVER_CURRENT,
+N  USBH_HUB_NOTIFY_CHECK_CONNECT,
+N  USBH_HUB_NOTIFY_CHECK_REMOVE,
+N  USBH_HUB_NOTIFY_DISABLE_PORT,       // Disable an port
+N  USBH_HUB_NOTIFY_REMOVED,            // Hub device state is not WORKING
+N  USBH_HUB_NOTIFY_ERROR               // Error submitting of an URB to the hub device after max. retries
+N} USBH_HUB_NOTIFY_STATE;
+N
+Nstruct USB_HUB { // USB HUB object
+N#if USBH_DEBUG > 1
+X#if (0) > 1
+S  U32                   Magic;
+N#endif
+N  USB_DEVICE          * pHubDevice;                   // Backward pointer to the USB hub device
+N  unsigned int          PowerGoodTime;               // Power on to power good time in ms
+N  unsigned int          Characteristics;             // Power on to power good time in ms
+N  unsigned int          PortCount;                   // Number of ports
+N  USBH_DLIST            PortList;                    // List of ports
+N  USBH_BOOL             SubmitFlag;                  // Helper var. in ProcessHubNotification
+X  char             SubmitFlag;                  
+N
+N  // Hub notification
+N  // This urb contains hub notification information and is used for all hub requests in ProcessHubNotification()
+N  USBH_URB              NotifyUrb;
+N  USBH_HUB_NOTIFY_STATE NotifyState;
+N  USBH_HUB_NOTIFY_STATE OldNotifyState;
+N  URB_SUB_STATE         NotifySubState;              // hub notify sub state machine (submitting and aborting of URBs)
+N
+N  // Current not processed ports in ProcessHubNotification()
+N  unsigned int          NotifyPortCt;
+N  USBH_HUB_PORT       * NotifyPort;
+N  U32                   NotifyTemp;                  // Temporary variable
+X  unsigned long                   NotifyTemp;                  
+N  U32                   Notification;                // Received Notification max. 4 bytes
+X  unsigned long                   Notification;                
+N  U32                   Status;                      // todo: read hub status after hub status
+X  unsigned long                   Status;                      
+N  USBH_HUB_PORT       * EnumPort;                    // Hub device enumeration
+N  USB_DEVICE          * EnumDevice;
+N  USBH_URB              EnumUrb;
+N  USBH_HUB_ENUM_STATE   EnumState;                   // State of the Hubs initialization process
+N  URB_SUB_STATE         EnumSubState;                // helper sub state for hub enumeration
+N
+N  // Hold post function and pContext! Used in the state USBH_HUB_ENUM_ADD_DEVICE in ProcessEnumHub()
+N  POST_ENUM_FUNC  * PostEnumFunction;
+N  void                * PostEnumContext;
+N  USBH_HUB_PORTRESET_STATE   PortResetEnumState;          // Hub port reset state machine / Current HubProcessPortResetSetAddress() state
+N
+N  // Helper sub state machines
+N  URB_SUB_STATE         PortResetSubState;
+N  URB_SUB_STATE         PortResetControlUrbSubState;
+N  USBH_HC_EP_HANDLE     PortResetEp0Handle;
+N
+N  // To get hub and port notifications
+N  USB_ENDPOINT        * InterruptEp;
+N  USBH_URB              interruptUrb;
+N  void                * InterruptTransferBuffer;
+N  unsigned int          InterruptTransferBufferSize;
+N};
+N
+Nvoid      USBH_BD_DeleteHub(USB_HUB * hub);
+Nvoid      USBH_BD_StartHub (USB_HUB * Hub, POST_ENUM_FUNC * PostEnumFunction, void * Context);
+NUSB_HUB * USBH_BD_AllocInitUsbHub (USB_DEVICE  * dev);
+N
+N/* Called if the root hub does not need any service */
+Nvoid USBH_BD_ServiceAllHubs         (USBH_HOST_CONTROLLER * hc);
+Nvoid USBH_BD_HubPrepareClrFeatureReq(USBH_URB * urb, U16 feature, U16 selector);
+Xvoid USBH_BD_HubPrepareClrFeatureReq(USBH_URB * urb, unsigned short feature, unsigned short selector);
+N
+N
+NUSBH_HUB_PORT * USBH_BD_NewHubPort   (void); // Return null on error
+Nvoid       USBH_BD_DeleteHubPort(USBH_HUB_PORT * HubPort);
+Nvoid       USBH_BD_SetPortState (USBH_HUB_PORT * hubPort, PORT_STATE state);
+N
+N/*********************************************************************
+N*
+N*       USBH_BD_HubBuildChildDeviceList
+N*
+N*  Function Description:
+N*    Builds a device list of all devices that are connected to a parent
+N*    device inclusive the parent device. The first device in the list is
+N*    the parent device. The list ends if no hub device on an port is found!
+N*
+N*  Parameters:
+N*    pHubDevice: Parent device
+N*    pDevList:   Pointer to a temporary list
+N*
+N*  Return value:
+N*    Number of devices in the list inclusive the rootHubDevice!
+N*    0: rootHubDevice is no hub device!
+N*/
+Nint USBH_BD_HubBuildChildDeviceList(USB_DEVICE * pHubDevice, USBH_DLIST * pDevList);
+N
+N// Returns the hub port by port number.
+N// Attention: The state of the hub device is not checked!
+NUSBH_HUB_PORT * USBH_BD_HubGetPortByNumber(USB_HUB * Hub, unsigned char Number);
+N
+Ntypedef enum {
+N  HC_UNKNOWN,
+N  HC_REMOVED,
+N  HC_WORKING,
+N  HC_SUSPEND
+N} HOST_CONTROLLER_STATE;
+N
+Nstruct USBH_HOST_CONTROLLER {                   // Global driver object
+N  USBH_DLIST              ListEntry;            // List entry for USB driver
+N  long                    RefCount;             // Ref pCount
+N  HOST_CONTROLLER_STATE   State;                // The state of the HC
+N  USBH_HOST_DRIVER_INST * pInst;                // Backward pointer
+N  USBH_DLIST              DeviceList;           // List of USB devices
+N  U32                     DeviceCount;
+X  unsigned long                     DeviceCount;
+N  USBH_HOST_DRIVER      * pDriver;              // Host controller entry
+N  USBH_HC_HANDLE          hHostController;      // Handle for the HC driver. It is passed to each function
+N  U8                      UsbAddressArray[128];
+X  unsigned char                      UsbAddressArray[128];
+N  ROOT_HUB                RootHub;              // Embedded root hub
+N  USBH_HC_EP_HANDLE       LowSpeedEndpoint;
+N  USBH_HC_EP_HANDLE       FullSpeedEndpoint;
+N  USBH_HC_EP_HANDLE       HighSpeedEndpoint;
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S  U32                     Magic;
+N#endif
+N  // PortResetActive points to a port where the port reset state machine is started or is active. At the end of the
+N  // set address state of a port reset or if the device where the port is located is removed this pointer is set to NULL!
+N  USBH_HUB_PORT              * pActivePortReset;
+N};
+N
+N#define HC_INC_REF(devPtr) (devPtr)->RefCount++                                                    // Reference counting macros to the USB_DEVICE object
+N
+N#if (USBH_DEBUG > 1)
+X#if ((0) > 1)
+S#define HC_DEC_REF(pDevice)                                                                         \
+S    (pDevice)->RefCount--;                                                                          \
+S    if ((pDevice)->RefCount == 1) {                                                                 \
+S      USBH_LOG((USBH_MTYPE_CORE, "HC_DEC_REF RefCount is 1 %s(%d)\n", __FILE__, __LINE__));        \
+S    }                                                                                              \
+S    if ((pDevice)->RefCount <  0) {                                                                 \
+S      USBH_LOG((USBH_MTYPE_CORE, "HC_DEC_REF RefCount less than 0 %s(%d)\n", __FILE__, __LINE__)); \
+S    }                                                                                              \
+S    if ((pDevice)->RefCount == 0) {                                                                 \
+S      USBH_LOG((USBH_MTYPE_CORE, "HC_DEC_REF RefCount is 0 %s(%d)\n", __FILE__, __LINE__));        \
+S      USBH_DeleteHostController(pDevice);                                                             \
+S    }
+X#define HC_DEC_REF(pDevice)                                                                             (pDevice)->RefCount--;                                                                              if ((pDevice)->RefCount == 1) {                                                                       USBH_LOG((USBH_MTYPE_CORE, "HC_DEC_REF RefCount is 1 %s(%d)\n", __FILE__, __LINE__));            }                                                                                                  if ((pDevice)->RefCount <  0) {                                                                       USBH_LOG((USBH_MTYPE_CORE, "HC_DEC_REF RefCount less than 0 %s(%d)\n", __FILE__, __LINE__));     }                                                                                                  if ((pDevice)->RefCount == 0) {                                                                       USBH_LOG((USBH_MTYPE_CORE, "HC_DEC_REF RefCount is 0 %s(%d)\n", __FILE__, __LINE__));              USBH_DeleteHostController(pDevice);                                                                 }
+N#else
+N  #define HC_DEC_REF(pDevice)           \
+N    (pDevice)->RefCount--;              \
+N    if ((pDevice)->RefCount == 0) {     \
+N      USBH_DeleteHostController(pDevice); \
+N    }
+X  #define HC_DEC_REF(pDevice)               (pDevice)->RefCount--;                  if ((pDevice)->RefCount == 0) {           USBH_DeleteHostController(pDevice);     }
+N#endif
+N
+N#define USBH_OHC_Add   USBH_OHCI_Add
+N
+NUSBH_HOST_CONTROLLER * USBH_CreateHostController      (USBH_HOST_DRIVER * pDriver, USBH_HC_HANDLE hController);
+Nvoid                   USBH_BD_FreeUsbAddress         (USBH_HOST_CONTROLLER * HostController, U8 Address);
+Xvoid                   USBH_BD_FreeUsbAddress         (USBH_HOST_CONTROLLER * HostController, unsigned char Address);
+Nvoid                   USBH_HC_ServicePorts           (USBH_HOST_CONTROLLER * HostController);
+NU8                     USBH_BD_GetUsbAddress          (USBH_HOST_CONTROLLER * HostController);
+Xunsigned char                     USBH_BD_GetUsbAddress          (USBH_HOST_CONTROLLER * HostController);
+Nvoid                   USBH_DeleteHostController      (USBH_HOST_CONTROLLER * Host);
+Nvoid                   USBH_AddUsbDevice              (USB_DEVICE      * Device);
+Nvoid                   USBH_HC_RemoveDeviceFromList   (USB_DEVICE      * Device);
+Nvoid                   USBH_DefaultReleaseEpCompletion(void            * Context);
+Nvoid                   USBH_Task                      (void);
+Nvoid                   USBH_ISRTask                   (void);
+Nvoid                   USBH_EnumTask                  (void);
+Nvoid                   USBH_ConfigTransferBufferSize  (U32 Size);
+Xvoid                   USBH_ConfigTransferBufferSize  (unsigned long Size);
+Nvoid                   USBH_ConfigRootHub             (U8 SupportOvercurrent, U8 PortsAlwaysPowered, U8 PerPortPowered);
+Xvoid                   USBH_ConfigRootHub             (unsigned char SupportOvercurrent, unsigned char PortsAlwaysPowered, unsigned char PerPortPowered);
+Nvoid                   USBH_ConfigMaxUSBDevices       (U8 NumDevices);
+Xvoid                   USBH_ConfigMaxUSBDevices       (unsigned char NumDevices);
+Nvoid                   USBH_ConfigMaxNumEndpoints     (U8 MaxNumBulkEndpoints, U8 MaxNumIntEndpoints, U8 MaxNumIsoEndpoints);
+Xvoid                   USBH_ConfigMaxNumEndpoints     (unsigned char MaxNumBulkEndpoints, unsigned char MaxNumIntEndpoints, unsigned char MaxNumIsoEndpoints);
+Nvoid                   USBH_ConfigSupportExternalHubs (U8 OnOff);
+Xvoid                   USBH_ConfigSupportExternalHubs (unsigned char OnOff);
+Nvoid                   USBH_AddController             (void);
+Nvoid                   USBH_OHCI_Add                  (void * pBase);
+Nvoid                   USBH_STM32_Add                 (void * pBase);
+Nvoid                   USBH_ProcessISR                (unsigned Index);
+Nvoid                   USBH_ServiceISR                (unsigned Index);
+NUSBH_URB *             USBH_AllocIsoUrb               (unsigned NumIsoPackets, unsigned NumBytesForBuffer);
+Nvoid                   USBH_FreeIsoUrb                (USBH_URB * pUrb);
+N
+Ntypedef enum {
+N  USBH_DEVICE_EVENT_ADD,
+N  USBH_DEVICE_EVENT_REMOVE
+N} USBH_DEVICE_EVENT;
+N
+Ntypedef void USBH_NOTIFICATION_FUNC(void * pContext, U8 DevIndex, USBH_DEVICE_EVENT Event);
+Xtypedef void USBH_NOTIFICATION_FUNC(void * pContext, unsigned char DevIndex, USBH_DEVICE_EVENT Event);
+N
+N
+N/*********************************************************************
+N*
+N*       USBH_HID
+N*/
+Ntypedef struct {
+N  unsigned Code;
+N  int      Value;
+N} USBH_HID_KEYBOARD_DATA;
+N
+Ntypedef struct {
+N  int xChange;
+N  int yChange;
+N  int WheelChange;
+N  int ButtonState;
+N} USBH_HID_MOUSE_DATA;
+N
+Ntypedef enum {
+N  USBH_HID_INPUT_REPORT = 0,
+N  USBH_HID_OUTPUT_REPORT,
+N  USBH_HID_FEATURE_REPORT
+N} USBH_HID_REPORT_TYPE;
+N
+Ntypedef int USBH_HID_HANDLE;
+Ntypedef struct {
+N  USBH_HID_REPORT_TYPE ReportType;
+N  U32 ReportId;
+X  unsigned long ReportId;
+N  U32 ReportSize;
+X  unsigned long ReportSize;
+N} USBH_HID_REPORT_INFO;
+N
+Ntypedef struct {
+N  U16  InputReportSize;
+X  unsigned short  InputReportSize;
+N  U16  OutputReportSize;
+X  unsigned short  OutputReportSize;
+N  U16  ProductId;
+X  unsigned short  ProductId;
+N  U16  VendorId;
+X  unsigned short  VendorId;
+N  char acName[7];
+N} USBH_HID_DEVICE_INFO;
+N
+Ntypedef void USBH_HID_USER_FUNC(void * pContext);
+N
+N
+Ntypedef void (USBH_HID_ON_KEYBOARD_FUNC) (USBH_HID_KEYBOARD_DATA * pKeyData);
+Ntypedef void (USBH_HID_ON_MOUSE_FUNC)    (USBH_HID_MOUSE_DATA    * pMouseData);
+N
+Nvoid      USBH_HID_Exit(void);
+NUSBH_BOOL USBH_HID_Init(void);
+Xchar USBH_HID_Init(void);
+Nvoid      USBH_HID_SetOnMouseStateChange   (USBH_HID_ON_MOUSE_FUNC    * pfOnChange);
+Nvoid      USBH_HID_SetOnKeyboardStateChange(USBH_HID_ON_KEYBOARD_FUNC * pfOnChange);
+N
+NUSBH_STATUS     USBH_HID_Close                    (USBH_HID_HANDLE hDevice);
+Nint             USBH_HID_GetNumDevices            (USBH_HID_DEVICE_INFO * pDevInfo, U32 NumItems);
+Xint             USBH_HID_GetNumDevices            (USBH_HID_DEVICE_INFO * pDevInfo, unsigned long NumItems);
+NUSBH_STATUS     USBH_HID_GetReportDescriptorParsed(USBH_HID_HANDLE hDevice, USBH_HID_REPORT_INFO * pReportInfo, unsigned * pNumEntries);
+NUSBH_STATUS     USBH_HID_GetDeviceInfo            (USBH_HID_HANDLE hDevice, USBH_HID_DEVICE_INFO * pDevInfo);
+NUSBH_STATUS     USBH_HID_GetReportDescriptor      (USBH_HID_HANDLE hDevice, U8 * pReportDescriptor, unsigned NumBytes);
+XUSBH_STATUS     USBH_HID_GetReportDescriptor      (USBH_HID_HANDLE hDevice, unsigned char * pReportDescriptor, unsigned NumBytes);
+NUSBH_STATUS     USBH_HID_GetReport                (USBH_HID_HANDLE hDevice, U8 * pReport, U32 NumBytes, USBH_HID_USER_FUNC * pfFunc, void * pContextData);
+XUSBH_STATUS     USBH_HID_GetReport                (USBH_HID_HANDLE hDevice, unsigned char * pReport, unsigned long NumBytes, USBH_HID_USER_FUNC * pfFunc, void * pContextData);
+NUSBH_HID_HANDLE USBH_HID_Open                     (const char * sName);
+NUSBH_STATUS     USBH_HID_SetReport                (USBH_HID_HANDLE hDevice, const U8 * pReport, U32 NumBytes, USBH_HID_USER_FUNC * pfFunc, void * pContextData);
+XUSBH_STATUS     USBH_HID_SetReport                (USBH_HID_HANDLE hDevice, const unsigned char * pReport, unsigned long NumBytes, USBH_HID_USER_FUNC * pfFunc, void * pContextData);
+NUSBH_STATUS     USBH_HID_CancelIo                 (USBH_HID_HANDLE hDevice);
+Nvoid            USBH_HID_RegisterNotification     (USBH_NOTIFICATION_FUNC * pfNotification, void * pContext);
+N
+N/*********************************************************************
+N*
+N*       USBH_LCD, used to control an EPSON USB 2 LCD controller
+N*/
+N
+Ntypedef int USBH_LCD_HANDLE;
+N
+NUSBH_BOOL       USBH_LCD_Init(void);
+Xchar       USBH_LCD_Init(void);
+Nvoid            USBH_LCD_Exit(void);
+NUSBH_LCD_HANDLE USBH_LCD_Open(const char * sName);
+NUSBH_STATUS     USBH_LCD_WriteCmd(USBH_LCD_HANDLE hDevice, U8 * pCmdBuffer, unsigned NumBytesCmd, U8 * pStatusBuffer, unsigned NumBytesStatus);
+XUSBH_STATUS     USBH_LCD_WriteCmd(USBH_LCD_HANDLE hDevice, unsigned char * pCmdBuffer, unsigned NumBytesCmd, unsigned char * pStatusBuffer, unsigned NumBytesStatus);
+NUSBH_STATUS     USBH_LCD_WriteDisplayData(USBH_LCD_HANDLE hDevice, U8 * pData, unsigned NumBytes);
+XUSBH_STATUS     USBH_LCD_WriteDisplayData(USBH_LCD_HANDLE hDevice, unsigned char * pData, unsigned NumBytes);
+NUSBH_STATUS     USBH_LCD_Close(USBH_LCD_HANDLE hDevice);
+Nint             USBH_LCD_GetNumDevices(void);
+N
+N/*********************************************************************
+N*
+N*       USBH_LCD, used to control an EPSON USB 2 LCD controller
+N*/
+N
+Ntypedef int USBH_PRINTER_HANDLE;
+N/*********************************************************************
+N*
+N*       USBH_PRINTER
+N*/
+N// Function parameter for the user callback function USBH_DEVICE_LUN_NOTIFICATION_FUNC
+N
+NUSBH_BOOL           USBH_PRINTER_Init(void);
+Xchar           USBH_PRINTER_Init(void);
+Nvoid                USBH_PRINTER_Exit(void);
+NUSBH_PRINTER_HANDLE USBH_PRINTER_Open(const char * sName);
+NUSBH_STATUS         USBH_PRINTER_Write(USBH_PRINTER_HANDLE hDevice, const U8 * pData, unsigned NumBytes);
+XUSBH_STATUS         USBH_PRINTER_Write(USBH_PRINTER_HANDLE hDevice, const unsigned char * pData, unsigned NumBytes);
+NUSBH_STATUS         USBH_PRINTER_Read(USBH_PRINTER_HANDLE hDevice, U8 * pData, unsigned NumBytes);
+XUSBH_STATUS         USBH_PRINTER_Read(USBH_PRINTER_HANDLE hDevice, unsigned char * pData, unsigned NumBytes);
+NUSBH_STATUS         USBH_PRINTER_GetPortStatus(USBH_PRINTER_HANDLE hDevice, U8 * pStatus);
+XUSBH_STATUS         USBH_PRINTER_GetPortStatus(USBH_PRINTER_HANDLE hDevice, unsigned char * pStatus);
+NUSBH_STATUS         USBH_PRINTER_ExecSoftReset(USBH_PRINTER_HANDLE hDevice);
+NUSBH_STATUS         USBH_PRINTER_GetDeviceId(USBH_PRINTER_HANDLE hDevice, U8 * pData, unsigned NumBytes);
+XUSBH_STATUS         USBH_PRINTER_GetDeviceId(USBH_PRINTER_HANDLE hDevice, unsigned char * pData, unsigned NumBytes);
+NUSBH_STATUS         USBH_PRINTER_Close(USBH_PRINTER_HANDLE hDevice);
+Nint                 USBH_PRINTER_GetNumDevices(void);
+Nvoid                USBH_PRINTER_RegisterNotification(USBH_NOTIFICATION_FUNC * pfNotification, void * pContext);
+Nvoid                USBH_PRINTER_ConfigureTimeout(U32 Timeout);
+Xvoid                USBH_PRINTER_ConfigureTimeout(unsigned long Timeout);
+N
+N#if defined(__cplusplus)
+X#if 0L
+S  }
+N#endif
+N
+N#endif
+N
+N/********************************* EOF ******************************/
+L 26 "Setup\USBH_Config_LPC24xx.c" 2
+N#include "BSP.h"
+L 1 "Inc\BSP.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : BSP.h
+NPurpose : BSP (Board support package)
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N#ifndef BSP_H                           /* avoid multiple inclusion */
+N#define BSP_H
+N
+N#include "SEGGER.h"
+N
+N/*********************************************************************
+N*
+N*       Defines, non-configurable
+N*
+N**********************************************************************
+N*/
+N#define KEY_STAT_UP       (1 << 0)
+N#define KEY_STAT_DOWN     (1 << 1)
+N#define KEY_STAT_LEFT     (1 << 2)
+N#define KEY_STAT_RIGHT    (1 << 3)
+N#define KEY_STAT_BUTTON1  (1 << 4)
+N#define KEY_STAT_BUTTON2  (1 << 5)
+N
+N/* In order to avoid warnings for undefined parameters */
+N#ifndef BSP_USE_PARA
+N  #if defined(NC30) || defined(NC308)
+X  #if 0L || 0L
+S    #define BSP_USE_PARA(para)
+N  #else
+N    #define BSP_USE_PARA(para) para=para;
+N  #endif
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Functions
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       General
+N*/
+Nvoid     BSP_Init       (void);
+Nvoid     BSP_SetLED     (int Index);
+Nvoid     BSP_ClrLED     (int Index);
+Nvoid     BSP_ToggleLED  (int Index);
+Nunsigned BSP_GetKeyStat (void);
+N
+N/*********************************************************************
+N*
+N*       GUI
+N*/
+Nvoid BSP_GUI_Init(void);
+N
+N/*********************************************************************
+N*
+N*       USB
+N*/
+Nvoid BSP_USB_Attach         (void);
+Nvoid BSP_USB_InstallISR     (void (*pfISR)(void));
+Nvoid BSP_USB_InstallISR_Ex  (int ISRIndex, void (*pfISR)(void), int Prio);
+Nvoid BSP_USB_ISR_Handler    (void);
+N
+N/*********************************************************************
+N*
+N*       USBH
+N*/
+Nvoid BSP_USBH_InstallISR    (void (*pfISR)(void));
+Nvoid BSP_USBH_Init          (void);
+N
+N/*********************************************************************
+N*
+N*       ETH
+N*
+N*  Functions for ethernet controllers (as far as present)
+N*/
+Nvoid BSP_ETH_Init          (unsigned Unit);
+Nvoid BSP_ETH_InstallISR    (void (*pfISR)(void));
+Nvoid BSP_ETH_InstallISR_Ex (int ISRIndex, void (*pfISR)(void), int Prio);
+Nvoid BSP_ETH_ISR_Handler   (void);
+N
+N/*********************************************************************
+N*
+N*       CACHE
+N*/
+Nvoid BSP_CACHE_CleanInvalidateRange (void * p, unsigned NumBytes);
+Nvoid BSP_CACHE_CleanRange           (void * p, unsigned NumBytes);
+Nvoid BSP_CACHE_InvalidateRange      (void * p, unsigned NumBytes);
+N
+N/*********************************************************************
+N*
+N*       UART
+N*/
+Nvoid BSP_UART_SetReadCallback(unsigned Unit, void (*pfOnRx) (unsigned Unit, unsigned char Data));
+Nvoid BSP_UART_SetWriteCallback(unsigned Unit, void (*pfOnTx) (unsigned Unit));
+Nvoid BSP_UART_Write1(U8 Data);
+Xvoid BSP_UART_Write1(unsigned char Data);
+Nvoid BSP_UART_SetBaudrate(unsigned Baudrate);
+Nvoid BSP_UART_Init(void);
+N
+N#endif                                  /* avoid multiple inclusion */
+N
+N/*************************** End of file ****************************/
+N
+N
+L 27 "Setup\USBH_Config_LPC24xx.c" 2
+N
+N/*********************************************************************
+N*
+N*       Defines, configurable
+N*
+N**********************************************************************
+N*/
+N#define ALLOC_SIZE                 0x8000      // Size of memory dedicated to the stack in bytes
+N#define OHCI_BASE_ADDRESS          0xFFE0C000
+N#define TRANSFER_MEMORY_BASE       0x7FD00000  // Startaddress of the internal 16k USB SRAM
+N#define TRANSFER_MEMORY_SIZE       0x00004000  // Size of the internal 16k USB SRAM
+N
+N#define USB_INT_BASE_ADDR          0xE01FC1C0
+N#define USB_INT_STAT               (*(volatile unsigned long *)(USB_INT_BASE_ADDR + 0x00))
+N
+N/* USB interrupt status register USB_INT_STAT */
+N#define USB_HOST_INT		   (1 << 3)        // USB host interrupt line status. This bit is read only.
+N
+N/*********************************************************************
+N*
+N*       Static data
+N*
+N**********************************************************************
+N*/
+Nstatic U32 _aPool[ALLOC_SIZE / 4];             // Memory area used by the stack.
+Xstatic unsigned long _aPool[0x8000 / 4];             
+N
+N/*********************************************************************
+N*
+N*       Public code
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       _ISR
+N*
+N*  Function description
+N*/
+Nstatic void _ISR(void) {
+N  U32 IntStatus;
+X  unsigned long IntStatus;
+N	
+N  IntStatus = USB_INT_STAT;	
+X  IntStatus = (*(volatile unsigned long *)(0xE01FC1C0 + 0x00));	
+N  if (IntStatus &  USB_HOST_INT) {
+X  if (IntStatus &  (1 << 3)) {
+N    USBH_ServiceISR(0);
+N  }
+N}
+N
+N
+N/*********************************************************************
+N*
+N*       USBH_X_Config
+N*
+N*  Function description
+N*/
+Nvoid USBH_X_Config(void) {
+N  USBH_AssignMemory(_aPool, sizeof(_aPool));    // Assigning memory should be the first thing
+N  USBH_AssignTransferMemory((void*)TRANSFER_MEMORY_BASE, TRANSFER_MEMORY_SIZE);
+X  USBH_AssignTransferMemory((void*)0x7FD00000, 0x00004000);
+N  //
+N  // Define log and warn filter
+N  // Note: The terminal I/O emulation affects the timing
+N  // of your communication, since the debugger stops the target
+N  // for every terminal I/O output unless you use DCC!
+N  //
+N  USBH_SetWarnFilter(0xFFFFFFFF);               // 0xFFFFFFFF: Do not filter: Output all warnings.
+N  USBH_SetLogFilter(0
+N                    | USBH_MTYPE_INIT
+X                    | (1UL << 0)
+N  //                  | USBH_MTYPE_CORE
+N  //                  | USBH_MTYPE_DRIVER
+N  //                  | USBH_MTYPE_MEM
+N                    | USBH_MTYPE_APPLICATION
+X                    | (1UL << 19)
+N                    | USBH_MTYPE_HID
+X                    | (1UL << 15)
+N//                    | USBH_MTYPE_MSD
+N                    );
+N//  USBH_SetLogFilter(0xffffffff);
+N  BSP_USBH_Init();
+N
+N//extern void HW_Init(void);
+N//  HW_Init();
+N  USBH_OHC_Add((void*)OHCI_BASE_ADDRESS);
+X  USBH_OHCI_Add((void*)0xFFE0C000);
+N  BSP_USBH_InstallISR(_ISR);
+N}
+N
+N/********************************* EOF ******************************/

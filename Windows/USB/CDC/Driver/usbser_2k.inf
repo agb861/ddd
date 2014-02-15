@@ -1,0 +1,53 @@
+;
+;   Device installation file for 
+;   USB 2 COM port emulation
+;
+;
+;
+[Version]
+Signature="$CHICAGO$"
+Class=Ports
+ClassGuid={4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider=%MFGNAME%
+DriverVer=08/18/2008,6.0.2600.1
+LayoutFile=Layout.inf
+CatalogFile=usbser_2k.cat
+
+[Manufacturer]
+%MFGNAME%=USB2SerialDeviceList
+
+[USB2SerialDeviceList]
+%USB2SERIAL%=USB2SerialInstall, USB\VID_8765&PID_0234
+%USB2SERIAL%=USB2SerialInstall, USB\VID_8765&PID_1111
+
+[DestinationDirs]
+USB2SerialCopyFiles=12
+DefaultDestDir=12
+
+[USB2SerialInstall]
+CopyFiles=USB2SerialCopyFiles
+AddReg=USB2SerialAddReg
+
+[USB2SerialCopyFiles]
+usbser.sys,,,0x20 
+
+[USB2SerialAddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,usbser.sys
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+
+[USB2SerialInstall.Services]
+AddService = usbser,0x0002,USB2SerialService
+
+[USB2SerialService]
+DisplayName = %USB2SERIAL_DISPLAY_NAME%
+ServiceType = 1                  ; SERVICE_KERNEL_DRIVER
+StartType = 3                    ; SERVICE_DEMAND_START
+ErrorControl = 1                 ; SERVICE_ERROR_NORMAL
+ServiceBinary = %12%\usbser.sys
+LoadOrderGroup = Base
+
+[Strings]
+MFGNAME= "Manufacturer"
+USB2SERIAL = "USB CDC serial port emulation"
+USB2SERIAL_DISPLAY_NAME = "USB CDC serial port emulation"

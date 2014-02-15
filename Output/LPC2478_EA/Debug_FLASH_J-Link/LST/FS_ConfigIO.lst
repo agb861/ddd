@@ -1,0 +1,2834 @@
+L 1 "Config\FS_ConfigIO.c"
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile        : FS_ConfigIO.c
+NPurpose     : I/O Configuration routines for Filesystem
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#include <stdio.h>
+L 1 "C:\Program Files (x86)\Keil\V473\ARM\ARMCC\bin\..\include\stdio.h" 1
+N/* stdio.h: ANSI 'C' (X3J11 Oct 88) library header, section 4.9 */
+N/* Copyright (C) Codemist Ltd., 1988-1993                       */
+N/* Copyright 1991-1998 ARM Limited. All rights reserved.        */
+N
+N/*
+N * RCS $Revision: 178085 $
+N * Checkin $Date: 2012-12-11 14:54:17 +0000 (Tue, 11 Dec 2012) $
+N * Revising $Author: sdouglas $
+N */
+N
+N/*
+N * stdio.h declares two types, several macros, and many functions for
+N * performing input and output. For a discussion on Streams and Files
+N * refer to sections 4.9.2 and 4.9.3 in the above ANSI draft, or to a
+N * modern textbook on C.
+N */
+N
+N#ifndef __stdio_h
+N#define __stdio_h
+N#define __ARMCLIB_VERSION 5030076
+N
+N
+N
+N
+N#define _ARMABI __declspec(__nothrow)
+N
+N  #ifndef __STDIO_DECLS
+N  #define __STDIO_DECLS
+N
+N    #undef __CLIBNS
+N    #ifdef __cplusplus
+S      namespace std {
+S      #define __CLIBNS ::std::
+S        extern "C" {
+N    #else /* ndef __cplusplus */
+N      #define __CLIBNS
+N    #endif /* ndef __cplusplus */
+N
+N#if defined(__cplusplus) || !defined(__STRICT_ANSI__) || !defined(__size_t)
+X#if 0L || !0L || !0L
+N /* always defined in C++ and non-strict C for consistency of debug info */
+N  typedef unsigned int size_t;   /* see <stddef.h> */
+N  #if !defined(__cplusplus) && defined(__STRICT_ANSI__)
+X  #if !0L && 0L
+S    #define __size_t 1
+N  #endif
+N#endif
+N
+N#undef NULL
+N#define NULL 0                   /* see <stddef.h> */
+N
+N/* ANSI forbids va_list to be defined here */
+N/* keep in step with <stdarg.h> and <wchar.h> */
+N#if defined(__cplusplus) || !defined(__STRICT_ANSI__) || !defined(__va_list_defined)
+X#if 0L || !0L || !0L
+N/* always defined in C++ and non-strict C for consistency of debug info */
+N  typedef struct __va_list __va_list;
+N  #if !defined(__cplusplus) && defined(__STRICT_ANSI__)
+X  #if !0L && 0L
+S    #define __va_list_defined 1
+N  #endif
+N#endif
+N
+N   /*
+N    * If the compiler supports signalling nans as per N965 then it
+N    * will define __SUPPORT_SNAN__, in which case a user may define
+N    * _WANT_SNAN in order to obtain compliant versions of the printf
+N    * and scanf families of functions
+N    */
+N#if defined(__SUPPORT_SNAN__) && defined(_WANT_SNAN)
+X#if 0L && 0L
+S#pragma import(__use_snan)
+N#endif
+N
+Ntypedef struct __fpos_t_struct {
+N    unsigned __int64 __pos;
+N    /*
+N     * this structure is equivalent to an mbstate_t, but we're not
+N     * allowed to actually define the type name `mbstate_t' within
+N     * stdio.h
+N     */
+N    struct {
+N        unsigned int __state1, __state2;
+N    } __mbstate;
+N} fpos_t;
+N   /*
+N    * fpos_t is an object capable of recording all information needed to
+N    * specify uniquely every position within a file.
+N    */
+N
+N#define _SYS_OPEN 16
+N   /* _SYS_OPEN defines a limit on the number of open files that is imposed
+N    * by this C library
+N    */
+N
+Ntypedef struct __FILE FILE;
+N   /*
+N    * FILE is an object capable of recording all information needed to control
+N    * a stream, such as its file position indicator, a pointer to its
+N    * associated buffer, an error indicator that records whether a read/write
+N    * error has occurred and an end-of-file indicator that records whether the
+N    * end-of-file has been reached.
+N    * Its structure is not made known to library clients.
+N    */
+N
+Nextern FILE __stdin, __stdout, __stderr;
+Nextern FILE *__aeabi_stdin, *__aeabi_stdout, *__aeabi_stderr;
+N
+N#if _AEABI_PORTABILITY_LEVEL != 0 || (!defined _AEABI_PORTABILITY_LEVEL && __DEFAULT_AEABI_PORTABILITY_LEVEL != 0)
+X#if _AEABI_PORTABILITY_LEVEL != 0 || (!0L && __DEFAULT_AEABI_PORTABILITY_LEVEL != 0)
+S#define stdin  (__CLIBNS __aeabi_stdin)
+S   /* pointer to a FILE object associated with standard input stream */
+S#define stdout (__CLIBNS __aeabi_stdout)
+S   /* pointer to a FILE object associated with standard output stream */
+S#define stderr (__CLIBNS __aeabi_stderr)
+S   /* pointer to a FILE object associated with standard error stream */
+Sextern const int __aeabi_IOFBF;
+S#define _IOFBF (__CLIBNS __aeabi_IOFBF)
+Sextern const int __aeabi_IONBF;
+S#define _IONBF (__CLIBNS __aeabi_IONBF)
+Sextern const int __aeabi_IOLBF;
+S#define _IOLBF (__CLIBNS __aeabi_IOLBF)
+Sextern const int __aeabi_BUFSIZ;
+S#define BUFSIZ (__CLIBNS __aeabi_BUFSIZ)
+Sextern const int __aeabi_FOPEN_MAX;
+S#define FOPEN_MAX (__CLIBNS __aeabi_FOPEN_MAX)
+Sextern const int __aeabi_TMP_MAX;
+S#define TMP_MAX (__CLIBNS __aeabi_TMP_MAX)
+Sextern const int __aeabi_FILENAME_MAX;
+S#define FILENAME_MAX (__CLIBNS __aeabi_FILENAME_MAX)
+Sextern const int __aeabi_L_tmpnam;
+S#define L_tmpnam (__CLIBNS __aeabi_L_tmpnam)
+N#else
+N#define stdin  (&__CLIBNS __stdin)
+N   /* pointer to a FILE object associated with standard input stream */
+N#define stdout (&__CLIBNS __stdout)
+N   /* pointer to a FILE object associated with standard output stream */
+N#define stderr (&__CLIBNS __stderr)
+N   /* pointer to a FILE object associated with standard error stream */
+N
+N#define _IOFBF           0x100 /* fully buffered IO */
+N#define _IOLBF           0x200 /* line buffered IO */
+N#define _IONBF           0x400 /* unbuffered IO */
+N
+N    /* Various default file IO buffer sizes */
+N#define BUFSIZ       (512)  /* system buffer size (as used by setbuf) */
+N
+N#define FOPEN_MAX _SYS_OPEN
+N   /*
+N    * an integral constant expression that is the minimum number of files that
+N    * this implementation guarantees can be open simultaneously.
+N    */
+N
+N#define FILENAME_MAX 256
+N   /*
+N    * an integral constant expression that is the size of an array of char
+N    * large enough to hold the longest filename string
+N    */
+N#define L_tmpnam FILENAME_MAX
+N   /*
+N    * an integral constant expression that is the size of an array of char
+N    * large enough to hold a temporary file name string generated by the
+N    * tmpnam function.
+N    */
+N#define TMP_MAX 256
+N   /*
+N    * an integral constant expression that is the minimum number of unique
+N    * file names that shall be generated by the tmpnam function.
+N    */
+N
+N#endif
+N
+N#define EOF      (-1)
+N   /*
+N    * negative integral constant, indicates end-of-file, that is, no more input
+N    * from a stream.
+N    */
+N
+N#define SEEK_SET 0 /* start of stream (see fseek) */
+N#define SEEK_CUR 1 /* current position in stream (see fseek) */
+N#define SEEK_END 2 /* end of stream (see fseek) */
+N
+N    /*
+N     * _IOBIN is the flag passed to _sys_write to denote a binary
+N     * file.
+N     */
+N#define _IOBIN            0x04     /* binary stream */
+N
+N#define __STDIN_BUFSIZ  (64)  /* default stdin buffer size */
+N#define __STDOUT_BUFSIZ (64)  /* default stdout buffer size */
+N#define __STDERR_BUFSIZ (16)  /* default stderr buffer size */
+N
+Nextern _ARMABI int remove(const char * /*filename*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int remove(const char *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * causes the file whose name is the string pointed to by filename to be
+N    * removed. Subsequent attempts to open the file will fail, unless it is
+N    * created anew. If the file is open, the behaviour of the remove function
+N    * is implementation-defined.
+N    * Returns: zero if the operation succeeds, nonzero if it fails.
+N    */
+Nextern _ARMABI int rename(const char * /*old*/, const char * /*new*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int rename(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * causes the file whose name is the string pointed to by old to be
+N    * henceforth known by the name given by the string pointed to by new. The
+N    * file named old is effectively removed. If a file named by the string
+N    * pointed to by new exists prior to the call of the rename function, the
+N    * behaviour is implementation-defined.
+N    * Returns: zero if the operation succeeds, nonzero if it fails, in which
+N    *          case if the file existed previously it is still known by its
+N    *          original name.
+N    */
+Nextern _ARMABI FILE *tmpfile(void);
+Xextern __declspec(__nothrow) FILE *tmpfile(void);
+N   /*
+N    * creates a temporary binary file that will be automatically removed when
+N    * it is closed or at program termination. The file is opened for update.
+N    * Returns: a pointer to the stream of the file that it created. If the file
+N    *          cannot be created, a null pointer is returned.
+N    */
+Nextern _ARMABI char *tmpnam(char * /*s*/);
+Xextern __declspec(__nothrow) char *tmpnam(char *  );
+N   /*
+N    * generates a string that is not the same as the name of an existing file.
+N    * The tmpnam function generates a different string each time it is called,
+N    * up to TMP_MAX times. If it is called more than TMP_MAX times, the
+N    * behaviour is implementation-defined.
+N    * Returns: If the argument is a null pointer, the tmpnam function leaves
+N    *          its result in an internal static object and returns a pointer to
+N    *          that object. Subsequent calls to the tmpnam function may modify
+N    *          the same object. if the argument is not a null pointer, it is
+N    *          assumed to point to an array of at least L_tmpnam characters;
+N    *          the tmpnam function writes its result in that array and returns
+N    *          the argument as its value.
+N    */
+N
+Nextern _ARMABI int fclose(FILE * /*stream*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int fclose(FILE *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * causes the stream pointed to by stream to be flushed and the associated
+N    * file to be closed. Any unwritten buffered data for the stream are
+N    * delivered to the host environment to be written to the file; any unread
+N    * buffered data are discarded. The stream is disassociated from the file.
+N    * If the associated buffer was automatically allocated, it is deallocated.
+N    * Returns: zero if the stream was succesfully closed, or nonzero if any
+N    *          errors were detected or if the stream was already closed.
+N    */
+Nextern _ARMABI int fflush(FILE * /*stream*/);
+Xextern __declspec(__nothrow) int fflush(FILE *  );
+N   /*
+N    * If the stream points to an output or update stream in which the most
+N    * recent operation was output, the fflush function causes any unwritten
+N    * data for that stream to be delivered to the host environment to be
+N    * written to the file. If the stream points to an input or update stream,
+N    * the fflush function undoes the effect of any preceding ungetc operation
+N    * on the stream.
+N    * Returns: nonzero if a write error occurs.
+N    */
+Nextern _ARMABI FILE *fopen(const char * __restrict /*filename*/,
+Xextern __declspec(__nothrow) FILE *fopen(const char * __restrict  ,
+N                           const char * __restrict /*mode*/) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * opens the file whose name is the string pointed to by filename, and
+N    * associates a stream with it.
+N    * The argument mode points to a string beginning with one of the following
+N    * sequences:
+N    * "r"         open text file for reading
+N    * "w"         create text file for writing, or truncate to zero length
+N    * "a"         append; open text file or create for writing at eof
+N    * "rb"        open binary file for reading
+N    * "wb"        create binary file for writing, or truncate to zero length
+N    * "ab"        append; open binary file or create for writing at eof
+N    * "r+"        open text file for update (reading and writing)
+N    * "w+"        create text file for update, or truncate to zero length
+N    * "a+"        append; open text file or create for update, writing at eof
+N    * "r+b"/"rb+" open binary file for update (reading and writing)
+N    * "w+b"/"wb+" create binary file for update, or truncate to zero length
+N    * "a+b"/"ab+" append; open binary file or create for update, writing at eof
+N    *
+N    * Opening a file with read mode ('r' as the first character in the mode
+N    * argument) fails if the file does not exist or cannot be read.
+N    * Opening a file with append mode ('a' as the first character in the mode
+N    * argument) causes all subsequent writes to be forced to the current end of
+N    * file, regardless of intervening calls to the fseek function. In some
+N    * implementations, opening a binary file with append mode ('b' as the
+N    * second or third character in the mode argument) may initially position
+N    * the file position indicator beyond the last data written, because of the
+N    * NUL padding.
+N    * When a file is opened with update mode ('+' as the second or third
+N    * character in the mode argument), both input and output may be performed
+N    * on the associated stream. However, output may not be directly followed
+N    * by input without an intervening call to the fflush fuction or to a file
+N    * positioning function (fseek, fsetpos, or rewind), and input be not be
+N    * directly followed by output without an intervening call to the fflush
+N    * fuction or to a file positioning function, unless the input operation
+N    * encounters end-of-file. Opening a file with update mode may open or
+N    * create a binary stream in some implementations. When opened, a stream
+N    * is fully buffered if and only if it does not refer to an interactive
+N    * device. The error and end-of-file indicators for the stream are
+N    * cleared.
+N    * Returns: a pointer to the object controlling the stream. If the open
+N    *          operation fails, fopen returns a null pointer.
+N    */
+Nextern _ARMABI FILE *freopen(const char * __restrict /*filename*/,
+Xextern __declspec(__nothrow) FILE *freopen(const char * __restrict  ,
+N                    const char * __restrict /*mode*/,
+N                    FILE * __restrict /*stream*/) __attribute__((__nonnull__(2,3)));
+N   /*
+N    * opens the file whose name is the string pointed to by filename and
+N    * associates the stream pointed to by stream with it. The mode argument is
+N    * used just as in the fopen function.
+N    * The freopen function first attempts to close any file that is associated
+N    * with the specified stream. Failure to close the file successfully is
+N    * ignored. The error and end-of-file indicators for the stream are cleared.
+N    * Returns: a null pointer if the operation fails. Otherwise, freopen
+N    *          returns the value of the stream.
+N    */
+Nextern _ARMABI void setbuf(FILE * __restrict /*stream*/,
+Xextern __declspec(__nothrow) void setbuf(FILE * __restrict  ,
+N                    char * __restrict /*buf*/) __attribute__((__nonnull__(1)));
+N   /*
+N    * Except that it returns no value, the setbuf function is equivalent to the
+N    * setvbuf function invoked with the values _IOFBF for mode and BUFSIZ for
+N    * size, or (if buf is a null pointer), with the value _IONBF for mode.
+N    * Returns: no value.
+N    */
+Nextern _ARMABI int setvbuf(FILE * __restrict /*stream*/,
+Xextern __declspec(__nothrow) int setvbuf(FILE * __restrict  ,
+N                   char * __restrict /*buf*/,
+N                   int /*mode*/, size_t /*size*/) __attribute__((__nonnull__(1)));
+N   /*
+N    * may be used after the stream pointed to by stream has been associated
+N    * with an open file but before it is read or written. The argument mode
+N    * determines how stream will be buffered, as follows: _IOFBF causes
+N    * input/output to be fully buffered; _IOLBF causes output to be line
+N    * buffered (the buffer will be flushed when a new-line character is
+N    * written, when the buffer is full, or when input is requested); _IONBF
+N    * causes input/output to be completely unbuffered. If buf is not the null
+N    * pointer, the array it points to may be used instead of an automatically
+N    * allocated buffer (the buffer must have a lifetime at least as great as
+N    * the open stream, so the stream should be closed before a buffer that has
+N    * automatic storage duration is deallocated upon block exit). The argument
+N    * size specifies the size of the array. The contents of the array at any
+N    * time are indeterminate.
+N    * Returns: zero on success, or nonzero if an invalid value is given for
+N    *          mode or size, or if the request cannot be honoured.
+N    */
+N#pragma __printf_args
+Nextern _ARMABI int fprintf(FILE * __restrict /*stream*/,
+Xextern __declspec(__nothrow) int fprintf(FILE * __restrict  ,
+N                    const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * writes output to the stream pointed to by stream, under control of the
+N    * string pointed to by format that specifies how subsequent arguments are
+N    * converted for output. If there are insufficient arguments for the format,
+N    * the behaviour is undefined. If the format is exhausted while arguments
+N    * remain, the excess arguments are evaluated but otherwise ignored. The
+N    * fprintf function returns when the end of the format string is reached.
+N    * The format shall be a multibyte character sequence, beginning and ending
+N    * in its initial shift state. The format is composed of zero or more
+N    * directives: ordinary multibyte characters (not %), which are copied
+N    * unchanged to the output stream; and conversion specifiers, each of which
+N    * results in fetching zero or more subsequent arguments. Each conversion
+N    * specification is introduced by the character %. For a description of the
+N    * available conversion specifiers refer to section 4.9.6.1 in the ANSI
+N    * draft mentioned at the start of this file or to any modern textbook on C.
+N    * The minimum value for the maximum number of characters producable by any
+N    * single conversion is at least 509.
+N    * Returns: the number of characters transmitted, or a negative value if an
+N    *          output error occurred.
+N    */
+N#pragma __printf_args
+Nextern _ARMABI int _fprintf(FILE * __restrict /*stream*/,
+Xextern __declspec(__nothrow) int _fprintf(FILE * __restrict  ,
+N                     const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * is equivalent to fprintf, but does not support floating-point formats.
+N    * You can use instead of fprintf to improve code size.
+N    * Returns: as fprintf.
+N    */
+N#pragma __printf_args
+Nextern _ARMABI int printf(const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int printf(const char * __restrict  , ...) __attribute__((__nonnull__(1)));
+N   /*
+N    * is equivalent to fprintf with the argument stdout interposed before the
+N    * arguments to printf.
+N    * Returns: the number of characters transmitted, or a negative value if an
+N    *          output error occurred.
+N    */
+N#pragma __printf_args
+Nextern _ARMABI int _printf(const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int _printf(const char * __restrict  , ...) __attribute__((__nonnull__(1)));
+N   /*
+N    * is equivalent to printf, but does not support floating-point formats.
+N    * You can use instead of printf to improve code size.
+N    * Returns: as printf.
+N    */
+N#pragma __printf_args
+Nextern _ARMABI int sprintf(char * __restrict /*s*/, const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int sprintf(char * __restrict  , const char * __restrict  , ...) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * is equivalent to fprintf, except that the argument s specifies an array
+N    * into which the generated output is to be written, rather than to a
+N    * stream. A null character is written at the end of the characters written;
+N    * it is not counted as part of the returned sum.
+N    * Returns: the number of characters written to the array, not counting the
+N    *          terminating null character.
+N    */
+N#pragma __printf_args
+Nextern _ARMABI int _sprintf(char * __restrict /*s*/, const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int _sprintf(char * __restrict  , const char * __restrict  , ...) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * is equivalent to sprintf, but does not support floating-point formats.
+N    * You can use instead of sprintf to improve code size.
+N    * Returns: as sprintf.
+N    */
+N#if !defined(__STRICT_ANSI__) || (defined(__STDC_VERSION__) && 199901L <= __STDC_VERSION__)
+X#if !0L || (1L && 199901L <= 199409L)
+N#pragma __printf_args
+Nextern _ARMABI int snprintf(char * __restrict /*s*/, size_t /*n*/,
+Xextern __declspec(__nothrow) int snprintf(char * __restrict  , size_t  ,
+N                     const char * __restrict /*format*/, ...) __attribute__((__nonnull__(3)));
+N   /*
+N    * is equivalent to fprintf, except that the argument s specifies an array
+N    * into which the generated output is to be written, rather than to a
+N    * stream. The argument n specifies the size of the output array, so as to
+N    * avoid overflowing the buffer.
+N    * A null character is written at the end of the characters written, even
+N    * if the formatting was not completed; it is not counted as part of the
+N    * returned sum. At most n characters of the output buffer are used,
+N    * _including_ the null character.
+N    * Returns: the number of characters that would have been written to the
+N    *          array, not counting the terminating null character, if the
+N    *          array had been big enough. So if the return is >=0 and <n, then
+N    *          the entire string was successfully formatted; if the return is
+N    *          >=n, the string was truncated (but there is still a null char
+N    *          at the end of what was written); if the return is <0, there was
+N    *          an error.
+N    */
+N#endif
+N#pragma __printf_args
+Nextern _ARMABI int _snprintf(char * __restrict /*s*/, size_t /*n*/,
+Xextern __declspec(__nothrow) int _snprintf(char * __restrict  , size_t  ,
+N                      const char * __restrict /*format*/, ...) __attribute__((__nonnull__(3)));
+N   /*
+N    * is equivalent to snprintf, but does not support floating-point formats.
+N    * You can use instead of snprintf to improve code size.
+N    * Returns: as snprintf.
+N    */
+N#pragma __scanf_args
+Nextern _ARMABI int fscanf(FILE * __restrict /*stream*/,
+Xextern __declspec(__nothrow) int fscanf(FILE * __restrict  ,
+N                    const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * reads input from the stream pointed to by stream, under control of the
+N    * string pointed to by format that specifies the admissible input sequences
+N    * and how thay are to be converted for assignment, using subsequent
+N    * arguments as pointers to the objects to receive the converted input. If
+N    * there are insufficient arguments for the format, the behaviour is
+N    * undefined. If the format is exhausted while arguments remain, the excess
+N    * arguments are evaluated but otherwise ignored.
+N    * The format is composed of zero or more directives: one or more
+N    * white-space characters; an ordinary character (not %); or a conversion
+N    * specification. Each conversion specification is introduced by the
+N    * character %. For a description of the available conversion specifiers
+N    * refer to section 4.9.6.2 in the ANSI draft mentioned at the start of this
+N    * file, or to any modern textbook on C.
+N    * If end-of-file is encountered during input, conversion is terminated. If
+N    * end-of-file occurs before any characters matching the current directive
+N    * have been read (other than leading white space, where permitted),
+N    * execution of the current directive terminates with an input failure;
+N    * otherwise, unless execution of the current directive is terminated with a
+N    * matching failure, execution of the following directive (if any) is
+N    * terminated with an input failure.
+N    * If conversions terminates on a conflicting input character, the offending
+N    * input character is left unread in the input strem. Trailing white space
+N    * (including new-line characters) is left unread unless matched by a
+N    * directive. The success of literal matches and suppressed asignments is
+N    * not directly determinable other than via the %n directive.
+N    * Returns: the value of the macro EOF if an input failure occurs before any
+N    *          conversion. Otherwise, the fscanf function returns the number of
+N    *          input items assigned, which can be fewer than provided for, or
+N    *          even zero, in the event of an early conflict between an input
+N    *          character and the format.
+N    */
+N#pragma __scanf_args
+Nextern _ARMABI int _fscanf(FILE * __restrict /*stream*/,
+Xextern __declspec(__nothrow) int _fscanf(FILE * __restrict  ,
+N                     const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * is equivalent to fscanf, but does not support floating-point formats.
+N    * You can use instead of fscanf to improve code size.
+N    * Returns: as fscanf.
+N    */
+N#pragma __scanf_args
+Nextern _ARMABI int scanf(const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int scanf(const char * __restrict  , ...) __attribute__((__nonnull__(1)));
+N   /*
+N    * is equivalent to fscanf with the argument stdin interposed before the
+N    * arguments to scanf.
+N    * Returns: the value of the macro EOF if an input failure occurs before any
+N    *          conversion. Otherwise, the scanf function returns the number of
+N    *          input items assigned, which can be fewer than provided for, or
+N    *          even zero, in the event of an early matching failure.
+N    */
+N#pragma __scanf_args
+Nextern _ARMABI int _scanf(const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int _scanf(const char * __restrict  , ...) __attribute__((__nonnull__(1)));
+N   /*
+N    * is equivalent to scanf, but does not support floating-point formats.
+N    * You can use instead of scanf to improve code size.
+N    * Returns: as scanf.
+N    */
+N#pragma __scanf_args
+Nextern _ARMABI int sscanf(const char * __restrict /*s*/,
+Xextern __declspec(__nothrow) int sscanf(const char * __restrict  ,
+N                    const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * is equivalent to fscanf except that the argument s specifies a string
+N    * from which the input is to be obtained, rather than from a stream.
+N    * Reaching the end of the string is equivalent to encountering end-of-file
+N    * for the fscanf function.
+N    * Returns: the value of the macro EOF if an input failure occurs before any
+N    *          conversion. Otherwise, the scanf function returns the number of
+N    *          input items assigned, which can be fewer than provided for, or
+N    *          even zero, in the event of an early matching failure.
+N    */
+N#pragma __scanf_args
+Nextern _ARMABI int _sscanf(const char * __restrict /*s*/,
+Xextern __declspec(__nothrow) int _sscanf(const char * __restrict  ,
+N                     const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * is equivalent to sscanf, but does not support floating-point formats.
+N    * You can use instead of sscanf to improve code size.
+N    * Returns: as sscanf.
+N    */
+N#if !defined(__STRICT_ANSI__) || (defined(__STDC_VERSION__) && 199901L <= __STDC_VERSION__)
+X#if !0L || (1L && 199901L <= 199409L)
+N/* C99 additions */
+Nextern _ARMABI int vfscanf(FILE * __restrict /*stream*/, const char * __restrict /*format*/, __va_list) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int vfscanf(FILE * __restrict  , const char * __restrict  , __va_list) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI int vscanf(const char * __restrict /*format*/, __va_list) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int vscanf(const char * __restrict  , __va_list) __attribute__((__nonnull__(1)));
+Nextern _ARMABI int vsscanf(const char * __restrict /*s*/, const char * __restrict /*format*/, __va_list) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int vsscanf(const char * __restrict  , const char * __restrict  , __va_list) __attribute__((__nonnull__(1,2)));
+N#endif
+Nextern _ARMABI int _vfscanf(FILE * __restrict /*stream*/, const char * __restrict /*format*/, __va_list) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int _vfscanf(FILE * __restrict  , const char * __restrict  , __va_list) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI int _vscanf(const char * __restrict /*format*/, __va_list) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int _vscanf(const char * __restrict  , __va_list) __attribute__((__nonnull__(1)));
+Nextern _ARMABI int _vsscanf(const char * __restrict /*s*/, const char * __restrict /*format*/, __va_list) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int _vsscanf(const char * __restrict  , const char * __restrict  , __va_list) __attribute__((__nonnull__(1,2)));
+N
+Nextern _ARMABI int vprintf(const char * __restrict /*format*/, __va_list /*arg*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int vprintf(const char * __restrict  , __va_list  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * is equivalent to printf, with the variable argument list replaced by arg,
+N    * which has been initialised by the va_start macro (and possibly subsequent
+N    * va_arg calls). The vprintf function does not invoke the va_end function.
+N    * Returns: the number of characters transmitted, or a negative value if an
+N    *          output error occurred.
+N    */
+Nextern _ARMABI int _vprintf(const char * __restrict /*format*/, __va_list /*arg*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int _vprintf(const char * __restrict  , __va_list  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * is equivalent to vprintf, but does not support floating-point formats.
+N    * You can use instead of vprintf to improve code size.
+N    * Returns: as vprintf.
+N    */
+Nextern _ARMABI int vfprintf(FILE * __restrict /*stream*/,
+Xextern __declspec(__nothrow) int vfprintf(FILE * __restrict  ,
+N                    const char * __restrict /*format*/, __va_list /*arg*/) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * is equivalent to fprintf, with the variable argument list replaced by
+N    * arg, which has been initialised by the va_start macro (and possibly
+N    * subsequent va_arg calls). The vfprintf function does not invoke the
+N    * va_end function.
+N    * Returns: the number of characters transmitted, or a negative value if an
+N    *          output error occurred.
+N    */
+Nextern _ARMABI int vsprintf(char * __restrict /*s*/,
+Xextern __declspec(__nothrow) int vsprintf(char * __restrict  ,
+N                     const char * __restrict /*format*/, __va_list /*arg*/) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * is equivalent to sprintf, with the variable argument list replaced by
+N    * arg, which has been initialised by the va_start macro (and possibly
+N    * subsequent va_arg calls). The vsprintf function does not invoke the
+N    * va_end function.
+N    * Returns: the number of characters written in the array, not counting the
+N    *          terminating null character.
+N    */
+N#if !defined(__STRICT_ANSI__) || (defined(__STDC_VERSION__) && 199901L <= __STDC_VERSION__)
+X#if !0L || (1L && 199901L <= 199409L)
+Nextern _ARMABI int vsnprintf(char * __restrict /*s*/, size_t /*n*/,
+Xextern __declspec(__nothrow) int vsnprintf(char * __restrict  , size_t  ,
+N                     const char * __restrict /*format*/, __va_list /*arg*/) __attribute__((__nonnull__(3)));
+N   /*
+N    * is equivalent to snprintf, with the variable argument list replaced by
+N    * arg, which has been initialised by the va_start macro (and possibly
+N    * subsequent va_arg calls). The vsprintf function does not invoke the
+N    * va_end function.
+N    * Returns: the number of characters that would have been written in the
+N    *          array, not counting the terminating null character. As
+N    *          snprintf.
+N    */
+N#endif
+Nextern _ARMABI int _vsprintf(char * __restrict /*s*/,
+Xextern __declspec(__nothrow) int _vsprintf(char * __restrict  ,
+N                      const char * __restrict /*format*/, __va_list /*arg*/) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * is equivalent to vsprintf, but does not support floating-point formats.
+N    * You can use instead of vsprintf to improve code size.
+N    * Returns: as vsprintf.
+N    */
+Nextern _ARMABI int _vfprintf(FILE * __restrict /*stream*/,
+Xextern __declspec(__nothrow) int _vfprintf(FILE * __restrict  ,
+N                     const char * __restrict /*format*/, __va_list /*arg*/) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * is equivalent to vfprintf, but does not support floating-point formats.
+N    * You can use instead of vfprintf to improve code size.
+N    * Returns: as vfprintf.
+N    */
+Nextern _ARMABI int _vsnprintf(char * __restrict /*s*/, size_t /*n*/,
+Xextern __declspec(__nothrow) int _vsnprintf(char * __restrict  , size_t  ,
+N                      const char * __restrict /*format*/, __va_list /*arg*/) __attribute__((__nonnull__(3)));
+N   /*
+N    * is equivalent to vsnprintf, but does not support floating-point formats.
+N    * You can use instead of vsnprintf to improve code size.
+N    * Returns: as vsnprintf.
+N    */
+Nextern _ARMABI int fgetc(FILE * /*stream*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int fgetc(FILE *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * obtains the next character (if present) as an unsigned char converted to
+N    * an int, from the input stream pointed to by stream, and advances the
+N    * associated file position indicator (if defined).
+N    * Returns: the next character from the input stream pointed to by stream.
+N    *          If the stream is at end-of-file, the end-of-file indicator is
+N    *          set and fgetc returns EOF. If a read error occurs, the error
+N    *          indicator is set and fgetc returns EOF.
+N    */
+Nextern _ARMABI char *fgets(char * __restrict /*s*/, int /*n*/,
+Xextern __declspec(__nothrow) char *fgets(char * __restrict  , int  ,
+N                    FILE * __restrict /*stream*/) __attribute__((__nonnull__(1,3)));
+N   /*
+N    * reads at most one less than the number of characters specified by n from
+N    * the stream pointed to by stream into the array pointed to by s. No
+N    * additional characters are read after a new-line character (which is
+N    * retained) or after end-of-file. A null character is written immediately
+N    * after the last character read into the array.
+N    * Returns: s if successful. If end-of-file is encountered and no characters
+N    *          have been read into the array, the contents of the array remain
+N    *          unchanged and a null pointer is returned. If a read error occurs
+N    *          during the operation, the array contents are indeterminate and a
+N    *          null pointer is returned.
+N    */
+Nextern _ARMABI int fputc(int /*c*/, FILE * /*stream*/) __attribute__((__nonnull__(2)));
+Xextern __declspec(__nothrow) int fputc(int  , FILE *  ) __attribute__((__nonnull__(2)));
+N   /*
+N    * writes the character specified by c (converted to an unsigned char) to
+N    * the output stream pointed to by stream, at the position indicated by the
+N    * asociated file position indicator (if defined), and advances the
+N    * indicator appropriately. If the file position indicator is not defined,
+N    * the character is appended to the output stream.
+N    * Returns: the character written. If a write error occurs, the error
+N    *          indicator is set and fputc returns EOF.
+N    */
+Nextern _ARMABI int fputs(const char * __restrict /*s*/, FILE * __restrict /*stream*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int fputs(const char * __restrict  , FILE * __restrict  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * writes the string pointed to by s to the stream pointed to by stream.
+N    * The terminating null character is not written.
+N    * Returns: EOF if a write error occurs; otherwise it returns a nonnegative
+N    *          value.
+N    */
+Nextern _ARMABI int getc(FILE * /*stream*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int getc(FILE *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * is equivalent to fgetc except that it may be implemented as an unsafe
+N    * macro (stream may be evaluated more than once, so the argument should
+N    * never be an expression with side-effects).
+N    * Returns: the next character from the input stream pointed to by stream.
+N    *          If the stream is at end-of-file, the end-of-file indicator is
+N    *          set and getc returns EOF. If a read error occurs, the error
+N    *          indicator is set and getc returns EOF.
+N    */
+N#ifdef __cplusplus
+S    inline int getchar() { return getc(stdin); }
+N#else
+N    #define getchar() getc(stdin)
+N    extern _ARMABI int (getchar)(void);
+X    extern __declspec(__nothrow) int (getchar)(void);
+N#endif
+N   /*
+N    * is equivalent to getc with the argument stdin.
+N    * Returns: the next character from the input stream pointed to by stdin.
+N    *          If the stream is at end-of-file, the end-of-file indicator is
+N    *          set and getchar returns EOF. If a read error occurs, the error
+N    *          indicator is set and getchar returns EOF.
+N    */
+Nextern _ARMABI char *gets(char * /*s*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) char *gets(char *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * reads characters from the input stream pointed to by stdin into the array
+N    * pointed to by s, until end-of-file is encountered or a new-line character
+N    * is read. Any new-line character is discarded, and a null character is
+N    * written immediately after the last character read into the array.
+N    * Returns: s if successful. If end-of-file is encountered and no characters
+N    *          have been read into the array, the contents of the array remain
+N    *          unchanged and a null pointer is returned. If a read error occurs
+N    *          during the operation, the array contents are indeterminate and a
+N    *          null pointer is returned.
+N    */
+Nextern _ARMABI int putc(int /*c*/, FILE * /*stream*/) __attribute__((__nonnull__(2)));
+Xextern __declspec(__nothrow) int putc(int  , FILE *  ) __attribute__((__nonnull__(2)));
+N   /*
+N    * is equivalent to fputc except that it may be implemented as aan unsafe
+N    * macro (stream may be evaluated more than once, so the argument should
+N    * never be an expression with side-effects).
+N    * Returns: the character written. If a write error occurs, the error
+N    *          indicator is set and putc returns EOF.
+N    */
+N#ifdef __cplusplus
+S    inline int putchar(int __c) { return putc(__c, stdout); }
+N#else
+N    #define putchar(c) putc(c, stdout)
+N    extern _ARMABI int (putchar)(int /*c*/);
+X    extern __declspec(__nothrow) int (putchar)(int  );
+N#endif
+N   /*
+N    * is equivalent to putc with the second argument stdout.
+N    * Returns: the character written. If a write error occurs, the error
+N    *          indicator is set and putc returns EOF.
+N    */
+Nextern _ARMABI int puts(const char * /*s*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int puts(const char *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * writes the string pointed to by s to the stream pointed to by stdout, and
+N    * appends a new-line character to the output. The terminating null
+N    * character is not written.
+N    * Returns: EOF if a write error occurs; otherwise it returns a nonnegative
+N    *          value.
+N    */
+Nextern _ARMABI int ungetc(int /*c*/, FILE * /*stream*/) __attribute__((__nonnull__(2)));
+Xextern __declspec(__nothrow) int ungetc(int  , FILE *  ) __attribute__((__nonnull__(2)));
+N   /*
+N    * pushes the character specified by c (converted to an unsigned char) back
+N    * onto the input stream pointed to by stream. The character will be
+N    * returned by the next read on that stream. An intervening call to the
+N    * fflush function or to a file positioning function (fseek, fsetpos,
+N    * rewind) discards any pushed-back characters. The extern _ARMABIal storage
+N    * corresponding to the stream is unchanged.
+N    * One character pushback is guaranteed. If the unget function is called too
+N    * many times on the same stream without an intervening read or file
+N    * positioning operation on that stream, the operation may fail.
+N    * If the value of c equals that of the macro EOF, the operation fails and
+N    * the input stream is unchanged.
+N    * A successful call to the ungetc function clears the end-of-file
+N    * indicator. The value of the file position indicator after reading or
+N    * discarding all pushed-back characters shall be the same as it was before
+N    * the characters were pushed back. For a text stream, the value of the file
+N    * position indicator after a successful call to the ungetc function is
+N    * unspecified until all pushed-back characters are read or discarded. For a
+N    * binary stream, the file position indicator is decremented by each
+N    * successful call to the ungetc function; if its value was zero before a
+N    * call, it is indeterminate after the call.
+N    * Returns: the character pushed back after conversion, or EOF if the
+N    *          operation fails.
+N    */
+N
+Nextern _ARMABI size_t fread(void * __restrict /*ptr*/,
+Xextern __declspec(__nothrow) size_t fread(void * __restrict  ,
+N                    size_t /*size*/, size_t /*nmemb*/, FILE * __restrict /*stream*/) __attribute__((__nonnull__(1,4)));
+N   /*
+N    * reads into the array pointed to by ptr, up to nmemb members whose size is
+N    * specified by size, from the stream pointed to by stream. The file
+N    * position indicator (if defined) is advanced by the number of characters
+N    * successfully read. If an error occurs, the resulting value of the file
+N    * position indicator is indeterminate. If a partial member is read, its
+N    * value is indeterminate. The ferror or feof function shall be used to
+N    * distinguish between a read error and end-of-file.
+N    * Returns: the number of members successfully read, which may be less than
+N    *          nmemb if a read error or end-of-file is encountered. If size or
+N    *          nmemb is zero, fread returns zero and the contents of the array
+N    *          and the state of the stream remain unchanged.
+N    */
+N
+Nextern _ARMABI size_t __fread_bytes_avail(void * __restrict /*ptr*/,
+Xextern __declspec(__nothrow) size_t __fread_bytes_avail(void * __restrict  ,
+N                    size_t /*count*/, FILE * __restrict /*stream*/) __attribute__((__nonnull__(1,3)));
+N   /*
+N    * reads into the array pointed to by ptr, up to count characters from the
+N    * stream pointed to by stream. The file position indicator (if defined)
+N    * is advanced by the number of characters successfully read. If an error
+N    * occurs, the resulting value of the file position indicator is
+N    * indeterminate. The ferror or feof function shall be used to
+N    * distinguish between a read error and end-of-file.  The call will block
+N    * only if no characters are available.
+N    * Returns: the number of characters successfully read, which may be less than
+N    *          count. If count is zero, __fread_bytes_avail returns zero and
+N    *          the contents of the array and the state of the stream remain
+N    *          unchanged.
+N    */
+N
+Nextern _ARMABI size_t fwrite(const void * __restrict /*ptr*/,
+Xextern __declspec(__nothrow) size_t fwrite(const void * __restrict  ,
+N                    size_t /*size*/, size_t /*nmemb*/, FILE * __restrict /*stream*/) __attribute__((__nonnull__(1,4)));
+N   /*
+N    * writes, from the array pointed to by ptr up to nmemb members whose size
+N    * is specified by size, to the stream pointed to by stream. The file
+N    * position indicator (if defined) is advanced by the number of characters
+N    * successfully written. If an error occurs, the resulting value of the file
+N    * position indicator is indeterminate.
+N    * Returns: the number of members successfully written, which will be less
+N    *          than nmemb only if a write error is encountered.
+N    */
+N
+Nextern _ARMABI int fgetpos(FILE * __restrict /*stream*/, fpos_t * __restrict /*pos*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int fgetpos(FILE * __restrict  , fpos_t * __restrict  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * stores the current value of the file position indicator for the stream
+N    * pointed to by stream in the object pointed to by pos. The value stored
+N    * contains unspecified information usable by the fsetpos function for
+N    * repositioning the stream to its position at the time  of the call to the
+N    * fgetpos function.
+N    * Returns: zero, if successful. Otherwise nonzero is returned and the
+N    *          integer expression errno is set to an implementation-defined
+N    *          nonzero value.
+N    */
+Nextern _ARMABI int fseek(FILE * /*stream*/, long int /*offset*/, int /*whence*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int fseek(FILE *  , long int  , int  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * sets the file position indicator for the stream pointed to by stream.
+N    * For a binary stream, the new position is at the signed number of
+N    * characters specified by offset away from the point specified by whence.
+N    * The specified point is the beginning of the file for SEEK_SET, the
+N    * current position in the file for SEEK_CUR, or end-of-file for SEEK_END.
+N    * A binary stream need not meaningfully support fseek calls with a whence
+N    * value of SEEK_END.
+N    * For a text stream, either offset shall be zero, or offset shall be a
+N    * value returned by an earlier call to the ftell function on the same
+N    * stream and whence shall be SEEK_SET.
+N    * The fseek function clears the end-of-file indicator and undoes any
+N    * effects of the ungetc function on the same stream. After an fseek call,
+N    * the next operation on an update stream may be either input or output.
+N    * Returns: nonzero only for a request that cannot be satisfied.
+N    */
+Nextern _ARMABI int fsetpos(FILE * __restrict /*stream*/, const fpos_t * __restrict /*pos*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int fsetpos(FILE * __restrict  , const fpos_t * __restrict  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * sets  the file position indicator for the stream pointed to by stream
+N    * according to the value of the object pointed to by pos, which shall be a
+N    * value returned by an earlier call to the fgetpos function on the same
+N    * stream.
+N    * The fsetpos function clears the end-of-file indicator and undoes any
+N    * effects of the ungetc function on the same stream. After an fsetpos call,
+N    * the next operation on an update stream may be either input or output.
+N    * Returns: zero, if successful. Otherwise nonzero is returned and the
+N    *          integer expression errno is set to an implementation-defined
+N    *          nonzero value.
+N    */
+Nextern _ARMABI long int ftell(FILE * /*stream*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) long int ftell(FILE *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * obtains the current value of the file position indicator for the stream
+N    * pointed to by stream. For a binary stream, the value is the number of
+N    * characters from the beginning of the file. For a text stream, the file
+N    * position indicator contains unspecified information, usable by the fseek
+N    * function for returning the file position indicator to its position at the
+N    * time of the ftell call; the difference between two such return values is
+N    * not necessarily a meaningful measure of the number of characters written
+N    * or read.
+N    * Returns: if successful, the current value of the file position indicator.
+N    *          On failure, the ftell function returns -1L and sets the integer
+N    *          expression errno to an implementation-defined nonzero value.
+N    */
+Nextern _ARMABI void rewind(FILE * /*stream*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) void rewind(FILE *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * sets the file position indicator for the stream pointed to by stream to
+N    * the beginning of the file. It is equivalent to
+N    *          (void)fseek(stream, 0L, SEEK_SET)
+N    * except that the error indicator for the stream is also cleared.
+N    * Returns: no value.
+N    */
+N
+Nextern _ARMABI void clearerr(FILE * /*stream*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) void clearerr(FILE *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * clears the end-of-file and error indicators for the stream pointed to by
+N    * stream. These indicators are cleared only when the file is opened or by
+N    * an explicit call to the clearerr function or to the rewind function.
+N    * Returns: no value.
+N    */
+N
+Nextern _ARMABI int feof(FILE * /*stream*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int feof(FILE *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * tests the end-of-file indicator for the stream pointed to by stream.
+N    * Returns: nonzero iff the end-of-file indicator is set for stream.
+N    */
+Nextern _ARMABI int ferror(FILE * /*stream*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int ferror(FILE *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * tests the error indicator for the stream pointed to by stream.
+N    * Returns: nonzero iff the error indicator is set for stream.
+N    */
+Nextern _ARMABI void perror(const char * /*s*/);
+Xextern __declspec(__nothrow) void perror(const char *  );
+N   /*
+N    * maps the error number  in the integer expression errno to an error
+N    * message. It writes a sequence of characters to the standard error stream
+N    * thus: first (if s is not a null pointer and the character pointed to by
+N    * s is not the null character), the string pointed to by s followed by a
+N    * colon and a space; then an appropriate error message string followed by
+N    * a new-line character. The contents of the error message strings are the
+N    * same as those returned by the strerror function with argument errno,
+N    * which are implementation-defined.
+N    * Returns: no value.
+N    */
+N
+Nextern _ARMABI int _fisatty(FILE * /*stream*/ ) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) int _fisatty(FILE *   ) __attribute__((__nonnull__(1)));
+N    /* Returns 1 if the stream is tty (stdin), 0 otherwise. Not ANSI compliant.
+N     */
+N
+Nextern _ARMABI void __use_no_semihosting_swi(void);
+Xextern __declspec(__nothrow) void __use_no_semihosting_swi(void);
+Nextern _ARMABI void __use_no_semihosting(void);
+Xextern __declspec(__nothrow) void __use_no_semihosting(void);
+N    /*
+N     * Referencing either of these symbols will cause a link-time
+N     * error if any library functions that use semihosting SWI
+N     * calls are also present in the link, i.e. you define it if
+N     * you want to make sure you haven't accidentally used any such
+N     * SWIs.
+N     */
+N
+N    #ifdef __cplusplus
+S        }  /* extern "C" */
+S      }  /* namespace std */
+N    #endif
+N  #endif /* __STDIO_DECLS */
+N
+N  #if _AEABI_PORTABILITY_LEVEL != 0 && !defined _AEABI_PORTABLE
+X  #if _AEABI_PORTABILITY_LEVEL != 0 && !0L
+S    #define _AEABI_PORTABLE
+N  #endif
+N
+N  #if defined(__cplusplus) && !defined(__STDIO_NO_EXPORTS)
+X  #if 0L && !0L
+S    using ::std::size_t;
+S    using ::std::fpos_t;
+S    using ::std::FILE;
+S    using ::std::remove;
+S    using ::std::rename;
+S    using ::std::tmpfile;
+S    using ::std::tmpnam;
+S    using ::std::fclose;
+S    using ::std::fflush;
+S    using ::std::fopen;
+S    using ::std::freopen;
+S    using ::std::setbuf;
+S    using ::std::setvbuf;
+S    using ::std::fprintf;
+S    using ::std::_fprintf;
+S    using ::std::printf;
+S    using ::std::_printf;
+S    using ::std::sprintf;
+S    using ::std::_sprintf;
+S    #if !defined(__STRICT_ANSI__) || (defined(__STDC_VERSION__) && 199901L <= __STDC_VERSION__)
+S      using ::std::snprintf;
+S      using ::std::vsnprintf;
+S      using ::std::vfscanf;
+S      using ::std::vscanf;
+S      using ::std::vsscanf;
+S    #endif
+S    using ::std::_snprintf;
+S    using ::std::_vsnprintf;
+S    using ::std::fscanf;
+S    using ::std::_fscanf;
+S    using ::std::scanf;
+S    using ::std::_scanf;
+S    using ::std::sscanf;
+S    using ::std::_sscanf;
+S    using ::std::_vfscanf;
+S    using ::std::_vscanf;
+S    using ::std::_vsscanf;
+S    using ::std::vprintf;
+S    using ::std::_vprintf;
+S    using ::std::vfprintf;
+S    using ::std::_vfprintf;
+S    using ::std::vsprintf;
+S    using ::std::_vsprintf;
+S    using ::std::fgetc;
+S    using ::std::fgets;
+S    using ::std::fputc;
+S    using ::std::fputs;
+S    using ::std::getc;
+S    using ::std::getchar;
+S    using ::std::gets;
+S    using ::std::putc;
+S    using ::std::putchar;
+S    using ::std::puts;
+S    using ::std::ungetc;
+S    using ::std::fread;
+S    using ::std::__fread_bytes_avail;
+S    using ::std::fwrite;
+S    using ::std::fgetpos;
+S    using ::std::fseek;
+S    using ::std::fsetpos;
+S    using ::std::ftell;
+S    using ::std::rewind;
+S    using ::std::clearerr;
+S    using ::std::feof;
+S    using ::std::ferror;
+S    using ::std::perror;
+S    using ::std::_fisatty;
+S    using ::std::__use_no_semihosting_swi;
+S    using ::std::__use_no_semihosting;
+N  #endif
+N
+N#endif /* ndef __stdio_h */
+N
+N/* end of stdio.h */
+N
+L 19 "Config\FS_ConfigIO.c" 2
+N#include "FS.h"
+L 1 "FS\FS.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile        : FS.h
+NPurpose     : Define global functions and types to be used by an
+N              application using the file system.
+N
+N              This file needs to be included by any module using the
+N              file system.
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef _FS_H_               // Avoid recursive and multiple inclusion
+N#define _FS_H_
+N
+N
+N/*********************************************************************
+N*
+N*             #include Section
+N*
+N**********************************************************************
+N*/
+N
+N#include "FS_ConfDefaults.h"        /* FS Configuration */
+L 1 "FS\FS_ConfDefaults.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : FS_ConfDefaults.h
+NPurpose : File system configuration defaults
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N#ifndef _FS_CONFDEFAULT_H_
+N#define _FS_CONFDEFAULT_H_
+N
+N#include "FS_Conf.h"
+L 1 "Config\FS_Conf.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile        : FS_Conf.h
+NPurpose     : File system configuration
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef _FS_CONF_H_
+N#define _FS_CONF_H_
+N
+N#ifdef DEBUG
+N #if (DEBUG)
+X #if (1)
+N   #define FS_DEBUG_LEVEL                     5
+N #endif
+N#endif
+N
+N#define FS_OS_LOCKING                         1
+N#define FS_USE_FILE_BUFFER                    1
+N
+N#define FS_SUPPORT_EFS                        0
+N#define FS_SUPPORT_FAT                        1
+N#define FS_SUPPORT_JOURNAL                    0
+N#define FS_MULTI_HANDLE_SAFE                  0
+N
+N#ifdef __ICCARM__
+S  #if __ICCARM__
+S    #if ((__TID__ >> 4) & 0x0F) < 6   // For any ARM CPU core < v7, we will use optimized routines
+S      #include "SEGGER.h"
+S      #define FS_MEMCPY(pDest, pSrc, NumBytes) SEGGER_ARM_memcpy(pDest, pSrc, NumBytes)    // Speed optimization: Our memcpy is much faster!
+S    #endif
+S  #endif
+N#endif
+N
+N#endif  /* Avoid multiple inclusion */
+N
+N
+L 22 "FS\FS_ConfDefaults.h" 2
+N#include "Global.h"
+L 1 "GUI\Global.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : GLOBAL.h
+NPurpose : Global types etc.
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef GLOBAL_H            // Guard against multiple inclusion
+N#define GLOBAL_H
+N
+N/*********************************************************************
+N*
+N*       Macros
+N*
+N**********************************************************************
+N*/
+N#define U8    unsigned char
+N#define U16   unsigned short
+N#define U32   unsigned long
+N#define I8    signed char
+N#define I16   signed short
+N#define I32   signed long
+N
+N#endif                      // Avoid multiple inclusion
+N
+N/*************************** End of file ****************************/
+L 23 "FS\FS_ConfDefaults.h" 2
+N
+N
+N/*********************************************************************
+N*
+N*       Defaults for optimizations
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       File system defaults
+N*
+N**********************************************************************
+N*/
+N#ifndef   FS_LOG_MASK_DEFAULT     
+N  #define FS_LOG_MASK_DEFAULT    (1 << 0)   /* FS_MTYPE_INIT */
+N#endif
+N
+N#ifndef   FS_MAX_PATH
+N  #define FS_MAX_PATH                 260
+N#endif
+N
+N#ifndef   FS_SUPPORT_FAT
+S  #define FS_SUPPORT_FAT                1   /* Support the FAT file system if enabled */
+N#endif
+N
+N#ifndef   FS_SUPPORT_EFS
+S  #define FS_SUPPORT_EFS                0   /* Support the EFS file system if enabled */
+N#endif
+N
+N#ifndef   FS_SUPPORT_MULTIPLE_FS
+N  #define FS_SUPPORT_MULTIPLE_FS      ((FS_SUPPORT_EFS) && (FS_SUPPORT_FAT))
+N#endif
+N
+N#ifndef   FS_SUPPORT_BURST             /* Burst support, allows read/write of multiple sectors at a time (speed opt.) */
+N  #define FS_SUPPORT_BURST              1
+N#endif
+N
+N#ifndef   FS_SUPPORT_FREE_SECTOR
+N  #define FS_SUPPORT_FREE_SECTOR        1     /* Informs lower layer of unused sectors ... Makes sense only for drivers which use it */
+N#endif
+N
+N#ifndef   FS_SUPPORT_CACHE
+N  #define FS_SUPPORT_CACHE              1
+N#endif
+N
+N#ifndef   FS_MULTI_HANDLE_SAFE
+S  #define FS_MULTI_HANDLE_SAFE          0
+N#endif
+N
+N#ifndef   FS_MAX_LEN_FULL_FILE_NAME
+N  #define FS_MAX_LEN_FULL_FILE_NAME   256
+N#endif
+N
+N#ifndef   FS_DRIVER_ALIGNMENT
+N  //
+N  // Added for compatibility reasons.
+N  //
+N  #ifdef    FS_DRIVER_ALIGMENT  
+S    #define FS_DRIVER_ALIGNMENT           FS_DRIVER_ALIGMENT
+N  #else
+N    #define FS_DRIVER_ALIGNMENT           4
+N  #endif
+N#endif
+N
+N#ifndef   FS_DIRECTORY_DELIMITER
+N  #define FS_DIRECTORY_DELIMITER     '\\'
+N#endif
+N
+N#ifndef   FS_VERIFY_WRITE
+N  #define FS_VERIFY_WRITE              0    /* Verify every write sector operation (tests the driver and hardware) */
+N#endif
+N
+N#ifndef   FS_SUPPORT_BUSY_LED
+N  #define FS_SUPPORT_BUSY_LED          1
+N#endif
+N
+N#ifndef   FS_SUPPORT_CHECK_MEMORY
+N  #define FS_SUPPORT_CHECK_MEMORY      0
+N#endif
+N
+N#ifndef   FS_SUPPORT_JOURNAL
+S  #define FS_SUPPORT_JOURNAL           0
+N#endif
+N
+N#ifndef   FS_OPTIMIZE
+N  #define FS_OPTIMIZE                  // Allow optimizations such as "__arm __ramfunc" or similar. What works best depends on target.
+N#endif
+N
+N#ifndef   FS_SUPPORT_DEINIT
+N  #define FS_SUPPORT_DEINIT            0  // Allows to have a deinitialization of the file system
+N#endif
+N
+N#ifndef   FS_SUPPORT_EXT_MEM_MANAGER
+N  #define FS_SUPPORT_EXT_MEM_MANAGER        0                // Set to 1 will use external alloc/free memory functions, these must be set with FS_SetMemFunc()
+N#endif 
+N
+N#ifndef FS_JOURNAL_FILE_NAME
+N  #define FS_JOURNAL_FILE_NAME "Journal.dat"
+N#endif
+N
+N#ifndef   FS_USE_FILE_BUFFER
+S  #define FS_USE_FILE_BUFFER                 0
+N#endif
+N
+N/*********************************************************************
+N*
+N*       FAT File System Layer defines
+N*
+N*  For each media in your system using FAT, the file system reserves
+N*  memory to keep required information of the boot sector of that media.
+N*  FS_MAXDEV is the number of device drivers in your system used
+N*  with FAT, FS_FAT_MAXUNIT is the maximum number of logical units
+N*  supported by one of the activated drivers.
+N*/
+N
+N#ifndef   FS_FAT_SUPPORT_FAT32                         // 0  disables FAT32 support
+N  #define FS_FAT_SUPPORT_FAT32      1
+N#endif
+N
+N#ifndef   FS_FAT_SUPPORT_UTF8
+N  #define FS_FAT_SUPPORT_UTF8       0                  // Use UTF-8 encoding to support unicode characters
+N#endif
+N
+N#ifndef   FS_UNICODE_UPPERCASE_EXT
+N  #define FS_UNICODE_UPPERCASE_EXT  {0x0000, 0x0000}   // allow to extend the static unicode lower to upper case table
+N#endif
+N
+N#ifndef   FS_MAINTAIN_FAT_COPY
+N  #define FS_MAINTAIN_FAT_COPY      0                  // Shall the 2nd FAT (copy) be maintained
+N#endif
+N
+N#ifndef   FS_FAT_USE_FSINFO_SECTOR                     // Use and update FSInfo sector on FAT32 media. For FAT12/FAT116 there is no FSInfo sector
+N  #define FS_FAT_USE_FSINFO_SECTOR  1
+N#endif
+N
+N#ifndef   FS_FAT_OPTIMIZE_DELETE                       // Accelerate delete of large files
+N  #define FS_FAT_OPTIMIZE_DELETE    1
+N#endif
+N
+N#ifndef   FS_FAT_FWRITE_UPDATE_DIR                     // On size change, shall the directory entry of the file be updated
+N  #define FS_FAT_FWRITE_UPDATE_DIR  1
+N#endif
+N
+N
+N/*********************************************************************
+N*
+N*       EFS File System Layer defines
+N*
+N*/
+N#ifndef   FS_EFS_OPTIMIZE_DELETE                       // Accelerate delete of large files
+N  #define FS_EFS_OPTIMIZE_DELETE    1
+N#endif
+N
+N#ifndef   FS_EFS_CASE_SENSITIVE
+N  #define FS_EFS_CASE_SENSITIVE     0                  // Should the file/directory names be case sensitively compared
+N#endif
+N
+N#ifndef   FS_EFS_FWRITE_UPDATE_DIR
+N  #define FS_EFS_FWRITE_UPDATE_DIR  1                  // On size change, shall the directory entry of the file be updated
+N#endif
+N
+N/*********************************************************************
+N*
+N*       CLib
+N*/
+N#ifndef   FS_NO_CLIB
+N  #define FS_NO_CLIB  0
+N#endif
+N
+N/*********************************************************************
+N*
+N*       OS Layer
+N*
+N**********************************************************************
+N*/
+N#ifdef FS_OS_LOCKING
+N  #if   FS_OS_LOCKING == 0
+X  #if   1 == 0
+S    #define FS_OS               0
+S    #define FS_OS_LOCK_PER_DRIVER 0
+N  #elif FS_OS_LOCKING == 1
+X  #elif 1 == 1
+N    #define FS_OS               1
+N    #define FS_OS_LOCK_PER_DRIVER 0
+N  #elif FS_OS_LOCKING == 2
+S    #define FS_OS               1
+S    #define FS_OS_LOCK_PER_DRIVER 1
+S  #else
+S  #error FS_OS_LOCKING has illegal value
+N  #endif
+N#endif
+N
+N#ifndef   FS_OS
+S  #define FS_OS                 0
+N#endif
+N
+N#ifndef   FS_OS_LOCK_PER_DRIVER
+S  #define FS_OS_LOCK_PER_DRIVER 0        /* 0 = means a single lock for all files, 1 means one lock per file */
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Device driver defaults
+N*
+N**********************************************************************
+N*/
+N/*********************************************************************
+N*
+N*       RAMDISK defines
+N*
+N*/
+N#ifndef   FS_RAMDISK_SECTOR_SIZE
+N  #define FS_RAMDISK_SECTOR_SIZE   512
+N#endif
+N
+N/*********************************************************************
+N*
+N*       NOR flash driver defines
+N*/
+N#ifndef FS_NOR_WEARLEVELING
+N  #define FS_NOR_WEARLEVELING         1
+N#endif
+N
+N#ifndef   FS_NOR_SECTOR_SIZE
+N  #define FS_NOR_SECTOR_SIZE         512
+N#endif
+N
+N/* In order to avoid warnings for undefined parameters */
+N#ifndef FS_USE_PARA
+N  #if defined(NC30) || defined(NC308)
+X  #if 0L || 0L
+S    #define FS_USE_PARA(para)
+N  #else
+N    #define FS_USE_PARA(para) para=para;
+N  #endif
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Number of
+N*/
+N#ifndef   FS_NUM_VOLUMES
+N  #define FS_NUM_VOLUMES 4
+N#endif
+N
+N#ifndef   FS_NUM_FILE_HANDLES
+N  #define FS_NUM_FILE_HANDLES    4 + (FS_SUPPORT_EFS * 2)
+N#endif
+N
+N#ifndef   FS_NUM_FILE_OBJECTS
+N  #define FS_NUM_FILE_OBJECTS    FS_NUM_FILE_HANDLES
+N#endif
+N
+N#ifndef   FS_NUM_DIR_HANDLES
+N  #define FS_NUM_DIR_HANDLES     1
+N#endif
+N
+N#ifndef   FS_NUM_MEMBLOCKS_PER_OPERATION
+N  //
+N  // FAT file system needs at least 2 sector buffers for a FS operation
+N  //
+N  #if (FS_SUPPORT_EFS == 0)
+X  #if (0 == 0)
+N    #define FS_NUM_FS_MEMBLOCKS_PER_OPERATION  2
+N  //
+N  // EFS needs at least 2 sector buffers for a FS operation
+N  //
+N  #elif (FS_SUPPORT_EFS == 1)
+S    #define FS_NUM_FS_MEMBLOCKS_PER_OPERATION  3
+N  #endif
+N
+N  //
+N  // Check for journal support
+N  //
+N  #if FS_SUPPORT_JOURNAL 
+X  #if 0 
+S    #define FS_NUM_MEMBLOCKS_PER_OPERATION      FS_NUM_FS_MEMBLOCKS_PER_OPERATION + 1
+N  #else
+N    #define FS_NUM_MEMBLOCKS_PER_OPERATION      FS_NUM_FS_MEMBLOCKS_PER_OPERATION
+N  #endif
+N
+N#endif
+N
+N
+N/********************************************************************/
+N
+N#endif  /* Avoid multiple inclusion */
+N
+N/****** End of file *************************************************/
+L 34 "FS\FS.h" 2
+N#include "FS_Types.h"
+L 1 "FS\FS_Types.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile        : FS_Int.h
+NPurpose     : Internals used accross different layers of the file system
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef _FS_TYPES_H_
+N#define _FS_TYPES_H_
+N
+N
+N#include "Global.h"
+N
+N#if defined(__cplusplus)
+X#if 0L
+Sextern "C" {     /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N
+N
+N/*********************************************************************
+N*
+N*       Defines non configurable
+N*
+N**********************************************************************
+N*/
+N#define FS_FILE_ACCESS_FLAG_A (1 << 0)
+N#define FS_FILE_ACCESS_FLAG_B (1 << 1)
+N#define FS_FILE_ACCESS_FLAG_C (1 << 2)
+N#define FS_FILE_ACCESS_FLAG_R (1 << 3)
+N#define FS_FILE_ACCESS_FLAG_W (1 << 4)
+N//
+N// Combined access modes which are frequently used
+N//
+N#define FS_FILE_ACCESS_FLAGS_AW     (FS_FILE_ACCESS_FLAG_A | FS_FILE_ACCESS_FLAG_W)
+N#define FS_FILE_ACCESS_FLAGS_BR     (FS_FILE_ACCESS_FLAG_B | FS_FILE_ACCESS_FLAG_R)
+N#define FS_FILE_ACCESS_FLAGS_CW     (FS_FILE_ACCESS_FLAG_C | FS_FILE_ACCESS_FLAG_W)
+N#define FS_FILE_ACCESS_FLAGS_RW     (FS_FILE_ACCESS_FLAG_R | FS_FILE_ACCESS_FLAG_W)
+N
+N#define FS_FILE_ACCESS_FLAGS_ACW    (FS_FILE_ACCESS_FLAG_C | FS_FILE_ACCESS_FLAGS_AW)
+N#define FS_FILE_ACCESS_FLAGS_ARW    (FS_FILE_ACCESS_FLAG_A | FS_FILE_ACCESS_FLAGS_RW)
+N#define FS_FILE_ACCESS_FLAGS_BCW    (FS_FILE_ACCESS_FLAG_B | FS_FILE_ACCESS_FLAGS_CW)
+N#define FS_FILE_ACCESS_FLAGS_BRW    (FS_FILE_ACCESS_FLAG_W | FS_FILE_ACCESS_FLAGS_BR)
+N#define FS_FILE_ACCESS_FLAGS_CRW    (FS_FILE_ACCESS_FLAG_C | FS_FILE_ACCESS_FLAG_R | FS_FILE_ACCESS_FLAG_W)
+N
+N#define FS_FILE_ACCESS_FLAGS_ABCW   (FS_FILE_ACCESS_FLAG_B | FS_FILE_ACCESS_FLAGS_ACW)
+N#define FS_FILE_ACCESS_FLAGS_ACRW   (FS_FILE_ACCESS_FLAG_A | FS_FILE_ACCESS_FLAGS_CRW)
+N#define FS_FILE_ACCESS_FLAGS_BCRW   (FS_FILE_ACCESS_FLAG_B | FS_FILE_ACCESS_FLAGS_CRW)
+N
+N#define FS_FILE_ACCESS_FLAGS_ABCRW  (FS_FILE_ACCESS_FLAGS_ACRW | FS_FILE_ACCESS_FLAG_A)
+N
+N//
+N// Partition table definitions
+N//
+N#define FS__DEV_PART_0_TABLE       0x01BE /* start of first entry */
+N
+N//
+N// Directory entry get/set macros 
+N//
+N#define FS_DIRENTRY_GET_ATTRIBUTES             (1 << 0)
+N#define FS_DIRENTRY_GET_TIMESTAMP_CREATE       (1 << 1)
+N#define FS_DIRENTRY_GET_TIMESTAMP_MODIFY       (1 << 2)
+N#define FS_DIRENTRY_GET_TIMESTAMP_ACCESS       (1 << 3)
+N#define FS_DIRENTRY_SET_ATTRIBUTES             (1 << 0)
+N#define FS_DIRENTRY_SET_TIMESTAMP_CREATE       (1 << 1)
+N#define FS_DIRENTRY_SET_TIMESTAMP_MODIFY       (1 << 2)
+N#define FS_DIRENTRY_SET_TIMESTAMP_ACCESS       (1 << 3)
+N//
+N//  Smart buffer (SB) type defines
+N//
+N#define FS_SB_TYPE_DATA               FS_SECTOR_TYPE_DATA
+N#define FS_SB_TYPE_MANAGEMENT         FS_SECTOR_TYPE_MAN
+N#define FS_SB_TYPE_DIRECTORY          FS_SECTOR_TYPE_DIR
+N
+N/*********************************************************************
+N*
+N*       Sector type defines
+N*/
+N#define FS_SECTOR_TYPE_DATA    0
+N#define FS_SECTOR_TYPE_DIR     1
+N#define FS_SECTOR_TYPE_MAN     2
+N#define FS_SECTOR_TYPE_COUNT   3   /* Number of sector types */
+N
+N/*********************************************************************
+N*
+N*       Sector type defines
+N*/
+N#define FS_SECTOR_TYPE_MASK_DATA    (1 << FS_SECTOR_TYPE_DATA)
+N#define FS_SECTOR_TYPE_MASK_DIR     (1 << FS_SECTOR_TYPE_DIR)
+N#define FS_SECTOR_TYPE_MASK_MAN     (1 << FS_SECTOR_TYPE_MAN)
+N#define FS_SECTOR_TYPE_MASK_ALL     (FS_SECTOR_TYPE_MASK_DATA | FS_SECTOR_TYPE_MASK_DIR | FS_SECTOR_TYPE_MASK_MAN)
+N
+N/*********************************************************************
+N*
+N*       Data types, opaque
+N*
+N**********************************************************************
+N*/
+Ntypedef struct FS_FAT_INFO    FS_FAT_INFO;
+Ntypedef struct FS_EFS_INFO    FS_EFS_INFO;
+Ntypedef struct FS_SB          FS_SB;
+N
+N/*********************************************************************
+N*
+N*       Internal data types, used as opaque types for pointers
+N*
+N**********************************************************************
+N*/
+Ntypedef struct FS_CACHE_API     FS_CACHE_API;
+Ntypedef struct FS_DEVICE        FS_DEVICE;
+Ntypedef struct FS_DIR           FS_DIR;
+Ntypedef struct FS_FILE          FS_FILE;
+Ntypedef struct FS_PARTITION     FS_PARTITION;
+Ntypedef struct FS_VOLUME        FS_VOLUME;
+Ntypedef struct FS_DEVICE_TYPE   FS_DEVICE_TYPE;
+Ntypedef struct FS_DIRENT        FS_DIRENT;
+Ntypedef struct FS_DEV_INFO      FS_DEV_INFO;
+N
+N#if defined(__cplusplus)
+X#if 0L
+S}                /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N#endif  /* _FS_INT_H_ */
+N
+N/*************************** End of file ****************************/
+L 35 "FS\FS.h" 2
+N#include "FS_Storage.h"
+L 1 "FS\FS_Storage.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile        : FS_Storage.h
+NPurpose     : Define global functions and types to be used by an
+N              application using the storage API.
+N
+N              This file needs to be included by any module using the
+N              storage API.
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef _FS_STORAGE_H_               // Avoid recursive and multiple inclusion
+N#define _FS_STORAGE_H_
+N
+N/*********************************************************************
+N*
+N*             #include Section
+N*
+N**********************************************************************
+N*/
+N
+N#include "FS_ConfDefaults.h"        /* FS Configuration */
+N#include "FS_Types.h"
+N#include "FS_Dev.h"
+L 1 "FS\FS_Dev.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile        : FS_Dev.h
+NPurpose     : Define structures for Device Drivers
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef _FS_DEV_H_              // Avoid recursive and multiple inclusion
+N#define _FS_DEV_H_
+N
+N// File is obsolete. Do not use any more, Use "FS_Int.h" instead.
+N
+N#endif                           // Avoid recursive and multiple inclusion
+N
+N/*************************** End of file ****************************/
+L 35 "FS\FS_Storage.h" 2
+N
+N#if defined(__cplusplus)
+X#if 0L
+Sextern "C" {     /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N
+N#ifdef FS_STORAGE_C
+S  #define EXTERN
+N#else
+N  #define EXTERN extern
+N#endif
+N
+N
+N/*********************************************************************
+N*
+N*             #define constants
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       Media states
+N*/
+N#define FS_MEDIA_NOT_PRESENT        0
+N#define FS_MEDIA_IS_PRESENT         1
+N#define FS_MEDIA_STATE_UNKNOWN      2
+N
+N
+N#define FS_OPERATION_READ           0
+N#define FS_OPERATION_WRITE          1
+N
+N/*********************************************************************
+N*
+N*       Data structures
+N*/
+Nstruct FS_DEV_INFO {
+N  U16 NumHeads;          /* Relevant only for mechanical drives   */
+X  unsigned short NumHeads;           
+N  U16 SectorsPerTrack;   /* Relevant only for mechanical drives   */
+X  unsigned short SectorsPerTrack;    
+N  U32 NumSectors;        /* Total number of sectors on the medium */
+X  unsigned long NumSectors;         
+N  U16 BytesPerSector;    /* Number of bytes per sector            */
+X  unsigned short BytesPerSector;     
+N};
+N
+N
+Ntypedef void (FS_ONDEVICEACTIVITYHOOK)(FS_DEVICE * pDevice, unsigned Operation, U32 StartSector, U32 NumSectors, int Sectortype);
+Xtypedef void (FS_ONDEVICEACTIVITYHOOK)(FS_DEVICE * pDevice, unsigned Operation, unsigned long StartSector, unsigned long NumSectors, int Sectortype);
+N
+N
+N
+N
+N/*********************************************************************
+N*
+N*       Global function prototypes
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       Volume related functions
+N*/
+Nint              FS_IsLLFormatted     (const char * sVolume);
+Nint              FS_FormatLLIfRequired(const char * sVolume);
+Nvoid             FS_UnmountForced     (const char * sVolume);
+Nint              FS_GetVolumeStatus   (const char * sVolume);
+NFS_VOLUME *      FS_FindVolume        (const char * sVolume);
+N
+N/*********************************************************************
+N*
+N*       File system control functions
+N*/
+N#define FS_InitStorage()                                    FS_STORAGE_Init()
+N#define FS_ReadSector(sVolume, pData, SectorIndex)          FS_STORAGE_ReadSector(sVolume,  pData, SectorIndex)
+N#define FS_WriteSector(sVolume, pData, SectorIndex)         FS_STORAGE_WriteSector(sVolume, pData, SectorIndex)
+N#define FS_UnmountLL(sVolume)                               FS_STORAGE_Unmount(sVolume)
+N#define FS_CleanVolume(sVolume)                             FS_STORAGE_Sync(sVolume)
+N#define FS_GetDeviceInfo(sVolume, pDevInfo)                 FS_STORAGE_GetDeviceInfo(sVolume, pDevInfo)
+N
+Nint      FS_STORAGE_GetDeviceInfo(const char * sVolume, FS_DEV_INFO * pDevInfo);
+Nunsigned FS_STORAGE_Init         (void);
+Nint      FS_STORAGE_ReadSector   (const char * sVolume,       void * pData, U32 SectorIndex);
+Xint      FS_STORAGE_ReadSector   (const char * sVolume,       void * pData, unsigned long SectorIndex);
+Nint      FS_STORAGE_WriteSector  (const char * sVolume, const void * pData, U32 SectorIndex);
+Xint      FS_STORAGE_WriteSector  (const char * sVolume, const void * pData, unsigned long SectorIndex);
+Nint      FS_STORAGE_ReadSectors  (const char * sVolume,       void * pData, U32 FirstSector, U32 NumSectors);
+Xint      FS_STORAGE_ReadSectors  (const char * sVolume,       void * pData, unsigned long FirstSector, unsigned long NumSectors);
+Nvoid     FS_STORAGE_Sync         (const char * sVolume);
+Nvoid     FS_STORAGE_Unmount      (const char * sVolume);
+Nvoid     FS_STORAGE_UnmountForced(const char * sVolume);
+Nint      FS_STORAGE_WriteSectors (const char * sVolume, const void * pData, U32 FirstSector, U32 NumSectors);
+Xint      FS_STORAGE_WriteSectors (const char * sVolume, const void * pData, unsigned long FirstSector, unsigned long NumSectors);
+Nvoid     FS_SetOnDeviceActivityHook(const char * sVolume, FS_ONDEVICEACTIVITYHOOK * pfOnDeviceActivityHook);
+N
+N
+N/*********************************************************************
+N*
+N*       Storage statistics
+N*/
+Ntypedef struct {
+N  U32 ReadOperationCnt;       // Number of "Read sector operation" calls
+X  unsigned long ReadOperationCnt;       
+N  U32 ReadSectorCnt;          // Number of sectors read (before cache). Note that this can be (and typically is) higher than the number of "Read sector operation" counts, since one operation can request multiple sectors (in a burst)
+X  unsigned long ReadSectorCnt;          
+N  U32 ReadSectorCachedCnt;    // Number of sectors read from cache.
+X  unsigned long ReadSectorCachedCnt;    
+N  U32 WriteOperationCnt;      // Number of "Write sector operation" calls
+X  unsigned long WriteOperationCnt;      
+N  U32 WriteSectorCnt;         // Number of sectors written (before cache). Note that this can be (and typically is) higher than the number of "Write sector operation" counts, since one operation can write multiple sectors (in a burst)
+X  unsigned long WriteSectorCnt;         
+N} FS_STORAGE_COUNTERS;
+N
+Nvoid FS_STORAGE_GetCounters  (FS_STORAGE_COUNTERS * pStat);
+Nvoid FS_STORAGE_ResetCounters(void);
+N
+N#if FS_SUPPORT_DEINIT
+X#if 0
+Svoid     FS_STORAGE_DeInit(void);
+N#endif
+N
+NEXTERN FS_STORAGE_COUNTERS FS_STORAGE_Counters;
+Xextern FS_STORAGE_COUNTERS FS_STORAGE_Counters;
+N
+N
+N
+N#if defined(__cplusplus)
+X#if 0L
+S  }              /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N#endif                        // Avoid recursive and multiple inclusion
+N
+N/*************************** End of file ****************************/
+L 36 "FS\FS.h" 2
+N#include "FS_Dev.h"
+N
+N#if defined(__cplusplus)
+X#if 0L
+Sextern "C" {     /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N/*********************************************************************
+N*
+N*             #define constants
+N*
+N**********************************************************************
+N*/
+N
+N/* File system version */
+N#define FS_VERSION                32001UL
+N
+N
+N#define FS_ERROR_ALLOC                  (1)
+N#define FS_ERROR_NOMEMORY               (2)
+N#define FS_ERROR_ILLEGAL_FORMAT_STRING  (3)
+N#define FS_ERROR_UNKNOWN_DEVICE         (4)
+N
+N/* Global error codes */
+N#define FS_ERR_OK                 0
+N#define FS_ERR_EOF                -1
+N#define FS_ERR_DISKFULL           -2
+N#define FS_ERR_INVALIDPAR         -3
+N#define FS_ERR_CMDNOTSUPPORTED    -4
+N#define FS_ERR_WRITEONLY          -5
+N#define FS_ERR_READONLY           -6
+N#define FS_ERR_READERROR          -7
+N#define FS_ERR_WRITEERROR         -8
+N
+N/* Global constants*/
+N/* File Positions */
+N#define FS_SEEK_CUR               1
+N#define FS_SEEK_END               2
+N#define FS_SEEK_SET               0
+N
+N#define FS_FILE_CURRENT           FS_SEEK_CUR
+N#define FS_FILE_END               FS_SEEK_END
+N#define FS_FILE_BEGIN             FS_SEEK_SET
+N
+N/*********************************************************************
+N*
+N*       I/O commands for driver
+N*/
+N#define FS_CMD_REQUIRES_FORMAT        1003
+N#define FS_CMD_GET_DEVINFO            1004
+N#define FS_CMD_FORMAT_LOW_LEVEL       1005            /* Used internally by FS_FormatLow() to command the driver to perform low-level format */
+N#define FS_CMD_FREE_SECTORS           1006            /* Used internally: Allows the FS layer to inform driver about free sectors */
+N#define FS_CMD_SET_DELAY              1007            /* Used in the simulation to simulate a slow device with RAM driver */
+N
+N#define FS_CMD_UNMOUNT                1008            /* Used internally by FS_STORAGE_Unmount() to inform the driver. Driver invalidates caches and all other information about medium. */
+N#define FS_CMD_UNMOUNT_FORCED         1009            /* Used internally by FS_STORAGE_UnmountForced() to inform the driver about an unforced remove of the device. */
+N                                                      /* Driver invalidates caches and all other information about medium. */
+N#define FS_CMD_SYNC                   1010            /* Tells the driver to clean caches. Typically, all dirty sectors are written */
+N#define FS_CMD_UNMOUNT_VOLUME         FS_CMD_UNMOUNT  // Obsolete: FS_CMD_UNMOUNT shall be used instead of FS_CMD_UNMOUNT_VOLUME.
+N
+N#define FS_CMD_DEINIT                 1011
+N
+N/*********************************************************************
+N*
+N*       CACHE Commands (internal)
+N*/
+N#define FS_CMD_CACHE_SET_MODE     6000L
+N#define FS_CMD_CACHE_CLEAN        6001L   /* Write out all dirty sectors */
+N#define FS_CMD_CACHE_SET_QUOTA    6002L
+N#define FS_CMD_CACHE_FREE_SECTORS 6003L
+N#define FS_CMD_CACHE_INVALIDATE   6004L   /* Invalidate all sectors in cache */
+N
+N/*********************************************************************
+N*
+N*       Directory entry attribute definitions
+N*/
+N#define FS_ATTR_READ_ONLY    0x01
+N#define FS_ATTR_HIDDEN       0x02
+N#define FS_ATTR_SYSTEM       0x04
+N#define FS_ATTR_ARCHIVE      0x20
+N#define FS_ATTR_DIRECTORY    0x10
+N
+N
+N/*********************************************************************
+N*
+N*       Directory entry attribute definitions
+N*/
+N#define FS_FILETIME_CREATE     0
+N#define FS_FILETIME_ACCESS     1
+N#define FS_FILETIME_MODIFY     2
+N
+N/*********************************************************************
+N*
+N*       Volume mount flags
+N*/
+N#define FS_MOUNT_R                  1
+N#define FS_MOUNT_RW                 3
+N
+N/*********************************************************************
+N*
+N*       File system selection
+N*/
+N#define FS_FAT                  0
+N#define FS_EFS                  1
+N
+N/*********************************************************************
+N*
+N*       CheckDisk error codes
+N*/
+Nenum {
+N  FS_ERRCODE_0FILE = 0x10,
+N  FS_ERRCODE_SHORTEN_CLUSTER,
+N  FS_ERRCODE_CROSSLINKED_CLUSTER,
+N  FS_ERRCODE_FEW_CLUSTER,
+N  FS_ERRCODE_CLUSTER_UNUSED,
+N  FS_ERRCODE_CLUSTER_NOT_EOC,
+N  FS_ERRCODE_INVALID_CLUSTER,
+N  FS_ERRCODE_INVALID_DIRECTORY_ENTRY
+N};
+N
+N/*********************************************************************
+N*
+N*       FS_MTYPE
+N*
+N*  Ids to distinguish different message types
+N*/
+N#define FS_MTYPE_INIT       (1 << 0)
+N#define FS_MTYPE_API        (1 << 1)
+N#define FS_MTYPE_FS         (1 << 2)
+N#define FS_MTYPE_STORAGE    (1 << 3)
+N#define FS_MTYPE_JOURNAL    (1 << 4)
+N#define FS_MTYPE_CACHE      (1 << 5)
+N#define FS_MTYPE_DRIVER     (1 << 6)
+N#define FS_MTYPE_OS         (1 << 7)
+N#define FS_MTYPE_MEM        (1 << 8)
+N
+N/*********************************************************************
+N*
+N*       Global data types
+N*
+N**********************************************************************
+N*/
+N
+Ntypedef int  FS_QUERY_F_TYPE(int ErrCode, ...);
+Ntypedef void FS_BUSY_LED_CALLBACK(U8 OnOff);
+Xtypedef void FS_BUSY_LED_CALLBACK(unsigned char OnOff);
+Ntypedef int  FS_MEMORY_IS_ACCESSIBLE_CALLBACK(void * p, U32 NumBytes);
+Xtypedef int  FS_MEMORY_IS_ACCESSIBLE_CALLBACK(void * p, unsigned long NumBytes);
+N
+Nstruct FS_DIRENT {
+N  char  DirName[FS_MAX_PATH];
+X  char  DirName[260];
+N  U8    Attributes;
+X  unsigned char    Attributes;
+N  U32   Size;
+X  unsigned long   Size;
+N  U32   TimeStamp;
+X  unsigned long   TimeStamp;
+N};
+N
+Ntypedef struct {
+N  U32 Cluster;                    /* Cluster of current sector */
+X  unsigned long Cluster;                     
+N  U32 FirstCluster;
+X  unsigned long FirstCluster;
+N  U32 DirEntryIndex;              /* Directory entry index (first directory entry has index 0 */
+X  unsigned long DirEntryIndex;               
+N  U32 ClusterIndex;
+X  unsigned long ClusterIndex;
+N} FS_DIR_POS;
+N
+Ntypedef struct {
+N  FS_DIR_POS  DirPos;             /* current position in file     */
+N  U16         DirEntryIndex;
+X  unsigned short         DirEntryIndex;
+N  U32         FirstCluster;
+X  unsigned long         FirstCluster;
+N  FS_VOLUME * pVolume;
+N  I16         error;              /* error code                   */
+X  signed short         error;               
+N  U8          InUse;              /* handle in use mark           */
+X  unsigned char          InUse;               
+N} FS__DIR;
+N
+Ntypedef struct {
+N  U8     Attributes;
+X  unsigned char     Attributes;
+N  U32    CreationTime;
+X  unsigned long    CreationTime;
+N  U32    LastAccessTime;
+X  unsigned long    LastAccessTime;
+N  U32    LastWriteTime;
+X  unsigned long    LastWriteTime;
+N  U32    FileSize;
+X  unsigned long    FileSize;
+N  char * sFileName;
+N  int    SizeofFileName;
+N} FS_DIRENTRY_INFO;
+N
+Ntypedef struct {
+N  U8     Attributes;
+X  unsigned char     Attributes;
+N  U32    CreationTime;
+X  unsigned long    CreationTime;
+N  U32    LastAccessTime;
+X  unsigned long    LastAccessTime;
+N  U32    LastWriteTime;
+X  unsigned long    LastWriteTime;
+N  U32    FileSize;
+X  unsigned long    FileSize;
+N  char * sFileName;
+N  // Private elements. Not be used by the application
+N  int SizeofFileName;
+N  FS__DIR Dir;
+N} FS_FIND_DATA;
+N
+Ntypedef struct {
+N  U32 NumTotalClusters;
+X  unsigned long NumTotalClusters;
+N  U32 NumFreeClusters;
+X  unsigned long NumFreeClusters;
+N  U16 SectorsPerCluster;
+X  unsigned short SectorsPerCluster;
+N  U16 BytesPerSector;
+X  unsigned short BytesPerSector;
+N} FS_DISK_INFO;
+N
+N typedef struct {
+N  U16        SectorsPerCluster;
+X  unsigned short        SectorsPerCluster;
+N  U16        NumRootDirEntries;    /* Proposed, actual value depends on FATType */
+X  unsigned short        NumRootDirEntries;     
+N  FS_DEV_INFO * pDevInfo;
+N} FS_FORMAT_INFO;
+N
+Ntypedef struct {
+N  U16           SectorsPerCluster;
+X  unsigned short           SectorsPerCluster;
+N  U16           NumRootDirEntries;    /* Proposed, actual value depends on FATType */
+X  unsigned short           NumRootDirEntries;     
+N  U16           NumReservedSectors;
+X  unsigned short           NumReservedSectors;
+N  U8            UpdatePartition;
+X  unsigned char            UpdatePartition;
+N  FS_DEV_INFO * pDevInfo;
+N} FS_FORMAT_INFO_EX;
+N
+Ntypedef struct {
+N  U16 Year;
+X  unsigned short Year;
+N  U16 Month;
+X  unsigned short Month;
+N  U16 Day;
+X  unsigned short Day;
+N  U16 Hour;
+X  unsigned short Hour;
+N  U16 Minute;
+X  unsigned short Minute;
+N  U16 Second;
+X  unsigned short Second;
+N} FS_FILETIME;
+N
+N/*********************************************************************
+N*
+N*             Non blocking (backgrounded) file I/O functions
+N*/
+N/* Information for background data */
+Ntypedef struct FS_BG_DATA {
+N  struct FS_BG_DATA * pNext;
+N  U32                 NumBytes;
+X  unsigned long                 NumBytes;
+N  U32                 NumBytesRem;         /* Remaining bytes to transfer */
+X  unsigned long                 NumBytesRem;          
+N  void              * pData;
+N  FS_FILE           * pFile;
+N  U8                  Operation;
+X  unsigned char                  Operation;
+N  void (*pfOnCompletion) (void * p);   /* Optional completion routine */
+N  void              * pCompletionData;     /* Optional data for completion routine */
+N  char                IsCompleted;
+N} FS_BG_DATA;
+N
+Nvoid FS_Daemon(void);
+Nvoid FS_FReadNonBlock (void       * pData,
+N                       U32          NumBytes,
+X                       unsigned long          NumBytes,
+N                       FS_FILE    * pFile,
+N                       FS_BG_DATA * pBGData,                    /* User supplied management block */
+N                       void (*pfOnCompletion) (void * p),   /* Optional completion routine */
+N                       void * pCompletionData                   /* Optional data for completion routine */
+N                      );
+Nvoid FS_FWriteNonBlock(const void * pData,
+N                       U32          NumBytes,
+X                       unsigned long          NumBytes,
+N                       FS_FILE    * pFile,
+N                       FS_BG_DATA * pBGData,                    /* User supplied management block */
+N                       void (*pfOnCompletion) (void * p),   /* Optional completion routine */
+N                       void * pCompletionData                   /* Optional data for completion routine */
+N                       );
+Nchar FS_IsCompleted(FS_BG_DATA * pBGData);
+N
+N/*********************************************************************
+N*
+N*       Global function prototypes
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       "Standard" file I/O functions
+N*/
+NFS_FILE *        FS_FOpen (const char * pFileName, const char * pMode);
+Nint              FS_FClose(FS_FILE    * pFile);
+NU32              FS_FRead (      void * pData, U32 Size, U32 N, FS_FILE * pFile);
+Xunsigned long              FS_FRead (      void * pData, unsigned long Size, unsigned long N, FS_FILE * pFile);
+NU32              FS_FWrite(const void * pData, U32 Size, U32 N, FS_FILE * pFile);
+Xunsigned long              FS_FWrite(const void * pData, unsigned long Size, unsigned long N, FS_FILE * pFile);
+N
+N/*********************************************************************
+N*
+N*       Non-standard file I/O functions
+N*/
+NU32           FS_Read (FS_FILE * pFile,       void * pData, U32 NumBytes);
+Xunsigned long           FS_Read (FS_FILE * pFile,       void * pData, unsigned long NumBytes);
+NU32           FS_Write(FS_FILE * pFile, const void * pData, U32 NumBytes);
+Xunsigned long           FS_Write(FS_FILE * pFile, const void * pData, unsigned long NumBytes);
+N
+N/*********************************************************************
+N*
+N*       File pointer handling
+N*/
+Nint              FS_FSeek       (FS_FILE * pFile, I32 Offset,         int Origin);
+Xint              FS_FSeek       (FS_FILE * pFile, signed long Offset,         int Origin);
+Nint              FS_SetEndOfFile(FS_FILE * pFile);
+NI32              FS_FTell       (FS_FILE * pFile);
+Xsigned long              FS_FTell       (FS_FILE * pFile);
+N
+N#define FS_GetFilePos(pFile)                                FS_FTell(pFile)
+N#define FS_SetFilePos(pFile, DistanceToMove, MoveMethod)    FS_FSeek(pFile, DistanceToMove, MoveMethod)
+N
+N/*********************************************************************
+N*
+N*       I/O error handling
+N*/
+Nint              FS_FEof        (FS_FILE * pFile);
+NI16              FS_FError      (FS_FILE * pFile);
+Xsigned short              FS_FError      (FS_FILE * pFile);
+Nvoid             FS_ClearErr    (FS_FILE * pFile);
+Nconst char *     FS_ErrorNo2Text(int       ErrCode);
+N
+N/*********************************************************************
+N*
+N*       File functions
+N*/
+Nint              FS_CopyFile   (const char * sSource,       const char * sDest);
+NU32              FS_GetFileSize(FS_FILE    * pFile);
+Xunsigned long              FS_GetFileSize(FS_FILE    * pFile);
+Nint              FS_Move       (const char * sExistingName, const char * sNewName);
+Nint              FS_Remove     (const char * pFileName);
+Nint              FS_Rename     (const char * sOldName,      const char * sNewName);
+Nint              FS_Truncate   (FS_FILE    * pFile,         U32          NewSize);
+Xint              FS_Truncate   (FS_FILE    * pFile,         unsigned long          NewSize);
+Nint              FS_Verify     (FS_FILE    * pFile,         const void * pData, U32 NumBytes);
+Xint              FS_Verify     (FS_FILE    * pFile,         const void * pData, unsigned long NumBytes);
+N
+N/*********************************************************************
+N*
+N*       IOCTL
+N*/
+Nint              FS_IoCtl(const char *pDevName, I32 Cmd, I32 Aux, void *pBuffer);
+Xint              FS_IoCtl(const char *pDevName, signed long Cmd, signed long Aux, void *pBuffer);
+N
+N/*********************************************************************
+N*
+N*       Volume related functions
+N*/
+Nint              FS_GetVolumeName       (int Index, char * pBuffer, int MaxSize);
+NU32              FS_GetVolumeSize       (const char * sVolume);
+Xunsigned long              FS_GetVolumeSize       (const char * sVolume);
+NU32              FS_GetVolumeSizeKB     (const char * sVolume);
+Xunsigned long              FS_GetVolumeSizeKB     (const char * sVolume);
+NU32              FS_GetVolumeFreeSpace  (const char * sVolume);
+Xunsigned long              FS_GetVolumeFreeSpace  (const char * sVolume);
+NU32              FS_GetVolumeFreeSpaceKB(const char * sVolume);
+Xunsigned long              FS_GetVolumeFreeSpaceKB(const char * sVolume);
+Nint              FS_GetNumVolumes       (void);
+NFS_VOLUME *      FS_AddDevice           (const FS_DEVICE_TYPE * pDevType);
+Nvoid             FS_Unmount             (const char * sVolume);
+Nint              FS_Mount               (const char * sVolName);
+Nint              FS_MountEx             (const char * sVolume, U8 MountType);
+Xint              FS_MountEx             (const char * sVolume, unsigned char MountType);
+Nint              FS_GetVolumeInfo       (const char * sVolume, FS_DISK_INFO * pInfo);
+Nint              FS_IsVolumeMounted     (const char * sVolumeName);
+Nint              FS_GetVolumeLabel      (const char * sVolume, char * pVolumeLabel, unsigned VolumeLabelSize);
+Nint              FS_SetVolumeLabel      (const char * sVolume, const char * pVolumeLabel);
+Nvoid             FS_CleanVolume         (const char * sVolume);
+Xvoid             FS_STORAGE_Sync(const char * sVolume);
+Nint              FS_IsLLFormatted       (const char * sVolume);
+Nint              FS_IsHLFormatted       (const char * sVolume);
+Nint              FS_FormatLLIfRequired  (const char * sVolume);
+Nvoid             FS_UnmountForced       (const char * sVolume);
+Nvoid             FS_SetAutoMount        (const char * sVolume, U8 MountType);
+Xvoid             FS_SetAutoMount        (const char * sVolume, unsigned char MountType);
+Nvoid             FS_UnmountLL           (const char * sVolume);
+Xvoid             FS_STORAGE_Unmount(const char * sVolume);
+Nint              FS_GetVolumeStatus     (const char * sVolume);
+NFS_VOLUME *      FS_FindVolume          (const char * sVolume);
+Nvoid             FS_RemoveDevice        (const char * sVolume);
+Nint              FS_Sync                (const char * sVolume);
+N
+N
+N/*********************************************************************
+N*
+N*       Journaling / transaction safety
+N*/
+Nvoid FS_JOURNAL_Begin  (const char *sVolume);
+Nvoid FS_JOURNAL_End    (const char *sVolume);
+Nint  FS_JOURNAL_Create (const char * sVolume, U32 NumBytes);
+Xint  FS_JOURNAL_Create (const char * sVolume, unsigned long NumBytes);
+N
+N
+N#define FS_CreateJournal(sVolume, NumBytes)    FS_JOURNAL_Create(sVolume, NumBytes)
+N#define FS_BeginTransaction(sVolume)           FS_JOURNAL_Begin(sVolume)
+N#define FS_EndTransaction(sVolume)             FS_JOURNAL_End(sVolume)
+N
+N/*********************************************************************
+N*
+N*       FS_Attrib
+N*/
+Nint              FS_SetFileAttributes(const char * pName, U8 Attributes);
+Xint              FS_SetFileAttributes(const char * pName, unsigned char Attributes);
+NU8               FS_GetFileAttributes(const char * pName);
+Xunsigned char               FS_GetFileAttributes(const char * pName);
+N
+N/*********************************************************************
+N*
+N*       FS_Time
+N*/
+Nvoid             FS_FileTimeToTimeStamp(const FS_FILETIME * pFileTime, U32 *         pTimeStamp);
+Xvoid             FS_FileTimeToTimeStamp(const FS_FILETIME * pFileTime, unsigned long *         pTimeStamp);
+Nint              FS_GetFileTime        (const char *        pName,     U32 *         pTimeStamp);
+Xint              FS_GetFileTime        (const char *        pName,     unsigned long *         pTimeStamp);
+Nint              FS_GetFileTimeEx      (const char *        pName,     U32 *         pTimeStamp, int Index);
+Xint              FS_GetFileTimeEx      (const char *        pName,     unsigned long *         pTimeStamp, int Index);
+Nint              FS_SetFileTime        (const char *        pName,     U32            TimeStamp);
+Xint              FS_SetFileTime        (const char *        pName,     unsigned long            TimeStamp);
+Nint              FS_SetFileTimeEx      (const char *        pName,     U32            TimeStamp, int Index);
+Xint              FS_SetFileTimeEx      (const char *        pName,     unsigned long            TimeStamp, int Index);
+Nvoid             FS_TimeStampToFileTime(U32                 TimeStamp, FS_FILETIME * pFileTime);
+Xvoid             FS_TimeStampToFileTime(unsigned long                 TimeStamp, FS_FILETIME * pFileTime);
+N
+N
+N/*********************************************************************
+N*
+N*       FS_GetNumFilesOpen
+N*/
+Nint      FS_GetNumFilesOpen(void);
+N
+N
+N/*********************************************************************
+N*
+N*       File system directory functions
+N*/
+Nint  FS_CreateDir      (const char * sDirPath);
+Nint  FS_MkDir          (const char * pDirName);
+Nint  FS_RmDir          (const char * pDirName);
+Nchar FS_FindFirstFile  (FS_FIND_DATA * pfd, const char * sPath, char * sFilename, int sizeofFilename);
+Nchar FS_FindNextFile   (FS_FIND_DATA * pfd);
+Nvoid FS_FindClose      (FS_FIND_DATA * pfd);
+NU32  FS_FAT_GrowRootDir(const char * sVolume, U32 NumAddEntries);
+Xunsigned long  FS_FAT_GrowRootDir(const char * sVolume, unsigned long NumAddEntries);
+N
+N
+N
+N/*********************************************************************
+N*
+N*       Olsolete directory functions
+N*/
+N
+Nvoid     FS_DirEnt2Attr   (FS_DIRENT  * pDirEnt, U8   * pAttr);
+Xvoid     FS_DirEnt2Attr   (FS_DIRENT  * pDirEnt, unsigned char   * pAttr);
+Nvoid     FS_DirEnt2Name   (FS_DIRENT  * pDirEnt, char * pBuffer);
+NU32      FS_DirEnt2Size   (FS_DIRENT  * pDirEnt);
+Xunsigned long      FS_DirEnt2Size   (FS_DIRENT  * pDirEnt);
+NU32      FS_DirEnt2Time   (FS_DIRENT  * pDirEnt);
+Xunsigned long      FS_DirEnt2Time   (FS_DIRENT  * pDirEnt);
+NU32      FS_GetNumFiles   (FS_DIR     * pDir);
+Xunsigned long      FS_GetNumFiles   (FS_DIR     * pDir);
+N
+NFS_DIR    * FS_OpenDir    (const char * pDirName);
+Nint         FS_CloseDir   (FS_DIR     * pDir);
+NFS_DIRENT * FS_ReadDir    (FS_DIR     * pDir);
+Nvoid        FS_RewindDir  (FS_DIR     * pDir);
+N
+N/*********************************************************************
+N*
+N*       File system standard application
+N*/
+Nvoid FSTask(void);
+N
+N/*********************************************************************
+N*
+N*       File system control functions
+N*/
+Nvoid     FS_Init          (void);
+N#if FS_SUPPORT_DEINIT
+X#if 0
+Svoid     FS_DeInit        (void);
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Formatting
+N*/
+Nint              FS_FormatLLIfRequired(const char * sVolumeName);
+Nint              FS_FormatLow         (const char * sVolumeName);
+Nint              FS_Format            (const char * sVolumeName, FS_FORMAT_INFO * pFormatInfo);
+Nint              FS_FormatSD          (const char * sVolumeName);
+N
+N/*********************************************************************
+N*
+N*       CheckDisk functionality
+N*/
+Nconst char * FS_CheckDisk_ErrCode2Text(int ErrCode);
+Nint          FS_CheckDisk(const char * sVolumeName, void * pBuffer, U32 BufferSize, int MaxRecursionLevel, FS_QUERY_F_TYPE * pfOnError);
+Xint          FS_CheckDisk(const char * sVolumeName, void * pBuffer, unsigned long BufferSize, int MaxRecursionLevel, FS_QUERY_F_TYPE * pfOnError);
+Nvoid         FS_FAT_AbortCheckDisk(void);
+N
+N/*********************************************************************
+N*
+N*       CheckDisk macro replacement for
+N*/
+N#define FS_EFS_CheckDisk(sVolumeName, pBuffer, BufferSize, MaxRecursionLevel, pfOnError)  FS_CheckDisk(sVolumeName, pBuffer, BufferSize, MaxRecursionLevel, pfOnError)
+N#define FS_FAT_CheckDisk(sVolumeName, pBuffer, BufferSize, MaxRecursionLevel, pfOnError)  FS_CheckDisk(sVolumeName, pBuffer, BufferSize, MaxRecursionLevel, pfOnError)
+N#define FS_EFS_CheckDisk_ErrCode2Text(ErrCode)                                            FS_CheckDisk_ErrCode2Text(ErrCode)
+N#define FS_FAT_CheckDisk_ErrCode2Text(ErrCode)                                            FS_CheckDisk_ErrCode2Text(ErrCode)
+N
+N/*********************************************************************
+N*
+N*       Configuration functions.
+N*/
+Nvoid FS_FAT_SupportLFN(void);
+Nvoid FS_SetMaxSectorSize(unsigned MaxSectorSize);
+Nvoid FS_WriteUpdateDir(char OnOff);
+N
+N
+N/*********************************************************************
+N*
+N*       Space information functions
+N*/
+N#define FS_GetFreeSpace(sVolume)  FS_GetVolumeFreeSpace(sVolume)
+N#define FS_GetTotalSpace(sVolume) FS_GetVolumeSize(sVolume)
+N
+N
+N/*********************************************************************
+N*
+N*       BusyLED support
+N*/
+Nvoid FS_SetBusyLEDCallback(const char * sVolumeName, FS_BUSY_LED_CALLBACK * pfBusyLEDCallback);
+N
+N
+N/*********************************************************************
+N*
+N*       Memory accessible support
+N*/
+Nvoid FS_SetMemAccessCallback(const char * sVolumeName, FS_MEMORY_IS_ACCESSIBLE_CALLBACK * pfIsAccessibleCallback);
+N
+N/*********************************************************************
+N*
+N*       Device Drivers
+N*
+N*/
+Nstruct FS_DEVICE_TYPE {      // Note: This definition is really intern and should be in "FS_Int.h". In order to avoid problems with old compilers, keep it here.
+N  const char *      (*pfGetName)      (U8 Unit);
+X  const char *      (*pfGetName)      (unsigned char Unit);
+N  int               (*pfAddDevice)    (void);                                                       // Called from AddDevice. Usually the first call to the driver
+N  int               (*pfRead)         (U8 Unit, U32 SectorNo,       void *pBuffer, U32 NumSectors);
+X  int               (*pfRead)         (unsigned char Unit, unsigned long SectorNo,       void *pBuffer, unsigned long NumSectors);
+N  int               (*pfWrite)        (U8 Unit, U32 SectorNo, const void *pBuffer, U32 NumSectors, U8 RepeatSame);
+X  int               (*pfWrite)        (unsigned char Unit, unsigned long SectorNo, const void *pBuffer, unsigned long NumSectors, unsigned char RepeatSame);
+N  int               (*pfIoCtl)        (U8 Unit, I32 Cmd, I32 Aux, void *pBuffer);
+X  int               (*pfIoCtl)        (unsigned char Unit, signed long Cmd, signed long Aux, void *pBuffer);
+N  int               (*pfInitMedium)   (U8 Unit);                                                       // Called when formatting or mounting a device
+X  int               (*pfInitMedium)   (unsigned char Unit);                                                       
+N  int               (*pfGetStatus)    (U8 Unit);
+X  int               (*pfGetStatus)    (unsigned char Unit);
+N  int               (*pfGetNumUnits)  (void);
+N};
+N
+Nextern const FS_DEVICE_TYPE    FS_RAMDISK_Driver;       /* RAMDISK_DRIVER function table */
+Nextern const FS_DEVICE_TYPE    FS_WINDRIVE_Driver;      /* WINDRIVE_DRIVER function table */
+Nextern const FS_DEVICE_TYPE    FS_MMC_CardMode_Driver;  /* MMC_DRIVER SPI function table */
+Nextern const FS_DEVICE_TYPE    FS_MMC_SPI_Driver;       /* MMC_DRIVER CardMode function table */
+Nextern const FS_DEVICE_TYPE    FS_IDE_Driver;           /* IDE_CF_DRIVER function table */
+Nextern const FS_DEVICE_TYPE    FS_NOR_Driver;           /* NOR flash driver function table */
+Nextern const FS_DEVICE_TYPE    FS_GENERIC_Driver;       /* GENERIC_DRIVER function table */
+Nextern const FS_DEVICE_TYPE    FS_NAND_Driver;          /* Nand driver function table */
+N
+N/*********************************************************************
+N*
+N*       NOR driver
+N*/
+Ntypedef struct {
+N  U32 Off;
+X  unsigned long Off;
+N  U32 Size;
+X  unsigned long Size;
+N  U32 EraseCnt;
+X  unsigned long EraseCnt;
+N  U16 NumUsedSectors;
+X  unsigned short NumUsedSectors;
+N  U16 NumFreeSectors;
+X  unsigned short NumFreeSectors;
+N  U16 NumEraseableSectors;
+X  unsigned short NumEraseableSectors;
+N} FS_NOR_SECTOR_INFO;
+N
+Ntypedef struct {
+N  U32 NumPhysSectors;
+X  unsigned long NumPhysSectors;
+N  U32 NumLogSectors;
+X  unsigned long NumLogSectors;
+N  U32 NumUsedSectors;   /* Number of used logical sectors */
+X  unsigned long NumUsedSectors;    
+N} FS_NOR_DISK_INFO;
+N
+Ntypedef struct FS_NOR_PHY_TYPE {
+N  int  (*pfWriteOff)         (U8 Unit, U32 Off, const void * pSrc, U32 Len);
+X  int  (*pfWriteOff)         (unsigned char Unit, unsigned long Off, const void * pSrc, unsigned long Len);
+N  int  (*pfReadOff)          (U8 Unit, void * pDest, U32 Off, U32 Len);
+X  int  (*pfReadOff)          (unsigned char Unit, void * pDest, unsigned long Off, unsigned long Len);
+N  int  (*pfEraseSector)      (U8 Unit, unsigned int SectorIndex);
+X  int  (*pfEraseSector)      (unsigned char Unit, unsigned int SectorIndex);
+N  void (*pfGetSectorInfo)    (U8 Unit, unsigned int SectorIndex, U32 * pOff, U32 * pLen);
+X  void (*pfGetSectorInfo)    (unsigned char Unit, unsigned int SectorIndex, unsigned long * pOff, unsigned long * pLen);
+N  int  (*pfGetNumSectors)    (U8 Unit);
+X  int  (*pfGetNumSectors)    (unsigned char Unit);
+N  void (*pfConfigure)        (U8 Unit, U32 BaseAddr, U32 StartAddr, U32 NumBytes);
+X  void (*pfConfigure)        (unsigned char Unit, unsigned long BaseAddr, unsigned long StartAddr, unsigned long NumBytes);
+N  void (*pfOnSelectPhy)      (U8 Unit);
+X  void (*pfOnSelectPhy)      (unsigned char Unit);
+N  void (*pfDeInit)           (U8 Unit);
+X  void (*pfDeInit)           (unsigned char Unit);
+N} FS_NOR_PHY_TYPE;
+N
+Nextern const FS_NOR_PHY_TYPE FS_NOR_PHY_CFI_1x16;            // 1 x 16-bit CFI compliant NOR flash
+Nextern const FS_NOR_PHY_TYPE FS_NOR_PHY_CFI_2x16;            // 2 x 16-bit CFI compliant NOR flash
+Nextern const FS_NOR_PHY_TYPE FS_NOR_PHY_ST_M25;              // ST M25P compliant Serial NOR flash
+N
+Nvoid         FS_NOR_GetDiskInfo            (U8 Unit, FS_NOR_DISK_INFO * pDiskInfo);
+Xvoid         FS_NOR_GetDiskInfo            (unsigned char Unit, FS_NOR_DISK_INFO * pDiskInfo);
+Nvoid         FS_NOR_GetSectorInfo          (U8 Unit, U32 PhysSectorIndex, FS_NOR_SECTOR_INFO * pSectorInfo);
+Xvoid         FS_NOR_GetSectorInfo          (unsigned char Unit, unsigned long PhysSectorIndex, FS_NOR_SECTOR_INFO * pSectorInfo);
+Nvoid         FS_NOR_Configure              (U8 Unit, U32 BaseAddr, U32 StartAddr, U32 NumBytes);
+Xvoid         FS_NOR_Configure              (unsigned char Unit, unsigned long BaseAddr, unsigned long StartAddr, unsigned long NumBytes);
+Nvoid         FS_NOR_ConfigureReserve       (U8 Unit, U8 Percentage2Reserve);
+Xvoid         FS_NOR_ConfigureReserve       (unsigned char Unit, unsigned char Percentage2Reserve);
+Nvoid         FS_NOR_SetPhyType             (U8 Unit, const FS_NOR_PHY_TYPE * pPhyType);
+Xvoid         FS_NOR_SetPhyType             (unsigned char Unit, const FS_NOR_PHY_TYPE * pPhyType);
+Nconst void * FS_NOR_LogSector2PhySectorAddr(U8 Unit, U32 LogSectorNo);
+Xconst void * FS_NOR_LogSector2PhySectorAddr(unsigned char Unit, unsigned long LogSectorNo);
+Nvoid         FS_NOR_SetSectorSize          (U8 Unit, U16 SectorSize);
+Xvoid         FS_NOR_SetSectorSize          (unsigned char Unit, unsigned short SectorSize);
+Nint          FS_NOR_FormatLow              (U8 Unit);
+Xint          FS_NOR_FormatLow              (unsigned char Unit);
+Nint          FS_NOR_IsLLFormatted          (U8 Unit);
+Xint          FS_NOR_IsLLFormatted          (unsigned char Unit);
+Nvoid         FS_NOR_SPI_Configure          (U8 Unit, U32  SectorSize, U16  NumSectors);
+Xvoid         FS_NOR_SPI_Configure          (unsigned char Unit, unsigned long  SectorSize, unsigned short  NumSectors);
+N
+N/*********************************************************************
+N*
+N*       RAMDISK driver
+N*/
+Nvoid FS_RAMDISK_Configure(U8 Unit, void * pData, U16 BytesPerSector, U32 NumSectors);
+Xvoid FS_RAMDISK_Configure(unsigned char Unit, void * pData, unsigned short BytesPerSector, unsigned long NumSectors);
+N
+N/*********************************************************************
+N*
+N*       MMC/SD driver
+N*/
+Ntypedef struct {
+N  U8 aData[16];
+X  unsigned char aData[16];
+N} MMC_CARD_ID;
+N
+Nvoid FS_MMC_ActivateCRC        (void);
+Nvoid FS_MMC_DeactivateCRC      (void);
+Nint  FS_MMC_GetCardId          (U8 Unit, MMC_CARD_ID * pCardId);
+Xint  FS_MMC_GetCardId          (unsigned char Unit, MMC_CARD_ID * pCardId);
+Nvoid FS_MMC_CM_Allow4bitMode   (U8 Unit, U8 OnOff);
+Xvoid FS_MMC_CM_Allow4bitMode   (unsigned char Unit, unsigned char OnOff);
+N
+N
+N/*********************************************************************
+N*
+N*       IDE/CF driver
+N*/
+Nvoid FS_IDE_Configure(U8 Unit, U8 IsSlave);
+Xvoid FS_IDE_Configure(unsigned char Unit, unsigned char IsSlave);
+N
+N/*********************************************************************
+N*
+N*       NAND driver
+N*/
+N
+Ntypedef struct {
+N  U16          brsi;              // Block relative sector index.
+X  unsigned short          brsi;              
+N  U32          ECC;               // Ecc stored for this sector.
+X  unsigned long          ECC;               
+N  U8           IsValid;           // Sector contains valid data.
+X  unsigned char           IsValid;           
+N} FS_NAND_SECTOR_INFO;
+N
+Ntypedef struct {
+N  U32          EraseCnt;
+X  unsigned long          EraseCnt;
+N  U32          lbi;
+X  unsigned long          lbi;
+N  U16          NumSectorsBlank;               // Sectors are not used yet.
+X  unsigned short          NumSectorsBlank;               
+N  U16          NumSectorsValid;               // Sectors contain correct data.
+X  unsigned short          NumSectorsValid;               
+N  U16          NumSectorsInvalid;             // Sectors have been invalidated.
+X  unsigned short          NumSectorsInvalid;             
+N  U16          NumSectorsECCError;            // Sectors have incorrect ECC.
+X  unsigned short          NumSectorsECCError;            
+N  U16          NumSectorsECCCorrectable;      // Sectors have correctable ECC error.
+X  unsigned short          NumSectorsECCCorrectable;      
+N  const char * sType;
+N} FS_NAND_BLOCK_INFO;
+N
+Ntypedef struct {
+N  U32 NumPhyBlocks;
+X  unsigned long NumPhyBlocks;
+N  U32 NumLogBlocks;
+X  unsigned long NumLogBlocks;
+N  U32 NumUsedPhyBlocks;
+X  unsigned long NumUsedPhyBlocks;
+N  U32 NumBadPhyBlocks;
+X  unsigned long NumBadPhyBlocks;
+N  U32 NumPagesPerBlock;
+X  unsigned long NumPagesPerBlock;
+N  U32 NumSectorsPerBlock;
+X  unsigned long NumSectorsPerBlock;
+N  U32 BytesPerPage;
+X  unsigned long BytesPerPage;
+N  U32 BytesPerSector;
+X  unsigned long BytesPerSector;
+N} FS_NAND_DISK_INFO;
+N
+Ntypedef struct FS_NAND_DEVICE_INFO {
+N  U8  BPP_Shift;              // Bytes per Page shift: 9 for 512 bytes/page or 11 for 2048 bytes/page
+X  unsigned char  BPP_Shift;              
+N  U8  PPB_Shift;              // Pages per block shift: 32 -> 5, 64 -> 6
+X  unsigned char  PPB_Shift;              
+N  U16 NumBlocks;              // Number of Blocks in device
+X  unsigned short NumBlocks;              
+N} FS_NAND_DEVICE_INFO;
+N
+Ntypedef struct FS_NAND_PHY_TYPE {
+N  int    (*pfEraseBlock)    (U8 Unit, U32 Block);
+X  int    (*pfEraseBlock)    (unsigned char Unit, unsigned long Block);
+N  int    (*pfInitGetDeviceInfo) (U8 Unit, FS_NAND_DEVICE_INFO * pDevInfo);
+X  int    (*pfInitGetDeviceInfo) (unsigned char Unit, FS_NAND_DEVICE_INFO * pDevInfo);
+N  int    (*pfIsWP)          (U8 Unit);
+X  int    (*pfIsWP)          (unsigned char Unit);
+N  int    (*pfRead)          (U8 Unit, U32 PageNo,       void * pData, unsigned Off, unsigned NumBytes);
+X  int    (*pfRead)          (unsigned char Unit, unsigned long PageNo,       void * pData, unsigned Off, unsigned NumBytes);
+N  int    (*pfReadEx)        (U8 Unit, U32 PageNo,       void * pData, unsigned Off, unsigned NumBytes, void * pSpare, unsigned OffSpare, unsigned NumBytesSpare);
+X  int    (*pfReadEx)        (unsigned char Unit, unsigned long PageNo,       void * pData, unsigned Off, unsigned NumBytes, void * pSpare, unsigned OffSpare, unsigned NumBytesSpare);
+N  int    (*pfWrite)         (U8 Unit, U32 PageNo, const void * pData, unsigned Off, unsigned NumBytes);
+X  int    (*pfWrite)         (unsigned char Unit, unsigned long PageNo, const void * pData, unsigned Off, unsigned NumBytes);
+N  int    (*pfWriteEx)       (U8 Unit, U32 PageNo, const void * pData, unsigned Off, unsigned NumBytes, const void* pSpare, unsigned OffSpare, unsigned NumBytesSpare);
+X  int    (*pfWriteEx)       (unsigned char Unit, unsigned long PageNo, const void * pData, unsigned Off, unsigned NumBytes, const void* pSpare, unsigned OffSpare, unsigned NumBytesSpare);
+N} FS_NAND_PHY_TYPE;
+N
+N
+Nextern const FS_NAND_PHY_TYPE FS_NAND_PHY_x;                        // 512 or 2048 byte pages,  8-bit or 16-bit interface
+Nextern const FS_NAND_PHY_TYPE FS_NAND_PHY_x8;                       // 512 or 2048 byte pages,  8-bit interface
+Nextern const FS_NAND_PHY_TYPE FS_NAND_PHY_x16;                      // 512 or 2048 byte pages, 16-bit interface
+Nextern const FS_NAND_PHY_TYPE FS_NAND_PHY_512x8;                    // 512 byte pages,  8-bit interface
+Nextern const FS_NAND_PHY_TYPE FS_NAND_PHY_512x16;                   // 512 byte pages, 16-bit interface
+Nextern const FS_NAND_PHY_TYPE FS_NAND_PHY_2048x8;                   // 2048 byte pages,  8-bit interface
+Nextern const FS_NAND_PHY_TYPE FS_NAND_PHY_2048x16;                  // 2048 byte pages,  16-bit interface
+Nextern const FS_NAND_PHY_TYPE FS_NAND_PHY_4096x8;                   // 4096 byte pages,  8-bit interface
+Nextern const FS_NAND_PHY_TYPE FS_NAND_PHY_DataFlash;                // Physical layer for Atmel serial DATAFLASH
+N
+Nvoid FS_NAND_ResetStatCounters(U8 Unit);
+Xvoid FS_NAND_ResetStatCounters(unsigned char Unit);
+Nvoid FS_NAND_SetPhyType       (U8 Unit, const FS_NAND_PHY_TYPE * pPhyType);
+Xvoid FS_NAND_SetPhyType       (unsigned char Unit, const FS_NAND_PHY_TYPE * pPhyType);
+Nvoid FS_NAND_SetBlockRange    (U8 Unit, U16 FirstBlock, U16 MaxNumBlocks);
+Xvoid FS_NAND_SetBlockRange    (unsigned char Unit, unsigned short FirstBlock, unsigned short MaxNumBlocks);
+Nvoid FS_NAND_GetDiskInfo      (U8 Unit, FS_NAND_DISK_INFO * pDiskInfo);
+Xvoid FS_NAND_GetDiskInfo      (unsigned char Unit, FS_NAND_DISK_INFO * pDiskInfo);
+Nvoid FS_NAND_GetBlockInfo     (U8 Unit, U32 PhysBlockIndex, FS_NAND_BLOCK_INFO * pBlockInfo);
+Xvoid FS_NAND_GetBlockInfo     (unsigned char Unit, unsigned long PhysBlockIndex, FS_NAND_BLOCK_INFO * pBlockInfo);
+Nvoid FS_NAND_GetSectorInfo    (U8 Unit, U32 PhysSectorIndex, FS_NAND_SECTOR_INFO * pBlockInfo);
+Xvoid FS_NAND_GetSectorInfo    (unsigned char Unit, unsigned long PhysSectorIndex, FS_NAND_SECTOR_INFO * pBlockInfo);
+Nint  FS_NAND_FormatLow        (U8 Unit);
+Xint  FS_NAND_FormatLow        (unsigned char Unit);
+Nint  FS_NAND_IsLLFormatted    (U8 Unit);
+Xint  FS_NAND_IsLLFormatted    (unsigned char Unit);
+N
+N/*********************************************************************
+N*
+N*       WinDrive driver
+N*/
+Nvoid WINDRIVE_Configure(U8 Unit, const char * sWindowsDriveName);
+Xvoid WINDRIVE_Configure(unsigned char Unit, const char * sWindowsDriveName);
+N
+N
+N/*********************************************************************
+N*
+N*       Data Flash PHY layer
+N*/
+Nvoid FS_DF_ChipErase(U8 Unit);
+Xvoid FS_DF_ChipErase(unsigned char Unit);
+N
+N/*********************************************************************
+N*
+N*       Cache handling
+N*/
+N#if FS_SUPPORT_CACHE
+X#if 1
+N
+N/*********************************************************************
+N*
+N*       General Cache mode defines, do not use in application
+N*/
+N#define FS_CACHE_MODE_R         0x01
+N#define FS_CACHE_MODE_W         0x02
+N#define FS_CACHE_MODE_D         0x04
+N// Obsolete Cache mode define, do not use
+N#define FS_CACHE_MODE_FULL      (FS_CACHE_MODE_R | FS_CACHE_MODE_W | FS_CACHE_MODE_D)
+N
+N/*********************************************************************
+N*
+N*       Cache mode defines that can be used in application
+N*/
+N#define FS_CACHE_MODE_WT        (FS_CACHE_MODE_R | FS_CACHE_MODE_W)
+N#define FS_CACHE_MODE_WB        (FS_CACHE_MODE_R | FS_CACHE_MODE_W | FS_CACHE_MODE_D)
+N
+N/*********************************************************************
+N*
+N*       Cache specific defines
+N*/
+N#define FS_CACHE_NONE      NULL
+N#define FS_CACHE_MAN       FS_CacheMan_Init
+N#define FS_CACHE_RW        FS_CacheRW_Init
+N#define FS_CACHE_RW_QUOTA  FS_CacheRWQuota_Init
+N#define FS_CACHE_ALL       FS_CacheAll_Init
+N#define FS_CACHEALL_API    FS_CacheAll_Init    /* For compatibility with older version */
+N#define FS_CACHEMAN_API    FS_CacheMan_Init    /* For compatibility with older version */
+N/*********************************************************************
+N*
+N*       Cache specific types
+N*/
+Ntypedef U32 FS_INIT_CACHE (FS_DEVICE * pDevice, void * pData,   I32 NumBytes);
+Xtypedef unsigned long FS_INIT_CACHE (FS_DEVICE * pDevice, void * pData,   signed long NumBytes);
+N
+N/*********************************************************************
+N*
+N*       Cache specific prototypes
+N*/
+NU32    FS_AssignCache     (const char * pName, void * pData, I32 NumBytes, FS_INIT_CACHE * pfInit);
+Xunsigned long    FS_AssignCache     (const char * pName, void * pData, signed long NumBytes, FS_INIT_CACHE * pfInit);
+Nvoid   FS_CACHE_Clean     (const char * pName);
+Nint    FS_CACHE_Command   (const char * pName, int Cmd,      void * pData);
+Nint    FS_CACHE_SetMode   (const char * pName, int TypeMask, int    ModeMask);
+Nint    FS_CACHE_SetQuota  (const char * pName, int TypeMask, U32    NumSectors);
+Xint    FS_CACHE_SetQuota  (const char * pName, int TypeMask, unsigned long    NumSectors);
+Nint    FS_CACHE_Invalidate(const char * sVolumeName);
+N
+N/*********************************************************************
+N*
+N*       Cache initialization prototypes
+N*/
+NU32 FS_CacheAll_Init    (FS_DEVICE * pDev, void * pData, I32 NumBytes);
+Xunsigned long FS_CacheAll_Init    (FS_DEVICE * pDev, void * pData, signed long NumBytes);
+NU32 FS_CacheMan_Init    (FS_DEVICE * pDev, void * pData, I32 NumBytes);
+Xunsigned long FS_CacheMan_Init    (FS_DEVICE * pDev, void * pData, signed long NumBytes);
+NU32 FS_CacheRW_Init     (FS_DEVICE * pDev, void * pData, I32 NumBytes);
+Xunsigned long FS_CacheRW_Init     (FS_DEVICE * pDev, void * pData, signed long NumBytes);
+NU32 FS_CacheRWQuota_Init(FS_DEVICE * pDev, void * pData, I32 NumBytes);
+Xunsigned long FS_CacheRWQuota_Init(FS_DEVICE * pDev, void * pData, signed long NumBytes);
+N
+N#endif
+N
+N/*********************************************************************
+N*
+N*       File system selection prototype
+N*/
+N#if FS_SUPPORT_MULTIPLE_FS
+X#if ((0) && (1))
+Sint FS_SetFSType(const char * sVolume, int FSType);
+N#endif
+N
+Ntypedef void   (FS_PF_FREE) (void * p);
+Ntypedef void * (FS_PF_ALLOC)(U32 NumBytes);
+Xtypedef void * (FS_PF_ALLOC)(unsigned long NumBytes);
+N/*********************************************************************
+N*
+N*       Memory allocation functions
+N*/
+Nvoid * FS_Alloc         (I32     NumBytes);
+Xvoid * FS_Alloc         (signed long     NumBytes);
+Nvoid * FS_AllocZeroed   (I32     NumBytes);
+Xvoid * FS_AllocZeroed   (signed long     NumBytes);
+Nvoid   FS_Free          (void *  p);
+Nvoid   FS_AllocZeroedPtr(void ** pp, I32 NumBytes);
+Xvoid   FS_AllocZeroedPtr(void ** pp, signed long NumBytes);
+Nvoid * FS_TryAlloc      (I32     NumBytesReq);
+Xvoid * FS_TryAlloc      (signed long     NumBytesReq);
+N
+N/*********************************************************************
+N*
+N*       Logical driver config
+N*/
+Nint FS_AddPhysDevice   (const FS_DEVICE_TYPE * pDevType);
+Nint FS_LOGVOL_Create   (const char * sVolName);
+Nint FS_LOGVOL_AddDevice(const char * sLogVolName, const FS_DEVICE_TYPE * pDevice, U8 Unit, U32 StartOff, U32 NumSectors);
+Xint FS_LOGVOL_AddDevice(const char * sLogVolName, const FS_DEVICE_TYPE * pDevice, unsigned char Unit, unsigned long StartOff, unsigned long NumSectors);
+N
+N
+N/*********************************************************************
+N*
+N*       Debug support
+N*/
+Nvoid   FS_X_Log     (const char *s);
+Nvoid   FS_X_Warn    (const char *s);
+Nvoid   FS_X_ErrorOut(const char *s);
+N
+N
+N/*********************************************************************
+N*
+N*       Application supplied functions FS_X_...
+N*/
+Nvoid   FS_X_Free(void * p);
+Nvoid   FS_X_Panic(int ErrorCode);
+Nvoid   FS_X_AddDevices(void);
+NU32    FS_X_GetTimeDate(void);
+Xunsigned long    FS_X_GetTimeDate(void);
+N
+NU32  FS_GetMaxSectorSize(void);
+Xunsigned long  FS_GetMaxSectorSize(void);
+Nvoid FS_AssignMemory    (U32 *pMem, U32 NumBytes);
+Xvoid FS_AssignMemory    (unsigned long *pMem, unsigned long NumBytes);
+Nvoid FS_SetMemHandler   (FS_PF_ALLOC * pfAlloc, FS_PF_FREE * pfFree);
+N
+Nvoid     FS_SetDefFileBufferSize(U32 BufferSize);
+Xvoid     FS_SetDefFileBufferSize(unsigned long BufferSize);
+Nunsigned FS_GetDefFileBufferSize(void);
+Nvoid     FS_SetFileBufferSize(FS_FILE * pFile, U32 BufferSize);
+Xvoid     FS_SetFileBufferSize(FS_FILE * pFile, unsigned long BufferSize);
+N
+N#if defined(__cplusplus)
+X#if 0L
+S  }              /* Make sure we have C-declarations in C++ programs */
+N#endif
+N
+N#endif                        // Avoid recursive and multiple inclusion
+N
+N/*************************** End of file ****************************/
+L 20 "Config\FS_ConfigIO.c" 2
+N
+N/*********************************************************************
+N*
+N*       FS_X_Panic
+N*
+N*  Function description
+N*    Referred in debug builds of the file system only and
+N*    called only in case of fatal, unrecoverable errors.
+N*/
+Nvoid FS_X_Panic(int ErrorCode) {
+N  FS_USE_PARA(ErrorCode);
+X  ErrorCode=ErrorCode;;
+N  while (1);
+N}
+N
+N/*********************************************************************
+N*
+N*      Logging: OS dependent
+N
+NNote:
+N  Logging is used in higher debug levels only. The typical target
+N  build does not use logging and does therefore not require any of
+N  the logging routines below. For a release build without logging
+N  the routines below may be eliminated to save some space.
+N  (If the linker is not function aware and eliminates unreferenced
+N  functions automatically)
+N
+N*/
+Nvoid FS_X_Log(const char *s) {
+N  printf("%s", s);
+N}
+N
+Nvoid FS_X_Warn(const char *s) {
+N  printf("FS warning: %s\n", s);
+N}
+N
+Nvoid FS_X_ErrorOut(const char *s) {
+N  printf("FS error: %s\n", s);
+N}
+N
+N/*************************** End of file ****************************/
