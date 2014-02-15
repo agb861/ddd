@@ -1,0 +1,77 @@
+;
+; USB BULK driver setup information file
+; Copyright (c) 2006-2008 by SEGGER Microcontroller GmbH & Co. KG
+;
+; This file supports:
+;     Windows XP x64 Edition
+;     Windows Server 2003 x64 Edition
+;     Windows Vista x64
+;     Windows Server 2009 x64
+;
+[Version]
+Signature="$Windows NT$"
+Provider=%MfgName%
+Class=USB
+ClassGUID={36FC9E60-C465-11CF-8056-444553540000}
+DriverVer=03/19/2008,2.6.6.0
+CatalogFile=USBBulkx64.cat
+
+[Manufacturer]
+%MfgName%=DeviceList, ntamd64
+
+[DeviceList.ntamd64]
+%USB\VID_8765&PID_1234.DeviceDesc%=USBBulkInstall, USB\VID_8765&PID_1234
+
+[USBBulkInstall.ntamd64]
+CopyFiles=USBBulkCopyFiles
+
+[USBBulkInstall.ntamd64.Services]
+Addservice = USBBulk, 0x00000002, USBBulkAddService, USBBulkEventLog
+
+[USBBulkAddService]
+DisplayName    = %USBBulk.SvcDesc%
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 3                  ; SERVICE_DEMAND_START
+ErrorControl   = 1                  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %10%\System32\Drivers\USBBulkx64.sys
+
+[USBBulkEventLog]
+AddReg=USBBulkEventLogAddReg
+
+[USBBulkEventLogAddReg]
+HKR,,EventMessageFile,%REG_EXPAND_SZ%,"%%SystemRoot%%\System32\IoLogMsg.dll;%%SystemRoot%%\System32\drivers\USBBulkx64.sys"
+HKR,,TypesSupported,  %REG_DWORD%,7
+
+
+[USBBulkCopyFiles]
+USBBulkx64.sys
+
+[DestinationDirs]
+DefaultDestDir = 10,System32\Drivers
+USBBulkCopyFiles = 10,System32\Drivers
+
+
+[SourceDisksNames.amd64]
+1=%USBBulk.DiskName%,,
+
+[SourceDisksFiles.amd64]
+USBBulkx64.sys = 1
+
+
+;---------------------------------------------------------------;
+
+[Strings]
+MfgName="Segger"
+USB\VID_8765&PID_1234.DeviceDesc="USB BULK driver"
+USBBulk.SvcDesc="USB BULK driver"
+USBBulk.DiskName="USB BULK Installation Disk"
+
+; Non-Localizable Strings, DO NOT MODIFY!
+REG_SZ         = 0x00000000
+REG_MULTI_SZ   = 0x00010000
+REG_EXPAND_SZ  = 0x00020000
+REG_BINARY     = 0x00000001
+REG_DWORD      = 0x00010001
+
+
+; *** EOF ***

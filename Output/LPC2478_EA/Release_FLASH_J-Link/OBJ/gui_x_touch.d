@@ -1,0 +1,9 @@
+.\output\lpc2478_ea\release_flash_j-link\obj\gui_x_touch.o: Setup\GUI_X_Touch.c
+.\output\lpc2478_ea\release_flash_j-link\obj\gui_x_touch.o: Config\SysConf.h
+.\output\lpc2478_ea\release_flash_j-link\obj\gui_x_touch.o: GUI\GUI.h
+.\output\lpc2478_ea\release_flash_j-link\obj\gui_x_touch.o: GUI\GUI_ConfDefaults.h
+.\output\lpc2478_ea\release_flash_j-link\obj\gui_x_touch.o: Config\GUIConf.h
+.\output\lpc2478_ea\release_flash_j-link\obj\gui_x_touch.o: GUI\GUI_Type.h
+.\output\lpc2478_ea\release_flash_j-link\obj\gui_x_touch.o: GUI\LCD.h
+.\output\lpc2478_ea\release_flash_j-link\obj\gui_x_touch.o: GUI\Global.h
+.\output\lpc2478_ea\release_flash_j-link\obj\gui_x_touch.o: GUI\GUI_Version.h

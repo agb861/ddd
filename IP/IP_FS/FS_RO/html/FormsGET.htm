@@ -1,0 +1,107 @@
+<HTML>
+  <HEAD>
+    <TITLE>Form sample - Request method "GET" and "POST"</TITLE>
+  </HEAD>
+    <style type="text/css">
+      H1, H2, H3, H4 { color: white }
+      H1, H2, H3, H4, H5 { font-family: Helvetica;}
+      PRE {  color: black;  margin-left: 2%; ; font-size=150%}
+      BODY{padding:0px; margin:0px; text-align:center; font-family:Verdana, Helvetica, sans-serif; background:#6699CC url(bg.png) repeat-x; font-size:11px; color:white }
+      A:link { font-weight:bold; color:white; text-decoration:none; }
+      A:visited { font-weight:bold; color:silver; text-decoration:none; }
+      A:focus { font-weight:bold; color:white; text-decoration:underline; }
+      A:hover { font-weight:bold; color:silver; text-decoration:none; }
+      A:active { font-weight:bold; color:white; text-decoration:underline; }
+    </style>
+  <BODY BGCOLOR="<!--#exec cgi="Color"-->">
+    <CENTER>
+      <HR>
+      <H2>Form sample - Request method "GET"</H2>
+      <HR>
+    </CENTER>
+    <BR><BR>
+    <!--                -->
+    <!-- Percentage bar -->
+    <!--                -->
+    <P><B>Percentage sample ("GET")</B></P>
+    <TABLE BGCOLOR="FFFFFF" BORDER="2" CELLPADDING="0" CELLSPACING="0" WIDTH="100%">
+      <TR>
+        <TD>
+          <TABLE WIDTH="<!--#exec cgi="Percentage"-->%" BORDER="0" CELLPADDING="0" CELLSPACING="0">
+            <TR><TD BGCOLOR="00FF00">&nbsp;</TD></TR>
+          </TABLE>
+        </TD>
+      </TR>
+    </TABLE>
+    <TABLE BORDER="0" CELLPADDING="0" CELLSPACING="0" WIDTH="100%">
+      <TR>
+        <TD width="10%">00</TD>
+        <TD width="10%">10</TD>
+        <TD width="10%">20</TD>
+        <TD width="10%">30</TD>
+        <TD width="10%">40</TD>
+        <TD width="10%">50</TD>
+        <TD width="10%">60</TD>
+        <TD width="10%">70</TD>
+        <TD width="10%">80</TD>
+        <TD width="10%">90</TD>
+      </TR>
+    </TABLE>
+    <FORM ACTION="" METHOD="GET">
+      <P><B>
+        The current value is <!--#exec cgi="Percentage"-->%.<P>
+        Change percentage: <INPUT name="Percentage" TYPE="text" SIZE="4" MAXLENGTH="4" VALUE="<!--#exec cgi="Percentage"-->"><P>
+        <INPUT TYPE="submit" VALUE="Change">
+      </B></P>      
+    </FORM>
+    <HR>
+    <!--             -->
+    <!-- Output name -->
+    <!--             -->
+    <P>
+      <B>Hello <!--#exec cgi="FirstName"--> <!--#exec cgi="LastName"-->!</B><BR>
+    </P>
+    <FORM ACTION="" METHOD="GET">
+      <P>
+        <B>First name: </B><INPUT name="FirstName" TYPE="text" SIZE="30" MAXLENGTH="30" value="<!--#exec cgi="FirstName"-->"><P>
+        <B>Last name : </B><INPUT name="LastName"  TYPE="text" SIZE="30" MAXLENGTH="30" value="<!--#exec cgi="LastName"-->"><P>
+        <INPUT TYPE="submit" VALUE="Change">
+      </P>      
+    </FORM>
+    <HR>           
+    <!--                -->
+    <!-- Toggle LEDs    -->
+    <!--                -->
+    <P><B>Set/clear LEDs:</B></P>
+    <FORM ACTION="" METHOD="GET">
+      <p>
+        <input <!--#exec cgi="LED0"--> type="checkbox" name="LED0">LED0 &nbsp; 
+        <input <!--#exec cgi="LED1"--> type="checkbox" name="LED1">LED1 &nbsp; 
+        <input <!--#exec cgi="LED2"--> type="checkbox" name="LED2">LED2 &nbsp; 
+        <input <!--#exec cgi="LED3"--> type="checkbox" name="LED3">LED3 &nbsp; 
+        <input <!--#exec cgi="LED4"--> type="checkbox" name="LED4">LED4 &nbsp; 
+        <input <!--#exec cgi="LED5"--> type="checkbox" name="LED5">LED5 &nbsp; 
+        <input <!--#exec cgi="LED6"--> type="checkbox" name="LED6">LED6 &nbsp; 
+        <input <!--#exec cgi="LED7"--> type="checkbox" name="LED7">LED7 &nbsp; 
+        <INPUT TYPE="submit" VALUE="Change" name = "SetLEDs">
+      </p>
+    </FORM>
+    <HR>
+    <!--                   -->
+    <!-- Javascript sample -->
+    <!--                   -->
+    <P><B>Javascript sample:</B></P>
+    <FORM ACTION="">
+      <P>
+        <textarea cols="20" rows="4" name="textfeld"></textarea><P>
+        <input type="button" name="Text1" value="Show text 1" onclick="this.form.textfeld.value='This is text 1.'">
+        <input type="button" name="Text2" value="Show text 2" onclick="this.form.textfeld.value='This is text 2.'">
+      </P>
+    </FORM>
+    <HR>
+    <CENTER>
+      <A HREF="index.htm">Back to main</A>
+    </CENTER>
+    <IMG SRC="seggerlogo.gif" ALT="Segger logo">&nbsp;&nbsp; SEGGER Microcontroller GmbH &amp; Co. KG &nbsp;&nbsp;<A HREF="http://www.segger.com">www.segger.com</A>
+  </BODY>
+</HTML>

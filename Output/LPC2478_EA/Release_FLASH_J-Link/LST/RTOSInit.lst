@@ -1,0 +1,4151 @@
+L 1 "Setup\RTOSInit.c"
+N/*********************************************************************
+N*               SEGGER MICROCONTROLLER SYSTEME GmbH                  *
+N*       Solutions for real time microcontroller applications         *
+N**********************************************************************
+N*                                                                    *
+N*       (c) 1995 - 2007  SEGGER Microcontroller Systeme GmbH         *
+N*                                                                    *
+N*       www.segger.com     Support: support@segger.com               *
+N*                                                                    *
+N**********************************************************************
+N*                                                                    *
+N*       embOS * Real time operating system for microcontrollers      *
+N*                                                                    *
+N*                                                                    *
+N*       Please note:                                                 *
+N*                                                                    *
+N*       Knowledge of this file may under no circumstances            *
+N*       be used to write a similar product or a real-time            *
+N*       operating system for in-house use.                           *
+N*                                                                    *
+N*       Thank you for your fairness !                                *
+N*                                                                    *
+N**********************************************************************
+N*                                                                    *
+N*       embOS version: 3.50b                                         *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : RTOSInit.c   (for NXP LPC2478 CPU)
+NPurpose : Initializes and handles the hardware for the OS as far
+N          as required by the OS.
+N          Feel free to modify this file acc. to your
+N          target system.
+NLiterature:  [1]: NXP ERRATA-SHEET LPC2468 Ver. 1.3
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N#include "RTOS.H"
+L 1 "OS\RTOS.H" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : RTOS.h
+NPurpose : include file for embOS,
+N          to be included in every C-module accessing embOS-routines
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N#ifndef RTOS_H_INCLUDED        /* Avoid multiple inclusion          */
+N#define RTOS_H_INCLUDED
+N
+N/*********************************************************************
+N*
+N*       Chip specifics for ARM7TDMI / ARM9TDMI and KEIL ARM MDK
+N*
+N**********************************************************************
+N*/
+N
+N#include <string.h>                            /* req. for memset.h */
+L 1 "C:\Program Files (x86)\Keil\V473\ARM\ARMCC\bin\..\include\string.h" 1
+N/* string.h: ANSI 'C' (X3J11 Oct 88) library header, section 4.11 */
+N/* Copyright (C) Codemist Ltd., 1988-1993.                        */
+N/* Copyright 1991-1993 ARM Limited. All rights reserved.          */
+N/* version 0.04 */
+N
+N/*
+N * RCS $Revision: 178085 $
+N * Checkin $Date: 2012-12-11 14:54:17 +0000 (Tue, 11 Dec 2012) $
+N */
+N
+N/*
+N * string.h declares one type and several functions, and defines one macro
+N * useful for manipulating character arrays and other objects treated as
+N * character arrays. Various methods are used for determining the lengths of
+N * the arrays, but in all cases a char * or void * argument points to the
+N * initial (lowest addresses) character of the array. If an array is written
+N * beyond the end of an object, the behaviour is undefined.
+N */
+N
+N#ifndef __string_h
+N#define __string_h
+N#define __ARMCLIB_VERSION 5030076
+N
+N#define _ARMABI __declspec(__nothrow)
+N
+N  #ifndef __STRING_DECLS
+N  #define __STRING_DECLS
+N
+N    #undef __CLIBNS
+N
+N    #ifdef __cplusplus
+S        namespace std {
+S        #define __CLIBNS std::
+S        extern "C" {
+N    #else
+N      #define __CLIBNS
+N    #endif  /* __cplusplus */
+N
+N#if defined(__cplusplus) || !defined(__STRICT_ANSI__)
+X#if 0L || !0L
+N /* unconditional in C++ and non-strict C for consistency of debug info */
+N  typedef unsigned int size_t;
+N#elif !defined(__size_t)
+S  #define __size_t 1
+S  typedef unsigned int size_t;   /* see <stddef.h> */
+N#endif
+N
+N#undef NULL
+N#define NULL 0                   /* see <stddef.h> */
+N
+Nextern _ARMABI void *memcpy(void * __restrict /*s1*/,
+Xextern __declspec(__nothrow) void *memcpy(void * __restrict  ,
+N                    const void * __restrict /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * copies n characters from the object pointed to by s2 into the object
+N    * pointed to by s1. If copying takes place between objects that overlap,
+N    * the behaviour is undefined.
+N    * Returns: the value of s1.
+N    */
+Nextern _ARMABI void *memmove(void * /*s1*/,
+Xextern __declspec(__nothrow) void *memmove(void *  ,
+N                    const void * /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * copies n characters from the object pointed to by s2 into the object
+N    * pointed to by s1. Copying takes place as if the n characters from the
+N    * object pointed to by s2 are first copied into a temporary array of n
+N    * characters that does not overlap the objects pointed to by s1 and s2,
+N    * and then the n characters from the temporary array are copied into the
+N    * object pointed to by s1.
+N    * Returns: the value of s1.
+N    */
+Nextern _ARMABI char *strcpy(char * __restrict /*s1*/, const char * __restrict /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strcpy(char * __restrict  , const char * __restrict  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * copies the string pointed to by s2 (including the terminating nul
+N    * character) into the array pointed to by s1. If copying takes place
+N    * between objects that overlap, the behaviour is undefined.
+N    * Returns: the value of s1.
+N    */
+Nextern _ARMABI char *strncpy(char * __restrict /*s1*/, const char * __restrict /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strncpy(char * __restrict  , const char * __restrict  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * copies not more than n characters (characters that follow a null
+N    * character are not copied) from the array pointed to by s2 into the array
+N    * pointed to by s1. If copying takes place between objects that overlap,
+N    * the behaviour is undefined.
+N    * Returns: the value of s1.
+N    */
+N
+Nextern _ARMABI char *strcat(char * __restrict /*s1*/, const char * __restrict /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strcat(char * __restrict  , const char * __restrict  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * appends a copy of the string pointed to by s2 (including the terminating
+N    * null character) to the end of the string pointed to by s1. The initial
+N    * character of s2 overwrites the null character at the end of s1.
+N    * Returns: the value of s1.
+N    */
+Nextern _ARMABI char *strncat(char * __restrict /*s1*/, const char * __restrict /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strncat(char * __restrict  , const char * __restrict  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * appends not more than n characters (a null character and characters that
+N    * follow it are not appended) from the array pointed to by s2 to the end of
+N    * the string pointed to by s1. The initial character of s2 overwrites the
+N    * null character at the end of s1. A terminating null character is always
+N    * appended to the result.
+N    * Returns: the value of s1.
+N    */
+N
+N/*
+N * The sign of a nonzero value returned by the comparison functions is
+N * determined by the sign of the difference between the values of the first
+N * pair of characters (both interpreted as unsigned char) that differ in the
+N * objects being compared.
+N */
+N
+Nextern _ARMABI int memcmp(const void * /*s1*/, const void * /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int memcmp(const void *  , const void *  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares the first n characters of the object pointed to by s1 to the
+N    * first n characters of the object pointed to by s2.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the object pointed to by s1 is greater than, equal to, or
+N    *          less than the object pointed to by s2.
+N    */
+Nextern _ARMABI int strcmp(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int strcmp(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares the string pointed to by s1 to the string pointed to by s2.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the string pointed to by s1 is greater than, equal to, or
+N    *          less than the string pointed to by s2.
+N    */
+Nextern _ARMABI int strncmp(const char * /*s1*/, const char * /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int strncmp(const char *  , const char *  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares not more than n characters (characters that follow a null
+N    * character are not compared) from the array pointed to by s1 to the array
+N    * pointed to by s2.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the string pointed to by s1 is greater than, equal to, or
+N    *          less than the string pointed to by s2.
+N    */
+Nextern _ARMABI int strcasecmp(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int strcasecmp(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares the string pointed to by s1 to the string pointed to by s2,
+N    * case-insensitively as defined by the current locale.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the string pointed to by s1 is greater than, equal to, or
+N    *          less than the string pointed to by s2.
+N    */
+Nextern _ARMABI int strncasecmp(const char * /*s1*/, const char * /*s2*/, size_t /*n*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int strncasecmp(const char *  , const char *  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares not more than n characters (characters that follow a null
+N    * character are not compared) from the array pointed to by s1 to the array
+N    * pointed to by s2, case-insensitively as defined by the current locale.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the string pointed to by s1 is greater than, equal to, or
+N    *          less than the string pointed to by s2.
+N    */
+Nextern _ARMABI int strcoll(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) int strcoll(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * compares the string pointed to by s1 to the string pointed to by s2, both
+N    * interpreted as appropriate to the LC_COLLATE category of the current
+N    * locale.
+N    * Returns: an integer greater than, equal to, or less than zero, according
+N    *          as the string pointed to by s1 is greater than, equal to, or
+N    *          less than the string pointed to by s2 when both are interpreted
+N    *          as appropriate to the current locale.
+N    */
+N
+Nextern _ARMABI size_t strxfrm(char * __restrict /*s1*/, const char * __restrict /*s2*/, size_t /*n*/) __attribute__((__nonnull__(2)));
+Xextern __declspec(__nothrow) size_t strxfrm(char * __restrict  , const char * __restrict  , size_t  ) __attribute__((__nonnull__(2)));
+N   /*
+N    * transforms the string pointed to by s2 and places the resulting string
+N    * into the array pointed to by s1. The transformation function is such that
+N    * if the strcmp function is applied to two transformed strings, it returns
+N    * a value greater than, equal to or less than zero, corresponding to the
+N    * result of the strcoll function applied to the same two original strings.
+N    * No more than n characters are placed into the resulting array pointed to
+N    * by s1, including the terminating null character. If n is zero, s1 is
+N    * permitted to be a null pointer. If copying takes place between objects
+N    * that overlap, the behaviour is undefined.
+N    * Returns: The length of the transformed string is returned (not including
+N    *          the terminating null character). If the value returned is n or
+N    *          more, the contents of the array pointed to by s1 are
+N    *          indeterminate.
+N    */
+N
+N
+N#ifdef __cplusplus
+Sextern _ARMABI const void *memchr(const void * /*s*/, int /*c*/, size_t /*n*/) __attribute__((__nonnull__(1)));
+Sextern "C++" void *memchr(void * __s, int __c, size_t __n) __attribute__((__nonnull__(1)));
+Sextern "C++" inline void *memchr(void * __s, int __c, size_t __n)
+S    { return const_cast<void *>(memchr(const_cast<const void *>(__s), __c, __n)); }
+N#else
+Nextern _ARMABI void *memchr(const void * /*s*/, int /*c*/, size_t /*n*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) void *memchr(const void *  , int  , size_t  ) __attribute__((__nonnull__(1)));
+N#endif
+N   /*
+N    * locates the first occurence of c (converted to an unsigned char) in the
+N    * initial n characters (each interpreted as unsigned char) of the object
+N    * pointed to by s.
+N    * Returns: a pointer to the located character, or a null pointer if the
+N    *          character does not occur in the object.
+N    */
+N
+N#ifdef __cplusplus
+Sextern _ARMABI const char *strchr(const char * /*s*/, int /*c*/) __attribute__((__nonnull__(1)));
+Sextern "C++" char *strchr(char * __s, int __c) __attribute__((__nonnull__(1)));
+Sextern "C++" inline char *strchr(char * __s, int __c)
+S    { return const_cast<char *>(strchr(const_cast<const char *>(__s), __c)); }
+N#else
+Nextern _ARMABI char *strchr(const char * /*s*/, int /*c*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) char *strchr(const char *  , int  ) __attribute__((__nonnull__(1)));
+N#endif
+N   /*
+N    * locates the first occurence of c (converted to an char) in the string
+N    * pointed to by s (including the terminating null character).
+N    * Returns: a pointer to the located character, or a null pointer if the
+N    *          character does not occur in the string.
+N    */
+N
+Nextern _ARMABI size_t strcspn(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) size_t strcspn(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * computes the length of the initial segment of the string pointed to by s1
+N    * which consists entirely of characters not from the string pointed to by
+N    * s2. The terminating null character is not considered part of s2.
+N    * Returns: the length of the segment.
+N    */
+N
+N#ifdef __cplusplus
+Sextern _ARMABI const char *strpbrk(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Sextern "C++" char *strpbrk(char * __s1, const char * __s2) __attribute__((__nonnull__(1,2)));
+Sextern "C++" inline char *strpbrk(char * __s1, const char * __s2)
+S    { return const_cast<char *>(strpbrk(const_cast<const char *>(__s1), __s2)); }
+N#else
+Nextern _ARMABI char *strpbrk(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strpbrk(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N#endif
+N   /*
+N    * locates the first occurence in the string pointed to by s1 of any
+N    * character from the string pointed to by s2.
+N    * Returns: returns a pointer to the character, or a null pointer if no
+N    *          character form s2 occurs in s1.
+N    */
+N
+N#ifdef __cplusplus
+Sextern _ARMABI const char *strrchr(const char * /*s*/, int /*c*/) __attribute__((__nonnull__(1)));
+Sextern "C++" char *strrchr(char * __s, int __c) __attribute__((__nonnull__(1)));
+Sextern "C++" inline char *strrchr(char * __s, int __c)
+S    { return const_cast<char *>(strrchr(const_cast<const char *>(__s), __c)); }
+N#else
+Nextern _ARMABI char *strrchr(const char * /*s*/, int /*c*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) char *strrchr(const char *  , int  ) __attribute__((__nonnull__(1)));
+N#endif
+N   /*
+N    * locates the last occurence of c (converted to a char) in the string
+N    * pointed to by s. The terminating null character is considered part of
+N    * the string.
+N    * Returns: returns a pointer to the character, or a null pointer if c does
+N    *          not occur in the string.
+N    */
+N
+Nextern _ARMABI size_t strspn(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) size_t strspn(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * computes the length of the initial segment of the string pointed to by s1
+N    * which consists entirely of characters from the string pointed to by S2
+N    * Returns: the length of the segment.
+N    */
+N
+N#ifdef __cplusplus
+Sextern _ARMABI const char *strstr(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Sextern "C++" char *strstr(char * __s1, const char * __s2) __attribute__((__nonnull__(1,2)));
+Sextern "C++" inline char *strstr(char * __s1, const char * __s2)
+S    { return const_cast<char *>(strstr(const_cast<const char *>(__s1), __s2)); }
+N#else
+Nextern _ARMABI char *strstr(const char * /*s1*/, const char * /*s2*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) char *strstr(const char *  , const char *  ) __attribute__((__nonnull__(1,2)));
+N#endif
+N   /*
+N    * locates the first occurence in the string pointed to by s1 of the
+N    * sequence of characters (excluding the terminating null character) in the
+N    * string pointed to by s2.
+N    * Returns: a pointer to the located string, or a null pointer if the string
+N    *          is not found.
+N    */
+N
+Nextern _ARMABI char *strtok(char * __restrict /*s1*/, const char * __restrict /*s2*/) __attribute__((__nonnull__(2)));
+Xextern __declspec(__nothrow) char *strtok(char * __restrict  , const char * __restrict  ) __attribute__((__nonnull__(2)));
+Nextern _ARMABI char *_strtok_r(char * /*s1*/, const char * /*s2*/, char ** /*ptr*/) __attribute__((__nonnull__(2,3)));
+Xextern __declspec(__nothrow) char *_strtok_r(char *  , const char *  , char **  ) __attribute__((__nonnull__(2,3)));
+N#ifndef __STRICT_ANSI__
+Nextern _ARMABI char *strtok_r(char * /*s1*/, const char * /*s2*/, char ** /*ptr*/) __attribute__((__nonnull__(2,3)));
+Xextern __declspec(__nothrow) char *strtok_r(char *  , const char *  , char **  ) __attribute__((__nonnull__(2,3)));
+N#endif
+N   /*
+N    * A sequence of calls to the strtok function breaks the string pointed to
+N    * by s1 into a sequence of tokens, each of which is delimited by a
+N    * character from the string pointed to by s2. The first call in the
+N    * sequence has s1 as its first argument, and is followed by calls with a
+N    * null pointer as their first argument. The separator string pointed to by
+N    * s2 may be different from call to call.
+N    * The first call in the sequence searches for the first character that is
+N    * not contained in the current separator string s2. If no such character
+N    * is found, then there are no tokens in s1 and the strtok function returns
+N    * a null pointer. If such a character is found, it is the start of the
+N    * first token.
+N    * The strtok function then searches from there for a character that is
+N    * contained in the current separator string. If no such character is found,
+N    * the current token extends to the end of the string pointed to by s1, and
+N    * subsequent searches for a token will fail. If such a character is found,
+N    * it is overwritten by a null character, which terminates the current
+N    * token. The strtok function saves a pointer to the following character,
+N    * from which the next search for a token will start.
+N    * Each subsequent call, with a null pointer as the value for the first
+N    * argument, starts searching from the saved pointer and behaves as
+N    * described above.
+N    * Returns: pointer to the first character of a token, or a null pointer if
+N    *          there is no token.
+N    *
+N    * strtok_r() is a common extension which works exactly like
+N    * strtok(), but instead of storing its state in a hidden
+N    * library variable, requires the user to pass in a pointer to a
+N    * char * variable which will be used instead. Any sequence of
+N    * calls to strtok_r() passing the same char ** pointer should
+N    * behave exactly like the corresponding sequence of calls to
+N    * strtok(). This means that strtok_r() can safely be used in
+N    * multi-threaded programs, and also that you can tokenise two
+N    * strings in parallel.
+N    */
+N
+Nextern _ARMABI void *memset(void * /*s*/, int /*c*/, size_t /*n*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) void *memset(void *  , int  , size_t  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * copies the value of c (converted to an unsigned char) into each of the
+N    * first n charactes of the object pointed to by s.
+N    * Returns: the value of s.
+N    */
+Nextern _ARMABI char *strerror(int /*errnum*/);
+Xextern __declspec(__nothrow) char *strerror(int  );
+N   /*
+N    * maps the error number in errnum to an error message string.
+N    * Returns: a pointer to the string, the contents of which are
+N    *          implementation-defined. The array pointed to shall not be
+N    *          modified by the program, but may be overwritten by a
+N    *          subsequent call to the strerror function.
+N    */
+Nextern _ARMABI size_t strlen(const char * /*s*/) __attribute__((__nonnull__(1)));
+Xextern __declspec(__nothrow) size_t strlen(const char *  ) __attribute__((__nonnull__(1)));
+N   /*
+N    * computes the length of the string pointed to by s.
+N    * Returns: the number of characters that precede the terminating null
+N    *          character.
+N    */
+N
+Nextern _ARMABI size_t strlcpy(char * /*dst*/, const char * /*src*/, size_t /*len*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) size_t strlcpy(char *  , const char *  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * copies the string src into the string dst, using no more than
+N    * len bytes of dst. Always null-terminates dst _within the
+N    * length len (i.e. will copy at most len-1 bytes of string plus
+N    * a NUL), unless len is actually zero.
+N    * 
+N    * Return value is the length of the string that _would_ have
+N    * been written, i.e. the length of src. Thus, the operation
+N    * succeeded without truncation if and only if ret < len;
+N    * otherwise, the value in ret tells you how big to make dst if
+N    * you decide to reallocate it. (That value does _not_ include
+N    * the NUL.)
+N    * 
+N    * This is a BSD-derived library extension, which we are
+N    * permitted to declare in a standard header because ISO defines
+N    * function names beginning with 'str' as reserved for future
+N    * expansion of <string.h>.
+N    */
+N
+Nextern _ARMABI size_t strlcat(char * /*dst*/, const char * /*src*/, size_t /*len*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) size_t strlcat(char *  , const char *  , size_t  ) __attribute__((__nonnull__(1,2)));
+N   /*
+N    * concatenates the string src to the string dst, using no more
+N    * than len bytes of dst. Always null-terminates dst _within the
+N    * length len (i.e. will copy at most len-1 bytes of string plus
+N    * a NUL), unless len is actually zero.
+N    * 
+N    * Return value is the length of the string that _would_ have
+N    * been written, i.e. the length of src plus the original length
+N    * of dst. Thus, the operation succeeded without truncation if
+N    * and only if ret < len; otherwise, the value in ret tells you
+N    * how big to make dst if you decide to reallocate it. (That
+N    * value does _not_ include the NUL.)
+N    * 
+N    * If no NUL is encountered within the first len bytes of dst,
+N    * then the length of dst is considered to have been equal to
+N    * len for the purposes of the return value (as if there were a
+N    * NUL at dst[len]). Thus, the return value in this case is len
+N    * + strlen(src).
+N    * 
+N    * This is a BSD-derived library extension, which we are
+N    * permitted to declare in a standard header because ISO defines
+N    * function names beginning with 'str' as reserved for future
+N    * expansion of <string.h>.
+N    */
+N
+Nextern _ARMABI void _membitcpybl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpybl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitcpybb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpybb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitcpyhl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpyhl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitcpyhb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpyhb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitcpywl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpywl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitcpywb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitcpywb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovebl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovebl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovebb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovebb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovehl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovehl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovehb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovehb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovewl(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovewl(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+Nextern _ARMABI void _membitmovewb(void * /*dest*/, const void * /*src*/, int /*destoffset*/, int /*srcoffset*/, size_t /*nbits*/) __attribute__((__nonnull__(1,2)));
+Xextern __declspec(__nothrow) void _membitmovewb(void *  , const void *  , int  , int  , size_t  ) __attribute__((__nonnull__(1,2)));
+N    /*
+N     * Copies or moves a piece of memory from one place to another,
+N     * with one-bit granularity. So you can start or finish a copy
+N     * part way through a byte, and you can copy between regions
+N     * with different alignment within a byte.
+N     * 
+N     * All these functions have the same prototype: two void *
+N     * pointers for destination and source, then two integers
+N     * giving the bit offset from those pointers, and finally the
+N     * number of bits to copy.
+N     * 
+N     * Just like memcpy and memmove, the "cpy" functions copy as
+N     * fast as they can in the assumption that the memory regions
+N     * do not overlap, while the "move" functions cope correctly
+N     * with overlap.
+N     *
+N     * Treating memory as a stream of individual bits requires
+N     * defining a convention about what order those bits are
+N     * considered to be arranged in. The above functions support
+N     * multiple conventions:
+N     * 
+N     *  - the "bl" functions consider the unit of memory to be the
+N     *    byte, and consider the bits within each byte to be
+N     *    arranged in little-endian fashion, so that the LSB comes
+N     *    first. (For example, membitcpybl(a,b,0,7,1) would copy
+N     *    the MSB of the byte at b to the LSB of the byte at a.)
+N     * 
+N     *  - the "bb" functions consider the unit of memory to be the
+N     *    byte, and consider the bits within each byte to be
+N     *    arranged in big-endian fashion, so that the MSB comes
+N     *    first.
+N     * 
+N     *  - the "hl" functions consider the unit of memory to be the
+N     *    16-bit halfword, and consider the bits within each word
+N     *    to be arranged in little-endian fashion.
+N     * 
+N     *  - the "hb" functions consider the unit of memory to be the
+N     *    16-bit halfword, and consider the bits within each word
+N     *    to be arranged in big-endian fashion.
+N     * 
+N     *  - the "wl" functions consider the unit of memory to be the
+N     *    32-bit word, and consider the bits within each word to be
+N     *    arranged in little-endian fashion.
+N     * 
+N     *  - the "wb" functions consider the unit of memory to be the
+N     *    32-bit word, and consider the bits within each word to be
+N     *    arranged in big-endian fashion.
+N     */
+N
+N    #ifdef __cplusplus
+S         }  /* extern "C" */
+S      }  /* namespace std */
+N    #endif /* __cplusplus */
+N  #endif /* __STRING_DECLS */
+N
+N  #ifdef __cplusplus
+S    #ifndef __STRING_NO_EXPORTS
+S      using ::std::size_t;
+S      using ::std::memcpy;
+S      using ::std::memmove;
+S      using ::std::strcpy;
+S      using ::std::strncpy;
+S      using ::std::strcat;
+S      using ::std::strncat;
+S      using ::std::memcmp;
+S      using ::std::strcmp;
+S      using ::std::strncmp;
+S      using ::std::strcasecmp;
+S      using ::std::strncasecmp;
+S      using ::std::strcoll;
+S      using ::std::strxfrm;
+S      using ::std::memchr;
+S      using ::std::strchr;
+S      using ::std::strcspn;
+S      using ::std::strpbrk;
+S      using ::std::strrchr;
+S      using ::std::strspn;
+S      using ::std::strstr;
+S      using ::std::strtok;
+S#ifndef __STRICT_ANSI__
+S      using ::std::strtok_r;
+S#endif
+S      using ::std::_strtok_r;
+S      using ::std::memset;
+S      using ::std::strerror;
+S      using ::std::strlen;
+S      using ::std::strlcpy;
+S      using ::std::strlcat;
+S      using ::std::_membitcpybl;
+S      using ::std::_membitcpybb;
+S      using ::std::_membitcpyhl;
+S      using ::std::_membitcpyhb;
+S      using ::std::_membitcpywl;
+S      using ::std::_membitcpywb;
+S      using ::std::_membitmovebl;
+S      using ::std::_membitmovebb;
+S      using ::std::_membitmovehl;
+S      using ::std::_membitmovehb;
+S      using ::std::_membitmovewl;
+S      using ::std::_membitmovewb;
+S    #endif /* __STRING_NO_EXPORTS */
+N  #endif /* __cplusplus */
+N
+N#endif
+N
+N/* end of string.h */
+N
+L 30 "OS\RTOS.H" 2
+N
+N/*********************************************************************
+N*
+N*     Specifics for ARM cores and KEIL-MDK compiler
+N*
+N**********************************************************************
+N*/
+N
+N#define OS_PORT_REVISION          (1)                // Port specific revision
+N#define OS_PTR_OP_IS_ATOMIC       (1)
+N#define OS_GetTime()              (OS_Time)
+N#define OS_GetTime32()            (OS_Time)
+N#define OS_I32                    int
+N#define OS_SIZEOF_INT             (4)                // Size of integer in bytes
+N#define OS_BIG_ENDIAN             (0)                
+N#define OS_SUPPORT_SYSSTACK_INFO  (1)                // Option to supply more info  to viewer
+N#define OS_SUPPORT_OS_ALLOC       (1)                // Define whether OS_Alloc is supported
+N#define OS_SP_ADJUST              (0)
+N#define OS_EnterIntStack()                           // Int stack is automatically used by ARM
+N#define OS_LeaveIntStack()                           // Int stack is automatically used by ARM
+N
+N/*****  Core specific configuration *********************************/
+N
+N#define OS_SUPPORT_INTSTACK_INFO            (1)      // Option to supply more info  to viewer
+N#define OS_SWITCH_FROM_INT_MODIFIES_STACK   (1)
+N#define OS_INTERRUPTS_ARE_NESTABLE_ON_ENTRY (0)
+N#define OS_SUPPORT_INT_PRIORITY             (0)              // No selectable interrupt priorities with ARM
+N
+N/*****  End of configuration settings *******************************/
+N
+N#ifdef __TARGET_ARCH_4T
+N  #define OS_CPU "ARM4/KEIL_MDK"
+N#else
+S  #define OS_CPU "ARM5/KEIL_MDK"
+N#endif
+N
+N#define OS_DI() __disable_irq()    /* We use the default intrinsic function */
+N#define OS_EI() __enable_irq()     /* We use the default intrinsic function */
+N
+N
+N/* Option to get Stack pointer information  */
+N#define OS_INIT_STACK_INFO()
+N
+N/*********************************************************************
+N*
+N*       Port specific (non OS generic) functions
+N*/
+N#ifdef __cplusplus
+S  extern "C" {
+N#endif
+N
+N  typedef void    OS_ISR_HANDLER(void);
+N  void            OS_irq_handler(void);     /* Declare function to make sure it is arm pcs */
+N  void            OS_IRQ_SERVICE(void);     /* embOS int handler in RTOSVect.asm  */
+N  void            OS_USER_irq_func(void);   /* User interrupt handler from UserIrq.c */
+N  OS_ISR_HANDLER* OS_ARM_InstallISRHandler (int ISRIndex, OS_ISR_HANDLER* pFunc);
+N  void            OS_ARM_EnableISR         (int ISRIndex);
+N  void            OS_ARM_DisableISR        (int ISRIndex);
+N  int             OS_ARM_ISRSetPrio        (int ISRIndex, int Prio);
+N  void            OS_ARM_AssignISRSource   (int ISRIndex, int Source);
+N  void            OS_ARM_EnableISRSource   (int SourceIndex);
+N  void            OS_ARM_DisableISRSource  (int SourceIndex);
+N  void            OS_StartTask             (void);
+N  void            OS_InitPLL               (void);
+N
+N/*********************************************************************
+N*
+N*       Core specific implementation
+N*/
+N
+N/****** Support for ARM VFP *****************************************/
+N  
+Nextern const struct OS_EXTEND_TASK_CONTEXT OS_VFP_ExtendContext;
+N
+N/****** Support for ARM MMU and caches ******************************/
+N
+Nvoid OS_ARM_ICACHE_Enable(void);
+Nvoid OS_ARM_DCACHE_Enable(void);
+Nvoid OS_ARM_DCACHE_CleanRange     (void* p, unsigned int NumBytes);
+Nvoid OS_ARM_DCACHE_InvalidateRange(void* p, unsigned int NumBytes);
+Nvoid OS_ARM_CACHE_Sync(void);
+N
+Nvoid OS_ARM_MMU_Enable(unsigned int* pTranslationTable);
+Nvoid OS_ARM_MMU_InitTT(unsigned int* pTranslationTable);
+Nvoid OS_ARM_MMU_AddTTEntries(unsigned int* pTranslationTable, unsigned int CacheMode, unsigned int VIndex, unsigned int PIndex, unsigned int NumEntries);
+N
+Nvoid OS_ARM720_CACHE_Enable(void);
+Nvoid OS_ARM720_CACHE_CleanRange(void* p, unsigned int NumBytes);
+Nvoid OS_ARM720_CACHE_InvalidateRange(void* p, unsigned int NumBytes);
+N
+Nvoid OS_ARM720_MMU_Enable(unsigned int* pTranslationTable);
+Nvoid OS_ARM720_MMU_InitTT(unsigned int* pTranslationTable);
+Nvoid OS_ARM720_MMU_AddTTEntries(unsigned int* pTranslationTable, unsigned int CacheMode, unsigned int VIndex, unsigned int PIndex, unsigned int NumEntries);
+N
+N#define OS_ARM_CACHEMODE_NC_NB    ((0 << 3) | (0 << 2))
+N#define OS_ARM_CACHEMODE_C_NB     ((1 << 3) | (0 << 2))
+N#define OS_ARM_CACHEMODE_NC_B     ((0 << 3) | (1 << 2))
+N#define OS_ARM_CACHEMODE_C_B      ((1 << 3) | (1 << 2))
+N#define OS_ARM_CACHEMODE_ILLEGAL  (0x01)
+N
+N#ifdef __cplusplus
+S  } 
+N#endif
+N
+N/*********************************************************************
+N*
+N*     Port specific revision
+N*/
+N
+N/*********************************************************************
+N*
+N*       Check configuration
+N*
+N**********************************************************************
+N
+NThis is required in order to automatically create the correct identifiers
+Nin order to be able to autoamitcally remap the identifiers.
+N
+N*/
+N
+N#ifdef __thumb
+N  #define OS_CPUMODE_PREFIX "T"
+N#else
+S  #define OS_CPUMODE_PREFIX "A"
+N#endif
+N
+N#ifdef __TARGET_ARCH_4T
+N  #define OS_CPU_PREFIX "4"
+N#else
+S  #define OS_CPU_PREFIX "5"
+N#endif
+N
+N#ifdef __BIG_ENDIAN
+S  #define OS_ENDIAN_PREFIX "B"
+N#else
+N  #define OS_ENDIAN_PREFIX "L"
+N#endif
+N
+N#define OS_MODEL OS_CPUMODE_PREFIX OS_CPU_PREFIX OS_ENDIAN_PREFIX
+N
+N
+N/****** End of chip / compiler specific part ************************/
+N
+N/*********************************************************************
+N*
+N*       Generic portion of the OS starts here
+N*
+N**********************************************************************
+NThis file (original name OS_RAW.h) is part of RTOS.h, the include
+Nfile for the OS.
+N*/
+N
+N#if (!defined(OS_LIBMODE_XR) && !defined(OS_LIBMODE_R)  &&   \
+N     !defined(OS_LIBMODE_S)  && !defined(OS_LIBMODE_SP) &&   \
+N     !defined(OS_LIBMODE_D)  && !defined(OS_LIBMODE_DP) &&   \
+N     !defined(OS_LIBMODE_DT))
+X#if (!0L && !0L  &&        !0L  && !0L &&        !0L  && !0L &&        !0L)
+N#include "OS_Config.h"
+L 1 "Config\OS_Config.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N--------  END-OF-HEADER  ---------------------------------------------
+N*/
+N
+N#ifndef OS_CONFIG_H                     /* Avoid multiple inclusion */
+N#define OS_CONFIG_H
+N
+N/*********************************************************************
+N*
+N*       Configuration for RTOS build and UART
+N*
+N*  One of the following builds needs to be selected for both DEBUG and Release builds:
+N*
+N*  OS_LIBMODE_XR    Extremly small release build without Round robin
+N*  OS_LIBMODE_R     Release build
+N*  OS_LIBMODE_S     Release build with stack check
+N*  OS_LIBMODE_SP    Release build with stack check and profiling
+N*  OS_LIBMODE_D     Debug build
+N*  OS_LIBMODE_DP    Debug build with profiling
+N*  OS_LIBMODE_DT    Debug build with trace
+N*/
+N
+N#ifndef   DEBUG
+N  #define DEBUG 0
+N#endif
+N
+N#if DEBUG
+X#if 0
+S  #define OS_LIBMODE_DP
+N#else
+N  #define OS_LIBMODE_R
+N  #define OS_VIEW_ENABLE   0
+N#endif
+N
+N#endif                                  /* Avoid multiple inclusion */
+N
+N/*************************** End of file ****************************/
+L 187 "OS\RTOS.H" 2
+N#endif
+N
+N#define OS_VERSION_GENERIC (36004)      /*   Generic version 3.60d  */
+N
+N#ifndef   OS_PORT_REVISION
+S  #define OS_PORT_REVISION 0
+N#endif
+N
+N#define OS_VERSION OS_VERSION_GENERIC + (OS_PORT_REVISION * 25)
+N
+N/*********************************************************************
+N*
+N*       Defines for library types
+N*
+N**********************************************************************
+N*/
+N
+N/* If library type is not selected yet (on project level,
+N   for example), then select DP by default
+N*/
+N#if (!defined(OS_LIBMODE_XR) && !defined(OS_LIBMODE_R)  &&   \
+N     !defined(OS_LIBMODE_S)  && !defined(OS_LIBMODE_SP) &&   \
+N     !defined(OS_LIBMODE_D)  && !defined(OS_LIBMODE_DP) &&   \
+N     !defined(OS_LIBMODE_DT))
+X#if (!0L && !1L  &&        !0L  && !0L &&        !0L  && !0L &&        !0L)
+S#define OS_LIBMODE_DP
+N#endif
+N
+N#if defined(OS_LIBMODE_XR)                                   // Extremely small release - without Round robin support
+X#if 0L                                   
+S  #define OS_CHECKSTACK       0
+S  #define OS_DEBUG            0
+S  #define OS_PROFILE          0
+S  #define OS_SUPPORT_TICKSTEP 0
+S  #define OS_TRACE            0
+S  #define OS_RR_SUPPORTED     0
+S  #define OS_TRACKNAME        0
+S  #define OS_SUPPORT_SAVE_RESTORE_HOOK 0
+S  #define OS_CreateTask   OS_CreateTask_XR
+S  #define OS_CreateTaskEx OS_CreateTaskEx_XR
+S  #define OS_LIBMODE "XR"
+N#elif defined(OS_LIBMODE_R)                                  // Release build
+X#elif 1L                                  
+N  #define OS_CHECKSTACK       0
+N  #define OS_DEBUG            0
+N  #define OS_PROFILE          0
+N  #define OS_SUPPORT_TICKSTEP 0
+N  #define OS_TRACE            0
+N  #define OS_CreateTask   OS_CreateTask_R
+N  #define OS_CreateTaskEx OS_CreateTaskEx_R
+N  #define OS_LIBMODE "R"
+N#elif defined(OS_LIBMODE_S)                                  // Release build with stack check
+S  #define OS_CHECKSTACK       1
+S  #define OS_DEBUG            0
+S  #define OS_PROFILE          0
+S  #define OS_SUPPORT_TICKSTEP 0
+S  #define OS_TRACE            0
+S  #define OS_CreateTask   OS_CreateTask_S
+S  #define OS_CreateTaskEx OS_CreateTaskEx_S
+S  #define OS_LIBMODE "S"
+S#elif defined(OS_LIBMODE_SP)                                 // Release build with stack check and profiling
+S  #define OS_CHECKSTACK       1
+S  #define OS_DEBUG            0
+S  #define OS_PROFILE          1
+S  #define OS_SUPPORT_TICKSTEP 1
+S  #define OS_TRACE            0
+S  #define OS_CreateTask   OS_CreateTask_SP
+S  #define OS_CreateTaskEx OS_CreateTaskEx_SP
+S  #define OS_LIBMODE "SP"
+S#elif defined(OS_LIBMODE_D)                                  // Debug build
+S  #define OS_CHECKSTACK       1
+S  #define OS_DEBUG            1
+S  #define OS_PROFILE          0
+S  #define OS_SUPPORT_TICKSTEP 1
+S  #define OS_TRACE            0
+S  #define OS_CreateTask   OS_CreateTask_D
+S  #define OS_CreateTaskEx OS_CreateTaskEx_D
+S  #define OS_LIBMODE "D"
+S#elif defined(OS_LIBMODE_DP)                                  // Debug build with profiling
+S  #define OS_CHECKSTACK       1
+S  #define OS_PROFILE          1
+S  #define OS_DEBUG            1
+S  #define OS_SUPPORT_TICKSTEP 1
+S  #define OS_TRACE            0
+S  #define OS_CreateTask   OS_CreateTask_DP
+S  #define OS_CreateTaskEx OS_CreateTaskEx_DP
+S  #define OS_LIBMODE "DP"
+S#elif defined(OS_LIBMODE_DT)                                  // Debug build with profiling and trace
+S  #define OS_CHECKSTACK       1
+S  #define OS_DEBUG            1
+S  #define OS_PROFILE          1
+S  #define OS_SUPPORT_TICKSTEP 1
+S  #define OS_TRACE            1
+S  #define OS_CreateTask   OS_CreateTask_DT
+S  #define OS_CreateTaskEx OS_CreateTaskEx_DT
+S  #define OS_LIBMODE "DT"
+S#else
+S  #error Please define library type used !
+N#endif
+N
+N/*********************************************************************
+N*
+N*       OS compile time switches
+N*
+N**********************************************************************
+N
+NThese compile time switches can be modified when recompiling
+Nthe library. Usually, the values are in OSCHIP.H, which is then
+Nmerged with OS_RAW.H to form RTOS.H.
+NIf the values are not defined in OSCHIP.H, the default values
+Nbelow are used.
+N*/
+N
+N/* Make it possible to place const data in RAM via
+N   define and therefore via command line. This is required
+N   for some smaller CPUs in small memory models
+N   It is defined to be "const" by default, but can be defined to nothing
+N   by simply adding a -DOS_CONST_DATA on the commandline
+N*/
+N
+N#ifndef   OS_CONST_DATA
+N  #define OS_CONST_DATA const  /* Default      */
+N#else
+S  #undef  OS_CONST_DATA
+S  #define OS_CONST_DATA        /* define blank */
+N#endif
+N
+N#ifndef   OS_INTERWORK
+N  #define OS_INTERWORK
+N#endif
+N
+N#ifndef   OS_SCHEDULER_ACTIVATED_BY_EXCEPTION
+N  #define OS_SCHEDULER_ACTIVATED_BY_EXCEPTION   (0)
+N#endif
+N
+N#ifndef   OS_STACK_ADR
+N  #define OS_STACK_ADR OS_U32
+N#endif
+N
+N#ifndef   OS_MODEL
+S  #define OS_MODEL ""
+N#endif
+N
+N#ifndef   OS_MEMSET
+N  #define OS_MEMSET(a,v,s) memset(a,v,s)
+N#endif
+N
+N#ifndef   OS_MEMCPY
+N  #define OS_MEMCPY(dest,src,cnt) memcpy(dest,src,cnt)
+N#endif
+N
+N#ifndef   OS_STRLEN
+N  #define OS_STRLEN(s) strlen(s)
+N#endif
+N
+N#ifndef   OS_DUMMY_STATEMENT
+N  #define OS_DUMMY_STATEMENT()
+N#endif
+N
+N#ifndef   OS_USEPARA
+N  #define OS_USEPARA(para) para=para
+N#endif
+N
+N#ifndef   OS_SUPPORT_TICKSTEP
+S  #define OS_SUPPORT_TICKSTEP 0
+N#endif
+N
+N#ifndef   OS_TRACKNAME
+N  #define OS_TRACKNAME (1)
+N#endif
+N
+N#ifndef   OS_TRACE
+S  #define OS_TRACE (0)
+N#endif
+N
+N#ifndef   OS_SUPPORT_SAVE_RESTORE_HOOK
+N  #define OS_SUPPORT_SAVE_RESTORE_HOOK  (1)
+N#endif
+N
+N#ifndef   OS_RR_SUPPORTED
+N  #define OS_RR_SUPPORTED (1)
+N#endif
+N
+N#ifndef   OS_STACK_AT_BOTTOM
+N  #define OS_STACK_AT_BOTTOM (0)
+N#endif
+N
+N/*  Settings for NON-ANSI compiler syntax
+N    The default behaviour complies with IAR.
+N*/
+N#ifndef   OS_COMPILER_LOCATION_LEFT
+N  #define OS_COMPILER_LOCATION_LEFT 1  /* (req. for IAR) */
+N#endif
+N
+N#ifndef   OS_COMPILER_STORAGE_MODIFIER_LEFT
+N  #define OS_COMPILER_STORAGE_MODIFIER_LEFT 1  /* default for all except KEIL */
+N#endif
+N
+N#define OS_LINK_MAILBOXES (OS_DEBUG)
+N
+N#ifndef   OS_CHECK
+N  #define OS_CHECK 0
+N#endif
+N
+N#ifndef   OS_ALIGN_PTR
+N  #define OS_ALIGN_PTR (1)
+N#endif
+N
+N#ifndef   OS_ALIGN_INT
+N  #define OS_ALIGN_INT (1)
+N#endif
+N
+N#ifndef   OS_PTR_TO_VALUE
+N  #define OS_PTR_TO_VALUE(p) (p)
+N#endif
+N
+N#ifndef   OS_IDLE
+N  #define OS_IDLE() OS_Idle()
+N#endif
+N
+N#ifndef   OS_PTR_OP_IS_ATOMIC
+S  #define OS_PTR_OP_IS_ATOMIC   (0)         // Helps to minimize code size and execution time. Some code is not required if setting pointers is an atomic operation (32 bit CPUs or 16 bit CPUs in near model)
+N#endif
+N
+N#ifndef   OS_SUSPEND_TASK_ON_TERMINATE      // Sets the task state of a terminated task to "suspended". Primarily used in the OS simulation, because the windows scheduler might re-activate a suspended task
+N  #define OS_SUSPEND_TASK_ON_TERMINATE (0)
+N#endif
+N
+N#ifndef   OS_INIT_EXPLICITLY
+N  #define OS_INIT_EXPLICITLY  (0)           // If enabled, OS_InitKern() initializes Non-Zero globals. Required only for faulty compiler (or startup-code) which do not perform proper init of globals during startup.
+N#endif
+N
+N#ifndef   OS_TASK_LIST_HAS_PPREV
+N  #define OS_TASK_LIST_HAS_PPREV   OS_RR_SUPPORTED
+N#else
+S  #if (OS_TASK_LIST_HAS_PPREV == 0) && OS_RR_SUPPORTED
+S    #error  "Invalid combination of config switches"
+S  #endif
+N#endif
+N
+N#ifndef   OS_SUPPORT_CALL_ISR
+N  #define OS_SUPPORT_CALL_ISR (1)
+N#endif
+N
+N#ifndef   OS_PREPARE_STACKPOINTER
+N  #define OS_PREPARE_STACKPOINTER()
+N#endif
+N
+N#ifndef   OS_SUPPORT_POWER
+N  #define OS_SUPPORT_POWER (1)
+N#endif
+N
+N#ifndef   OS_POWER_NUM_COUNTERS
+N  #define OS_POWER_NUM_COUNTERS (5)
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Check Compile time switches
+N*
+N**********************************************************************
+N*/
+N
+N#ifndef OS_SIZEOF_INT
+S  #error "Please define OS_SIZEOF_INT (OSChip.h)"
+N#endif
+N#ifndef OS_BIG_ENDIAN
+S  #error "Please define OS_BIG_ENDIAN (OSChip.h)"
+N#endif
+N
+N#if (OS_STACK_AT_BOTTOM != 0) && (OS_STACK_AT_BOTTOM != 1)
+X#if ((0) != 0) && ((0) != 1)
+S  /*
+S  *  Only 0 or 1 is allowed, because OS_STACK_AT_BOTTOM is used for calculations!
+S  */
+S  #error "OS_STACK_AT_BOTTOM has to be defined to 0 or 1"
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Basic type defines
+N*
+N**********************************************************************
+N*/
+N
+N#ifndef   OS_I8
+N  #define OS_I8 signed char
+N#endif
+N
+N#ifndef   OS_U8
+N  #define OS_U8 unsigned char
+N#endif
+N
+N#ifndef   OS_I16
+N  #define OS_I16 signed short
+N#endif
+N
+N#ifndef   OS_U16
+N  #define OS_U16 unsigned short
+N#endif
+N
+N#ifndef   OS_I32
+S  #define OS_I32 long
+N#endif
+N
+N#ifndef   OS_U32
+N  #define OS_U32 unsigned OS_I32
+N#endif
+N
+N/* Defines a true integer. This type is guaranteed
+N   a) to have at least 8 bits,
+N   b) to compile and execute best on the target CPU
+N   It will normally be the same as an int, but on most
+N   8-bit CPUs it will be replaced by a character because
+N   the CPU can deal with 8 bits more efficient than with
+N   16 bit integers.
+N   Use with care !
+N*/
+N#ifndef   OS_INT
+N  #define OS_INT       int
+N#endif
+N
+N#ifndef   OS_UINT
+N  #define OS_UINT      unsigned OS_INT
+N#endif
+N
+N#ifndef   OS_TIME
+N  #define OS_TIME      int
+N#endif
+N
+N
+N/*********************************************************************
+N*
+N*       Error codes
+N*
+N**********************************************************************
+N*/
+N
+N/* User 0..99  ***********************************/
+N
+N/* Port 100..119 *********************************/
+N#define OS_ERR_ISR_INDEX                      (100)
+N#define OS_ERR_ISR_VECTOR                     (101)
+N#define OS_ERR_ISR_PRIO                       (102)
+N
+N/* OS generic ************************************/
+N/* stack overflow or invalid stack */
+N#define OS_ERR_STACK                          (120)
+N
+N/* Counting semaphore overflow */
+N#define OS_ERR_CSEMA_OVERFLOW                 (121)
+N
+N/* Power management module */
+N#define OS_ERR_POWER_OVER                     (122)
+N#define OS_ERR_POWER_UNDER                    (123)
+N#define OS_ERR_POWER_INDEX                    (124)
+N
+N
+N/* invalid or non-initialized data structures */
+N#define OS_ERR_INV_TASK                       (128)
+N#define OS_ERR_INV_TIMER                      (129)
+N#define OS_ERR_INV_MAILBOX                    (130)
+N#define OS_ERR_INV_CSEMA                      (132)
+N#define OS_ERR_INV_RSEMA                      (133)
+N
+N/* Using GetMail1 or PutMail1 or GetMailCond1 or PutMailCond1 on
+N   a non-1 byte mailbox  */
+N#define OS_ERR_MAILBOX_NOT1                   (135)
+N
+N/* Waitable objects deleted with waiting tasks or occupied by task */
+N#define OS_ERR_MAILBOX_DELETE                 (136)
+N#define OS_ERR_CSEMA_DELETE                   (137)
+N#define OS_ERR_RSEMA_DELETE                   (138)
+N
+N/* internal errors, please contact SEGGER Microcontrollersysteme */
+N#define OS_ERR_MAILBOX_NOT_IN_LIST            (140)
+N#define OS_ERR_TASKLIST_CORRUPT               (142)
+N
+N/* not matching routine calls or macro usage */
+N#define OS_ERR_UNUSE_BEFORE_USE               (150)
+N#define OS_ERR_LEAVEREGION_BEFORE_ENTERREGION (151)
+N#define OS_ERR_LEAVEINT                       (152)
+N#define OS_ERR_DICNT                          (153)
+N#define OS_ERR_INTERRUPT_DISABLED             (154)
+N#define OS_ERR_TASK_ENDS_WITHOUT_TERMINATE    (155)
+N#define OS_ERR_RESOURCE_OWNER                 (156)
+N
+N#define OS_ERR_ILLEGAL_IN_ISR                 (160)  /* not a legal system call during interrupt */
+N#define OS_ERR_ILLEGAL_IN_TIMER               (161)  /* not a legal system call during timer */
+N#define OS_ERR_ILLEGAL_OUT_ISR                (162)  /* not a legal system call outside interrupt */
+N#define OS_ERR_NOT_IN_ISR                     (163)  /* OS_EnterInterrupt() has been called, but CPU is not in ISR state */
+N#define OS_ERR_IN_ISR                         (164)  /* OS_EnterInterrupt() has not been called, but CPU is in ISR state */
+N
+N#define OS_ERR_INIT_NOT_CALLED                (165)  /* OS_InitKern() was not called */
+N
+N/* Double used data structures */
+N#define OS_ERR_2USE_TASK                      (170)
+N#define OS_ERR_2USE_TIMER                     (171)
+N#define OS_ERR_2USE_MAILBOX                   (172)
+N#define OS_ERR_2USE_BSEMA                     (173)
+N#define OS_ERR_2USE_CSEMA                     (174)
+N#define OS_ERR_2USE_RSEMA                     (175)
+N#define OS_ERR_2USE_MEMF                      (176)
+N
+N/* Communication errors (OSCOM) */
+N#define OS_ERR_NESTED_RX_INT                  (180)
+N
+N/* Fixed block memory pool  */
+N#define OS_ERR_MEMF_INV                       (190)
+N#define OS_ERR_MEMF_INV_PTR                   (191)
+N#define OS_ERR_MEMF_PTR_FREE                  (192)
+N#define OS_ERR_MEMF_RELEASE                   (193)
+N#define OS_ERR_POOLADDR                       (194)
+N#define OS_ERR_BLOCKSIZE                      (195)
+N
+N/* Task suspend / resume errors */
+N#define OS_ERR_SUSPEND_TOO_OFTEN              (200)
+N#define OS_ERR_RESUME_BEFORE_SUSPEND          (201)
+N
+N/* Other task related errors */
+N#define OS_ERR_TASK_PRIORITY                  (202)
+N
+N/* Event object */
+N#define OS_ERR_EVENT_INVALID                  (210)
+N#define OS_ERR_2USE_EVENTOBJ                  (211)
+N#define OS_ERR_EVENT_DELETE                   (212)
+N
+N/* Waitlist (checked build) */
+N#define OS_ERR_WAITLIST_RING                  (220)
+N#define OS_ERR_WAITLIST_PREV                  (221)
+N#define OS_ERR_WAITLIST_NEXT                  (222)
+N
+N/* Other potential problems discovered in checked build */
+N#define OS_ERR_NOT_IN_REGION                  (225)
+N
+N/* Cache related */
+N#define OS_ERR_NON_ALIGNED_INVALIDATE         (230)
+N
+N/* OS special build, or internal */
+N#define OS_ERR_TRIAL_LIMIT                    (254)
+N
+N/*********************************************************************
+N*
+N*       Trace identifier
+N*
+N**********************************************************************
+N
+NIdentifier from 0 to 99 are reserved for the OS
+NEven when not all of those are currently used,
+Nthey may be defined in the future
+N
+N*/
+N
+N#define OS_TRACE_ID_DEACTIVATE      (1)
+N#define OS_TRACE_ID_ACTIVATE        (2)
+N#define OS_TRACE_ID_TIMERCALLBACK   (3)
+N
+N/* Task group */
+N#define OS_TRACE_ID_DELAY           (10)
+N#define OS_TRACE_ID_DELAYUNTIL      (11)
+N#define OS_TRACE_ID_SETPRIORITY     (12)
+N#define OS_TRACE_ID_WAKETASK        (13)
+N#define OS_TRACE_ID_CREATETASK      (14)
+N#define OS_TRACE_ID_TERMINATETASK   (15)
+N#define OS_TRACE_ID_SUSPENDTASK     (16)
+N#define OS_TRACE_ID_RESUMETASK      (17)
+N#define OS_TRACE_ID_CREATETASK_EX   (18)
+N#define OS_TRACE_ID_YIELD           (19)
+N
+N/* Event group */
+N#define OS_TRACE_ID_WAITEVENT       (20)
+N#define OS_TRACE_ID_WAITEVENT_TIMED (21)
+N#define OS_TRACE_ID_SIGNALEVENT     (22)
+N#define OS_TRACE_ID_CLEAREVENTS     (23)
+N
+N/* Mailbox group  */
+N#define OS_TRACE_ID_CREATEMB        (30)
+N#define OS_TRACE_ID_CLEARMB         (31)
+N#define OS_TRACE_ID_DELETEMB        (32)
+N#define OS_TRACE_ID_PUTMAIL         (33)
+N#define OS_TRACE_ID_GETMAIL         (34)
+N#define OS_TRACE_ID_PUTMAILCOND     (35)
+N#define OS_TRACE_ID_GETMAILCOND     (36)
+N#define OS_TRACE_ID_PUTMAIL_TIMED   (37)
+N#define OS_TRACE_ID_GETMAIL_TIMED   (38)
+N#define OS_TRACE_ID_WAITMAIL        (39)
+N
+N#define OS_TRACE_ID_PUTMAIL1        (40)
+N#define OS_TRACE_ID_GETMAIL1        (41)
+N#define OS_TRACE_ID_PUTMAILCOND1    (42)
+N#define OS_TRACE_ID_GETMAILCOND1    (43)
+N#define OS_TRACE_ID_PUTMAIL_TIMED1  (44)
+N#define OS_TRACE_ID_GETMAIL_TIMED1  (45)
+N
+N#define OS_TRACE_ID_PUTMAIL_F       (46)
+N#define OS_TRACE_ID_PUTMAIL_F1      (47)
+N#define OS_TRACE_ID_PUTMAIL_FCOND   (48)
+N#define OS_TRACE_ID_PUTMAIL_FCOND1  (49)
+N
+N/* Resource group */
+N#define OS_TRACE_ID_CREATERSEMA     (50)
+N#define OS_TRACE_ID_USE             (51)
+N#define OS_TRACE_ID_UNUSE           (52)
+N#define OS_TRACE_ID_REQUEST         (53)
+N#define OS_TRACE_ID_GETSEMAVALUE    (54)
+N#define OS_TRACE_ID_DELETE_RSEMA    (55)
+N
+N/* Counting Semaphore group */
+N#define OS_TRACE_ID_CREATECSEMA     (60)
+N#define OS_TRACE_ID_DELETECSEMA     (61)
+N#define OS_TRACE_ID_SIGNALCSEMA     (62)
+N#define OS_TRACE_ID_WAITCSEMA       (63)
+N#define OS_TRACE_ID_WAITCSEMATIMED  (64)
+N#define OS_TRACE_ID_SIGNALCSEMA_MAX (65)
+N#define OS_TRACE_ID_SET_CSEMAVALUE  (66)
+N#define OS_TRACE_ID_CSEMAREQUEST    (67)
+N
+N/* Timer group    */
+N#define OS_TRACE_ID_CREATETIMER     (70)
+N#define OS_TRACE_ID_DELETETIMER     (71)
+N#define OS_TRACE_ID_STARTTIMER      (72)
+N#define OS_TRACE_ID_STOPTIMER       (73)
+N#define OS_TRACE_ID_RETRIGGERTIMER  (74)
+N#define OS_TRACE_ID_SETTIMERPERIOD  (75)
+N#define OS_TRACE_ID_CREATETIMER_EX  (76)
+N
+N/* Heap type memory management  */
+N#define OS_TRACE_ID_MALLOC          (80)
+N#define OS_TRACE_ID_FREE            (81)
+N#define OS_TRACE_ID_REALLOC         (82)
+N
+N/* Fixed block type memory management  */
+N#define OS_TRACE_ID_MEMF_CREATE     (90)
+N#define OS_TRACE_ID_MEMF_DELETE     (91)
+N#define OS_TRACE_ID_MEMF_ALLOC      (92)
+N
+N
+N/*********************************************************************
+N*
+N*       Assertions
+N*
+N**********************************************************************
+N
+N  Assertions are used to generate code in the debug version
+N  of the OS in order catch programming faults like
+N  bad pointers or uninitialized data structures
+N*/
+N
+N#if OS_DEBUG
+X#if 0
+S  #define OS_ASSERT(Exp, ErrCode) { if (!(Exp)) OS_Error(ErrCode); }
+N#else
+N  #define OS_ASSERT(Exp, ErrCode)
+N#endif
+N
+N#define OS_ASSERT_INT()           OS_ASSERT((OS_InInt != 0),          OS_ERR_ILLEGAL_OUT_ISR)
+N#define OS_ASSERT_NOINT()         OS_ASSERT((OS_InInt == 0),          OS_ERR_ILLEGAL_IN_ISR)
+N#define OS_ASSERT_NOTIMER()       OS_ASSERT((OS_InTimer == 0),        OS_ERR_ILLEGAL_IN_TIMER)
+N#define OS_ASSERT_DICnt()         OS_ASSERT(((OS_DICnt & 0xf0) == 0), OS_ERR_DICNT)
+N#define OS_ASSERT_INIT_CALLED()   OS_ASSERT((OS_InitCalled != 0),     OS_ERR_INIT_NOT_CALLED)
+N
+N/*********************************************************************
+N*
+N*       Memory attributes
+N*
+N**********************************************************************
+N*/
+N
+N#ifndef OS_STACKPTR
+N  #define OS_STACKPTR
+N#endif
+N
+N#ifndef OS_SADDR
+N  #ifdef SADDR
+S    #define OS_SADDR SADDR
+N  #else
+N    #define OS_SADDR
+N  #endif
+N#endif
+N
+N/* pointer modifier for data items */
+N#ifndef OS_DATAPTR
+N  #define OS_DATAPTR
+N#endif
+N
+N#ifndef OS_RSEMAPTR
+N  #define OS_RSEMAPTR
+N#endif
+N
+N#ifndef   OS_CSEMAPTR
+N  #define OS_CSEMAPTR
+N#endif
+N
+N#ifndef   OS_MBPTR
+N  #define OS_MBPTR
+N#endif
+N
+N#ifndef   OS_TCBPTR
+N  #define OS_TCBPTR
+N#endif
+N
+N#ifndef   OS_TIMERPTR
+N  #define OS_TIMERPTR
+N#endif
+N
+N#ifdef __cplusplus
+S  extern "C" {
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Data structures
+N*
+N**********************************************************************
+N*/
+N
+Ntypedef struct OS_TASK         OS_TASK;
+Ntypedef struct OS_WAIT_LIST    OS_WAIT_LIST;
+Ntypedef struct OS_WAIT_OBJ     OS_WAIT_OBJ;
+Ntypedef struct OS_WAIT_OBJ_EX  OS_WAIT_OBJ_EX;
+Ntypedef struct OS_REGS         OS_REGS;
+N
+Ntypedef void voidRoutine(void);
+Ntypedef void OS_RX_CALLBACK(OS_U8 Data);
+Xtypedef void OS_RX_CALLBACK(unsigned char Data);
+Ntypedef void OS_TIMERROUTINE(void);
+Ntypedef void OS_TIMER_EX_ROUTINE(void *);
+Ntypedef void OS_ON_TERMINATE_FUNC(OS_TASK *);
+N
+Ntypedef void OS_TICK_HOOK_ROUTINE(void);
+N
+N/**********************************************************************
+N*
+N*       OS_WAIT_OBJ
+N*       OS_WAIT_LIST
+N*       OS_WAIT_OBJ_EX
+N*/
+Nstruct OS_WAIT_OBJ {
+N  OS_WAIT_LIST * pWaitList;
+N};
+N
+Nstruct OS_WAIT_OBJ_EX {
+N  OS_WAIT_OBJ WaitObj;
+N  int v;
+N};
+N
+Nstruct OS_WAIT_LIST {
+N  OS_WAIT_LIST * pNext;    /* Needs to be first element ! */
+N  OS_WAIT_LIST * pPrev;
+N  OS_WAIT_OBJ  * pWaitObj;
+N  OS_TASK      * pTask;
+N};
+N
+N
+N/**********************************************************************
+N*
+N*       OS_EXTEND_TASK_CONTEXT
+N*
+N*  This structure is used to define a save and restore function for
+N*  extension of the task context.
+N*  A pointer to this structure is part of the task control block
+N*  It is initialized by OS_ExtendTaskContext();
+N*/
+Ntypedef struct OS_EXTEND_TASK_CONTEXT {
+N  void (*pfSave)   (      void * pStack);
+N  void (*pfRestore)(const void * pStack);
+N} OS_EXTEND_TASK_CONTEXT;
+N
+N
+N/**********************************************************************
+N*
+N*       OS_TASK
+N*
+N*  This structure (referred to as "task control block" or TCB) holds all relevant information
+N*  about a single task. Note that some elements are optional, depending on the compile time
+N*  options, especially the type of build
+N*/
+Nstruct OS_TASK {
+N  //
+N  // Elements required for all builds
+N  //
+N  // Start of assembly relevant section. Do not move these elements
+N  OS_TASK * pNext;                        // Points to the TCB of the next task in the list (with equal or lower priority). Needs to be first element !
+N  OS_REGS OS_STACKPTR * pStack;           // Typically contains the stack pointer if the task is suspended.                 Needs to be second element !
+X  OS_REGS  * pStack;           
+N  // End of assembly relevant section
+N  OS_WAIT_LIST * pWaitList;               // Points to a waitable object if task is suspended.
+N  OS_TIME        Timeout;
+X  int        Timeout;
+N  OS_U8          Priority;
+X  unsigned char          Priority;
+N  OS_U8          Stat;
+X  unsigned char          Stat;
+N  OS_U8          Events;                  // Event storage
+X  unsigned char          Events;                  
+N  OS_U8          EventMask;               // Event mask
+X  unsigned char          EventMask;               
+N  //
+N  // PPrev is required only in builds with doubly-linked task lists
+N  //
+N  #if OS_TASK_LIST_HAS_PPREV
+X  #if (1)
+N    OS_TASK      * pPrev;                   //
+N  #endif
+N  //
+N  // Elements required with "Track-name" functionality only. Typically available in all builds, but can be disabled at compile time
+N  //
+N  #if OS_TRACKNAME
+X  #if (1)
+N    const char * Name;
+N  #endif
+N  //
+N  // Elements required with "Stack-check" functionality only. Available in stack-check and debug builds.
+N  //
+N  #if OS_CHECKSTACK
+X  #if 0
+S    OS_UINT  StackSize;            // Stack size in bytes. Not required for functionality, just for analysis
+S    OS_U8 OS_STACKPTR* pStackBot;  // First byte of stack. Not required for functionality, just for analysis
+N  #endif
+N  //
+N  // Elements required with profiling or debug builds
+N  //
+N  #if (OS_PROFILE || OS_DEBUG)
+X  #if (0 || 0)
+S    OS_U32 NumActivations;         // Counts how many times task has been activated
+S    OS_U32 NumPreemptions;         // Counts how many times task has been preempted
+N  #endif
+N  //
+N  // Elements required with profiling builds
+N  //
+N  #if OS_PROFILE
+X  #if 0
+S    OS_U32 ExecTotal;              // Time spent executing
+S    OS_U32 ExecLast;               // Time spent executing (Reference)
+S    OS_U32 Load;                   // Profiling builds only:
+N  #endif
+N  //
+N  // Elements required with Round-robin functionality only. Typically available in all builds, but can be disabled at compile time
+N  //
+N  #if OS_RR_SUPPORTED
+X  #if (1)
+N    OS_U8  TimeSliceRem;
+X    unsigned char  TimeSliceRem;
+N    OS_U8  TimeSliceReload;
+X    unsigned char  TimeSliceReload;
+N  #endif
+N  //
+N  // Optional Save & Restore hook support (usually only for bigger CPUs)
+N  //
+N  #if OS_SUPPORT_SAVE_RESTORE_HOOK
+X  #if (1)
+N    const OS_EXTEND_TASK_CONTEXT * pExtendContext;
+N  #endif
+N  //
+N  // Elements required with debug builds
+N  //
+N  #if OS_DEBUG
+X  #if 0
+S    char Id;                       // Debug builds only: Id of this control block.
+N  #endif
+N  //
+N  // Allow port specific extension to the task control block. Not used in most ports
+N  //
+N  #ifdef OS_TCB_CPU_EX
+S    OS_TCB_CPU_EX
+N  #endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_TIMER
+N*/
+Ntypedef struct OS_timer OS_TIMER;
+Nstruct OS_timer {
+N  OS_TIMER * pNext;
+N  voidRoutine* Hook;
+N  OS_TIME Time;
+X  int Time;
+N  OS_TIME Period;
+X  int Period;
+N  char    Active;
+N#if OS_DEBUG
+X#if 0
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_TIMER_EX
+N*/
+Ntypedef struct {
+N  OS_TIMER Timer;
+N  OS_TIMER_EX_ROUTINE * pfUser;
+N  void * pData;
+N} OS_TIMER_EX;
+N
+N/**********************************************************************
+N*
+N*       OS_TICK_HOOK
+N*/
+Ntypedef struct OS_TICK_HOOK OS_TICK_HOOK;
+Nstruct OS_TICK_HOOK {
+N  OS_TICK_HOOK*          pNext;
+N  OS_TICK_HOOK_ROUTINE * pfUser;
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_RSEMA
+N*/
+Ntypedef struct OS_RSEMA OS_RSEMA;
+Nstruct OS_RSEMA {
+N  OS_WAIT_OBJ WaitObj;
+N  OS_TASK * pTask;                /* Owner */
+N  OS_U8 UseCnt;
+X  unsigned char UseCnt;
+N  OS_RSEMA * pNext;
+N#if OS_DEBUG
+X#if 0
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_CSEMA
+N*/
+Ntypedef struct OS_CSEMA OS_CSEMA;
+Nstruct OS_CSEMA {
+N  OS_WAIT_OBJ WaitObj;
+N  OS_UINT Cnt;
+X  unsigned int Cnt;
+N#if OS_DEBUG
+X#if 0
+S  OS_CSEMA * pNext;
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_MAILBOX
+N*/
+Ntypedef struct OS_MAILBOX OS_MAILBOX;
+Nstruct OS_MAILBOX {
+N  OS_WAIT_OBJ WaitObj;
+N#if OS_LINK_MAILBOXES
+X#if (0)
+S  OS_MAILBOX * pNext;
+N#endif
+N  char *pData;
+N  OS_UINT nofMsg;
+X  unsigned int nofMsg;
+N  OS_UINT maxMsg;
+X  unsigned int maxMsg;
+N  OS_UINT iRd;
+X  unsigned int iRd;
+N  OS_U8  sizeofMsg;
+X  unsigned char  sizeofMsg;
+N#if OS_DEBUG
+X#if 0
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_Q
+N*/
+Ntypedef struct OS_Q OS_Q;
+Nstruct OS_Q {
+N  OS_WAIT_OBJ WaitObj;
+N  OS_Q*    pNext;          /* ptr to next queue (for debugging / monitoring) */
+N  OS_U8*   pData;
+X  unsigned char*   pData;
+N  OS_UINT  Size;
+X  unsigned int  Size;
+N  OS_UINT  MsgCnt;
+X  unsigned int  MsgCnt;
+N  OS_UINT  offFirst;
+X  unsigned int  offFirst;
+N  OS_UINT  offLast;
+X  unsigned int  offLast;
+N#if OS_DEBUG
+X#if 0
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_MEMF
+N*/
+N#ifndef   OS_MEMF_MAX_ITEMS
+N  #define OS_MEMF_MAX_ITEMS 20
+N#endif
+N
+N#define OS_MEMF_SIZEOF_BLOCKCONTROL 0  /* sizeof(int) in future version for debugging */
+N
+Ntypedef struct OS_MEMF OS_MEMF;
+Nstruct OS_MEMF {
+N  OS_WAIT_OBJ WaitObj;
+N  OS_MEMF* pNext;          /* ptr to next memory pool */
+N  void*    pPool;
+N  OS_U16   NumBlocks;
+X  unsigned short   NumBlocks;
+N  OS_U16   BlockSize;
+X  unsigned short   BlockSize;
+N  OS_U16   NumFreeBlocks;
+X  unsigned short   NumFreeBlocks;
+N  OS_U16   MaxUsed;
+X  unsigned short   MaxUsed;
+N  void*    pFree;
+N  #if OS_DEBUG
+X  #if 0
+S    int  aiPurpose[OS_MEMF_MAX_ITEMS];
+S    char Id;
+N  #endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_EVENT
+N*/
+Ntypedef struct  OS_EVENT OS_EVENT;
+N
+Nstruct OS_EVENT {
+N  OS_WAIT_OBJ WaitObj;
+N  OS_U8       Signaled;
+X  unsigned char       Signaled;
+N#if OS_DEBUG
+X#if 0
+S  char Id;
+N#endif
+N};
+N
+N/**********************************************************************
+N*
+N*       OS_TRACE_ENTRY
+N*/
+Ntypedef struct {
+N  OS_U32  Time;
+X  unsigned int  Time;
+N  void    *pCurrentTask;
+N  void    *p;
+N  OS_U32  v;
+X  unsigned int  v;
+N  OS_U8   iRout;
+X  unsigned char   iRout;
+N} OS_TRACE_ENTRY;
+N
+N
+N/*********************************************************************
+N*
+N*       Globals
+N*
+N**********************************************************************
+N*/
+N
+N/*
+N    Handle DEFinition (storage is actually allocted) versus DEClaration
+N    (reference) of RTOS variables depending upon who includes this header file.
+N*/
+N#ifdef __OSGLOBAL_C__
+S  #define OS_EXTERN        /* Declare variables if included by RTOSKERN.C */
+S  #define OS_EXTERN_INIT(Var, Val) Var=Val
+N#else
+N  #define OS_EXTERN extern /* Define variables if included by anyone else */
+N  #define OS_EXTERN_INIT(Var, Val) Var
+N#endif
+N
+N/*****  Mark start of memory pragma area ****************************/
+N
+N/* Some compilers can not deal with memory attributes and need pragmas */
+N#if defined(__ghs_zda)
+X#if 0L
+S  #pragma ghs startzda
+N#endif
+N
+N/********************************************************************/
+N
+Ntypedef union {
+N  int Dummy;            // Make sure a full integer (32 bit on 32 bit CPUs) is used.
+N  struct {
+N    OS_U8 Region;
+X    unsigned char Region;
+N    OS_U8 DI;
+X    unsigned char DI;
+N  } Cnt;
+N} OS_COUNTERS;
+N
+N
+N#if OS_COMPILER_STORAGE_MODIFIER_LEFT  /* default */
+X#if 1   
+N  OS_EXTERN OS_SADDR  volatile OS_I32 OS_Time;
+X  extern   volatile int OS_Time;
+N  OS_EXTERN OS_SADDR  OS_TIME         OS_EXTERN_INIT(OS_TimeDex, 16384);
+X  extern   int         OS_TimeDex;
+N  OS_EXTERN OS_SADDR  OS_COUNTERS OS_Counters;
+X  extern   OS_COUNTERS OS_Counters;
+N
+N  OS_EXTERN OS_SADDR  OS_U8  OS_EXTERN_INIT(OS_IntMSInc, 1);
+X  extern   unsigned char  OS_IntMSInc;
+N  OS_EXTERN OS_SADDR  OS_U8  OS_Pending;
+X  extern   unsigned char  OS_Pending;
+N  OS_EXTERN OS_SADDR  volatile OS_U8  OS_Status;
+X  extern   volatile unsigned char  OS_Status;
+N
+N  #if OS_RR_SUPPORTED
+X  #if (1)
+N    OS_EXTERN OS_SADDR  OS_U8  OS_TimeSlice;
+X    extern   unsigned char  OS_TimeSlice;
+N    OS_EXTERN OS_SADDR  OS_U8  OS_TimeSliceAtStart;
+X    extern   unsigned char  OS_TimeSliceAtStart;
+N  #endif
+N  #if OS_SUPPORT_TICKSTEP
+X  #if 0
+S    OS_EXTERN OS_SADDR  volatile OS_U8   OS_TickStep;
+S    OS_EXTERN OS_SADDR  volatile int     OS_TickStepTime;
+N  #endif
+N  OS_EXTERN OS_SADDR        OS_UINT OS_TicksPerMS;
+X  extern         unsigned int OS_TicksPerMS;
+N  OS_EXTERN OS_SADDR        int     OS_IntTicksInc;
+X  extern         int     OS_IntTicksInc;
+N  #if OS_PROFILE
+X  #if 0
+S    OS_EXTERN OS_SADDR OS_U32 OS_TS_ExecStart;
+S    OS_EXTERN OS_SADDR OS_U8  ProfilingOn;
+N  #endif
+N  #if OS_DEBUG
+X  #if 0
+S    OS_EXTERN OS_SADDR OS_U8 OS_InInt;
+S    OS_EXTERN OS_SADDR OS_U8 OS_InTimer;
+S    OS_EXTERN OS_SADDR OS_U8 OS_InitCalled;
+N  #endif
+N
+N  #if OS_SUPPORT_POWER
+X  #if (1)
+N    OS_EXTERN OS_SADDR OS_U8 OS_POWER_Levels[OS_POWER_NUM_COUNTERS];
+X    extern  unsigned char OS_POWER_Levels[(5)];
+N  #endif
+N
+N  /*** Pointers ***
+N    Unfortunately there is no real standard on how to define/declare
+N    pointers properly with extended memory attributes. There are
+N    currently 2 different standards, which we both support.
+N  */
+N  #if OS_COMPILER_LOCATION_LEFT
+X  #if 1
+N    OS_EXTERN OS_SADDR  OS_TASK      * OS_pTask;             /* linked list of all Tasks */
+X    extern   OS_TASK      * OS_pTask;              
+N    OS_EXTERN OS_SADDR  OS_TASK      * OS_pCurrentTask;      /* pointer to current Task */
+X    extern   OS_TASK      * OS_pCurrentTask;       
+N    OS_EXTERN OS_SADDR  OS_TASK volatile * volatile OS_pActiveTask;
+X    extern   OS_TASK volatile * volatile OS_pActiveTask;
+N    OS_EXTERN OS_SADDR  OS_TIMER     * OS_pTimer;            /* linked list of all active Timers */
+X    extern   OS_TIMER     * OS_pTimer;             
+N    OS_EXTERN OS_SADDR  OS_TIMER     * OS_pCurrentTimer;     /* Actual expired timer which called callback */
+X    extern   OS_TIMER     * OS_pCurrentTimer;      
+N    OS_EXTERN OS_SADDR OS_RSEMA      * OS_pRSema;
+X    extern  OS_RSEMA      * OS_pRSema;
+N    #if OS_LINK_MAILBOXES
+X    #if (0)
+S      OS_EXTERN OS_SADDR OS_MAILBOX  * OS_pMailbox;
+N    #endif
+N    #if OS_DEBUG
+X    #if 0
+S      OS_EXTERN OS_SADDR OS_CSEMA    * OS_pCSema;
+N    #endif
+N    OS_EXTERN   OS_SADDR OS_MEMF      * OS_pMEMF;            /* linked list of all fixed size memory pools */
+X    extern    OS_MEMF      * OS_pMEMF;             
+N    OS_EXTERN   OS_SADDR OS_TICK_HOOK * OS_pTickHook;        /* linked list of all tick hook functions */
+X    extern    OS_TICK_HOOK * OS_pTickHook;         
+N  #else
+S    OS_EXTERN OS_TASK             * OS_SADDR OS_pTask;          /* linked list of all Tasks */
+S    OS_EXTERN OS_TASK             * OS_SADDR OS_pCurrentTask;   /* pointer to current Task */
+S    OS_EXTERN OS_TASK    volatile * OS_SADDR volatile OS_pActiveTask;
+S    OS_EXTERN OS_TIMER            * OS_SADDR OS_pTimer;         /* linked list of all active Timers */
+S    OS_EXTERN OS_TIMER            * OS_SADDR OS_pCurrentTimer;  /* Actual expired timer which called callback */
+S    OS_EXTERN OS_RSEMA            * OS_SADDR OS_pRSema;
+S    #if OS_LINK_MAILBOXES
+S      OS_EXTERN OS_MAILBOX        * OS_SADDR OS_pMailbox;
+S    #endif
+S
+S    #if OS_DEBUG
+S      OS_EXTERN  OS_CSEMA         * OS_SADDR OS_pCSema;
+S    #endif
+S    OS_EXTERN OS_MEMF             * OS_SADDR OS_pMEMF;          /* linked list of all fixed size memory pools */
+S    OS_EXTERN OS_TICK_HOOK        * OS_SADDR OS_pTickHook;      /* linked list of all tick hook functions */
+N  #endif
+N
+N#else  /*  OS_COMPILER_STORAGE_MODIFIER_LEFT == 0, needed for Keil 166 */
+S  OS_EXTERN volatile OS_I32 OS_SADDR OS_Time;
+S  OS_EXTERN OS_TIME         OS_SADDR OS_EXTERN_INIT(OS_TimeDex, 16384);
+S  OS_EXTERN OS_COUNTERS OS_SADDR OS_Counters;
+S
+S  OS_EXTERN OS_U8 OS_SADDR OS_EXTERN_INIT(OS_IntMSInc, 1);
+S  OS_EXTERN OS_U8 OS_SADDR OS_Pending;
+S  OS_EXTERN volatile OS_U8 OS_SADDR OS_Status;
+S  #if OS_RR_SUPPORTED
+S    OS_EXTERN OS_U8 OS_SADDR OS_TimeSlice;
+S    OS_EXTERN OS_U8 OS_SADDR OS_TimeSliceAtStart;
+S  #endif
+S  #if OS_SUPPORT_TICKSTEP
+S    OS_EXTERN volatile OS_U8 OS_SADDR OS_TickStep;
+S    OS_EXTERN volatile int   OS_SADDR OS_TickStepTime;
+S  #endif
+S  OS_EXTERN OS_UINT OS_SADDR OS_TicksPerMS;
+S  OS_EXTERN int     OS_SADDR OS_IntTicksInc;
+S  #if OS_PROFILE
+S    OS_EXTERN OS_U32 OS_SADDR OS_TS_ExecStart;
+S    OS_EXTERN OS_U8  OS_SADDR ProfilingOn;
+S  #endif
+S  #if OS_DEBUG
+S    OS_EXTERN OS_U8 OS_SADDR OS_InInt;
+S    OS_EXTERN OS_U8 OS_SADDR OS_InTimer;
+S    OS_EXTERN OS_U8 OS_SADDR OS_InitCalled;
+S  #endif
+S
+S  #if OS_SUPPORT_POWER
+S    OS_EXTERN OS_U8 OS_SADDR OS_POWER_Levels[OS_POWER_NUM_COUNTERS];
+S  #endif
+S
+S  /*** Pointers ***
+S    Unfortunately there is no real standard on how to define/declare
+S    pointers properly with extended memory attributes. There are
+S    currently 2 different standards, which we both support.
+S  */
+S  #if OS_COMPILER_LOCATION_LEFT
+S    OS_EXTERN OS_SADDR  OS_TASK      * OS_pTask;             /* linked list of all Tasks */
+S    OS_EXTERN OS_SADDR  OS_TASK      * OS_pCurrentTask;      /* pointer to current Task */
+S    OS_EXTERN OS_SADDR  OS_TASK volatile * volatile OS_pActiveTask;
+S    OS_EXTERN OS_SADDR  OS_TIMER     * OS_pTimer;            /* linked list of all active Timers */
+S    OS_EXTERN OS_SADDR  OS_TIMER     * OS_pCurrentTimer;     /* Actual expired timer which called callback */
+S    OS_EXTERN OS_SADDR OS_RSEMA      * OS_pRSema;
+S    #if OS_LINK_MAILBOXES
+S      OS_EXTERN OS_SADDR OS_MAILBOX  * OS_pMailbox;
+S    #endif
+S    #if OS_DEBUG
+S      OS_EXTERN OS_SADDR OS_CSEMA    * OS_pCSema;
+S    #endif
+S      OS_EXTERN OS_SADDR OS_MEMF      * OS_pMEMF;            /* linked list of all fixed size memory pools */
+S      OS_EXTERN OS_SADDR OS_TICK_HOOK * OS_pTickHook;        /* linked list of all tick hook functions */
+S
+S  #else
+S    OS_EXTERN OS_TASK             * OS_SADDR OS_pTask;          /* linked list of all Tasks */
+S    OS_EXTERN OS_TASK             * OS_SADDR OS_pCurrentTask;   /* pointer to current Task */
+S    OS_EXTERN OS_TASK    volatile * volatile OS_SADDR OS_pActiveTask;
+S    OS_EXTERN OS_TIMER            * OS_SADDR OS_pTimer;         /* linked list of all active Timers */
+S    OS_EXTERN OS_TIMER            * OS_SADDR OS_pCurrentTimer;  /* Actual expired timer which called callback */
+S    OS_EXTERN OS_RSEMA            * OS_SADDR OS_pRSema;
+S    #if OS_LINK_MAILBOXES
+S      OS_EXTERN OS_MAILBOX        * OS_SADDR OS_pMailbox;
+S    #endif
+S    #if OS_DEBUG
+S      OS_EXTERN OS_CSEMA          * OS_SADDR OS_pCSema;
+S    #endif
+S
+S    OS_EXTERN OS_MEMF             * OS_SADDR OS_pMEMF;          /* linked list of all fixed size memory pools */
+S    OS_EXTERN OS_TICK_HOOK        * OS_SADDR OS_pTickHook;      /* linked list of all tick hook functions */
+S  #endif
+S
+N#endif  /*  OS_COMPILER_STORAGE_MODIFIER_LEFT  */
+N
+N/***** Mark end of memory pragma area *******************************/
+N#if defined(__ghs_zda)
+X#if 0L
+S  #pragma ghs endzda
+N#endif
+N
+N/********************************************************************/
+N
+N#define OS_RegionCnt OS_Counters.Cnt.Region
+N#define OS_DICnt     OS_Counters.Cnt.DI
+N
+N/*********************************************************************
+N*
+N*       OS_CREATETASK macro
+N*       OS_CREATETASK_EX macro
+N*/
+N#if OS_RR_SUPPORTED
+X#if (1)
+N  #define CTPARA_TIMESLICE ,2
+N#else
+S  #define CTPARA_TIMESLICE
+N#endif
+N
+N#if OS_TRACKNAME
+X#if (1)
+N  #define OS_CREATETASK(pTask, Name, Hook, Priority, pStack) \
+N  OS_CreateTask (pTask,                                      \
+N                  Name,                                      \
+N                  Priority,                                  \
+N                  Hook,                                      \
+N                  (void OS_STACKPTR*)pStack,                 \
+N                  sizeof(pStack)                             \
+N                  CTPARA_TIMESLICE                           \
+N               )
+X  #define OS_CREATETASK(pTask, Name, Hook, Priority, pStack)   OS_CreateTask (pTask,                                                        Name,                                                        Priority,                                                    Hook,                                                        (void OS_STACKPTR*)pStack,                                   sizeof(pStack)                                               CTPARA_TIMESLICE                                          )
+N#else
+S  #define OS_CREATETASK(pTask, Name, Hook, Priority, pStack) \
+S  OS_CreateTask (pTask,                                      \
+S                  Priority,                                  \
+S                  Hook,                                      \
+S                  (void OS_STACKPTR*)pStack,                 \
+S                  sizeof(pStack)                             \
+S                  CTPARA_TIMESLICE                           \
+S               )
+X  #define OS_CREATETASK(pTask, Name, Hook, Priority, pStack)   OS_CreateTask (pTask,                                                        Priority,                                                    Hook,                                                        (void OS_STACKPTR*)pStack,                                   sizeof(pStack)                                               CTPARA_TIMESLICE                                          )
+N#endif
+N
+N#if OS_TRACKNAME
+X#if (1)
+N  #define OS_CREATETASK_EX(pTask, Name, Hook, Priority, pStack, pContext) \
+N  OS_CreateTaskEx  (pTask,                                                \
+N                    Name,                                                 \
+N                    Priority,                                             \
+N                    Hook,                                                 \
+N                    (void OS_STACKPTR*)pStack,                            \
+N                    sizeof(pStack)                                        \
+N                    CTPARA_TIMESLICE,                                     \
+N                    pContext                                              \
+N               )
+X  #define OS_CREATETASK_EX(pTask, Name, Hook, Priority, pStack, pContext)   OS_CreateTaskEx  (pTask,                                                                    Name,                                                                     Priority,                                                                 Hook,                                                                     (void OS_STACKPTR*)pStack,                                                sizeof(pStack)                                                            CTPARA_TIMESLICE,                                                         pContext                                                             )
+N#else
+S  #define OS_CREATETASK_EX(pTask, Name, Hook, Priority, pStack, pContext) \
+S  OS_CreateTaskEx  (pTask,                                                \
+S                    Priority,                                             \
+S                    Hook,                                                 \
+S                    (void OS_STACKPTR*)pStack,                            \
+S                    sizeof(pStack)                                        \
+S                    CTPARA_TIMESLICE,                                     \
+S                    pContext                                              \
+S               )
+X  #define OS_CREATETASK_EX(pTask, Name, Hook, Priority, pStack, pContext)   OS_CreateTaskEx  (pTask,                                                                    Priority,                                                                 Hook,                                                                     (void OS_STACKPTR*)pStack,                                                sizeof(pStack)                                                            CTPARA_TIMESLICE,                                                         pContext                                                             )
+N#endif
+N
+N/*********************************************************************
+N*
+N*       OS_CreateTask
+N*       OS_CreateTaskEx
+N*/
+N#if OS_TRACKNAME
+X#if (1)
+N  #define OS_CREATE_TASK_PARA_NAME      const char*Name,
+N#else
+S  #define OS_CREATE_TASK_PARA_NAME
+N#endif
+N
+N#if OS_RR_SUPPORTED
+X#if (1)
+N  #define OS_CREATE_TASK_PARA_TS   ,OS_UINT TimeSlice
+N#else
+S  #define OS_CREATE_TASK_PARA_TS
+N#endif
+N
+Nvoid OS_CreateTask  ( OS_TASK * pTask,
+Xvoid OS_CreateTask_R  ( OS_TASK * pTask,
+N                      OS_CREATE_TASK_PARA_NAME
+X                      const char*Name,
+N                      OS_U8 Priority,
+X                      unsigned char Priority,
+N                      void (*pRoutine)(void),
+N                      void OS_STACKPTR *pStack,
+X                      void  *pStack,
+N                      OS_UINT StackSize
+X                      unsigned int StackSize
+N                      OS_CREATE_TASK_PARA_TS
+X                      ,unsigned int TimeSlice
+N        );
+Nvoid OS_CreateTaskEx  ( OS_TASK * pTask,
+Xvoid OS_CreateTaskEx_R  ( OS_TASK * pTask,
+N                        OS_CREATE_TASK_PARA_NAME
+X                        const char*Name,
+N                        OS_U8 Priority,
+X                        unsigned char Priority,
+N                        void (*pRoutine)(void *),
+N                        void OS_STACKPTR *pStack,
+X                        void  *pStack,
+N                        OS_UINT StackSize
+X                        unsigned int StackSize
+N                        OS_CREATE_TASK_PARA_TS,
+X                        ,unsigned int TimeSlice,
+N                        void * pContext
+N        );
+N#if OS_SUPPORT_SAVE_RESTORE_HOOK
+X#if (1)
+Nvoid OS_ExtendTaskContext(const OS_EXTEND_TASK_CONTEXT * pExtendContext);
+N#endif
+N/*********************************************************************
+N*
+N*       Task related routines
+N*
+N**********************************************************************
+N*/
+N
+Nvoid  OS_Delay(OS_TIME ms);                /* OSKern.c              */
+Xvoid  OS_Delay(int ms);                 
+Nvoid  OS_DelayUntil(OS_TIME t);            /* OSKern.c              */
+Xvoid  OS_DelayUntil(int t);             
+NOS_U8 OS_GetSuspendCnt  (OS_TASK* pTask);  /* OS_GetSuspendCnt.c    */
+Xunsigned char OS_GetSuspendCnt  (OS_TASK* pTask);   
+Nvoid  OS_GetState       (OS_TASK* pTask);
+Nchar  OS_IsTask         (OS_TASK* pTask);  /* OSIsTask.c            */
+Nvoid  OS_Resume         (OS_TASK* pTask);  /* OS_Suspend.c          */
+Nvoid  OS_SetTaskName    (OS_TASK * pTask, const char* s);
+Nvoid  OS_SetPriority    (OS_TASK* pTask, OS_U8 Prio); /* OSSetP.c   */
+Xvoid  OS_SetPriority    (OS_TASK* pTask, unsigned char Prio);  
+Nvoid  OS_Suspend        (OS_TASK* pTask);  /* OS_Suspend.c          */
+Nvoid  OS_Terminate      (OS_TASK* pTask);  /* OSTerm.c              */
+Nvoid  OS_TerminateError (void);            /* OSTermE.c             */
+Nvoid  OS_WakeTask       (OS_TASK* pTask);  /* OSWake.c              */
+Nvoid  OS_Yield          (void);            /* OS_Yield              */
+N
+N#if OS_SUSPEND_TASK_ON_TERMINATE           /* Set task state of a terminated task to "suspended" */
+X#if (0)            
+S  #define OS_SUSPEND_TERMINATED_TASK(pTask) (pTask->Stat = 0x01)
+N#else
+N  #define OS_SUSPEND_TERMINATED_TASK(pTask)
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Info routines (OSInfo.c)
+N*
+N**********************************************************************
+N*/
+N
+Nconst char* OS_GetCPU(void);
+Nconst char* OS_GetLibMode(void);
+Nconst char* OS_GetModel(void);
+Nconst char* OS_GetLibName(void);
+N
+NOS_UINT OS_GetVersion(void);
+Xunsigned int OS_GetVersion(void);
+N#define OS_GetType() OS_GetLibMode()
+N
+N#define OS_TASKID OS_TASK *
+N#define OS_GetTaskID() OS_pCurrentTask
+N
+N#define OS_GetpCurrentTask()    OS_pCurrentTask
+N#define OS_GetpCurrentTimer()   OS_pCurrentTimer
+N#define OS_GetpCurrentTimerEx() ((OS_TIMER_EX*)OS_pCurrentTimer)
+N
+N#if OS_TRACKNAME
+X#if (1)
+N  const char* OS_GetTaskName(OS_TASK *);
+N#else
+S  #define OS_GetTaskName(pt)  ("n/a")
+N#endif
+N
+N#if OS_CHECKSTACK
+X#if 0
+S  void OS_CheckStack(void);              /* internal usage */
+S  int  OS_GetStackSpace(OS_TASK * pTask);
+S  int  OS_GetStackUsed (OS_TASK * pTask);
+S  int  OS_GetStackSize (OS_TASK OS_TCBPTR * pTask);
+S  void OS_STACKPTR* OS_GetStackBase(OS_TASK OS_TCBPTR *pTask);
+N#else
+N  #define OS_CheckStack()
+N  #define OS_GetStackSpace(pt) 0
+N  #define OS_GetStackUsed(pt)  0
+N  #define OS_GetStackSize(pt)  0
+N  #define OS_GetStackBase(pt)  0
+N#endif
+N
+NOS_STACK_ADR OS_GetSysStackBase(void);  /* RTOS asm part */
+Xunsigned int OS_GetSysStackBase(void);   
+Nunsigned int OS_GetSysStackSize(void);  /* RTOS asm part */
+NOS_STACK_ADR OS_GetIntStackBase(void);  /* RTOS asm part */
+Xunsigned int OS_GetIntStackBase(void);   
+Nunsigned int OS_GetIntStackSize(void);  /* RTOS asm part */
+N
+N#if OS_RR_SUPPORTED
+X#if (1)
+N  OS_U8 OS_SetTimeSlice(OS_TASK * pTask, OS_U8 TimeSlice);
+X  unsigned char OS_SetTimeSlice(OS_TASK * pTask, unsigned char TimeSlice);
+N  OS_U8 OS_GetTimeSliceRem(OS_TASK OS_TCBPTR * pTask);
+X  unsigned char OS_GetTimeSliceRem(OS_TASK  * pTask);
+N  #define OS_GetTimeSliceReload(pTask)  pTask->TimeSliceReload
+N#else
+S  #define OS_GetTimeSliceRem(pTask)     0
+S  #define OS_GetTimeSliceReload(pTask)  0
+N#endif
+N
+NOS_U8    OS_GetPriority(OS_TASK * pTask);  /* OS_GetPrio.c       */
+Xunsigned char    OS_GetPriority(OS_TASK * pTask);   
+N#define OS_GET_PRIORITY(pt) pt->Priority
+N
+Nint     OS_GetNumTasks(void);              /* OS_GetNumTasks.c   */
+N
+NOS_TASK* OS_TaskIndex2Ptr(int TaskIndex);  /* OS_TaskIndex2Ptr.c */
+N
+N#if OS_PROFILE >=1
+X#if 0 >=1
+S  OS_U32 OS_STAT_GetExecTime_Cycles (OS_TASK *pTask);  /* OSStat.c   */
+S  int    OS_STAT_GetLoad            (OS_TASK *pTask);  /* OSStatGL.c */
+S  void   OS_STAT_NotifyReadyStart   (OS_TASK *pTask);  /* OSStat.c   */
+S  void   OS_STAT_Sample(void);                         /* OSStat.c   */
+N#else
+N  #define OS_STAT_NotifyExecEnd()
+N  #define OS_STAT_GetExecTime_Cycles(pTask)   0
+N  #define OS_STAT_GetLoad(pTask)              0
+N  #define OS_STAT_Sample()
+N  #define OS_STAT_SetClocksPerUnit(ClocksPerUnit)
+N  #define OS_STAT_NOTIFYREADYSTART(pTask)
+N#endif
+N
+N
+N#if ((OS_PROFILE >= 1) || (OS_DEBUG > 0))  /* Also available in Debug build since V3.32b */
+X#if ((0 >= 1) || (0 > 0))   
+S  OS_U32 OS_STAT_GetNumActivations  (OS_TASK *pTask);  /* OSStat.c   */
+S  OS_U32 OS_STAT_GetNumPreemptions  (OS_TASK *pTask);  /* OSStat.c   */
+N#else
+N  #define OS_STAT_GetNumActivations(pTask)    0
+N  #define OS_STAT_GetNumPreemptions(pTask)    0
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Size info routines (OS_GetSize.c)
+N*
+N**********************************************************************
+N*/
+N
+Nint OS_WAIT_OBJ_GetSize(void);
+Nint OS_WAIT_OBJ_EX_GetSize(void);
+Nint OS_WAIT_LIST_GetSize(void);
+Nint OS_EXTEND_TASK_CONTEXT_GetSize(void);
+Nint OS_TASK_GetSize(void);
+Nint OS_REGS_GetSize(void);
+Nint OS_TIMER_GetSize(void);
+Nint OS_TIMER_EX_GetSize(void);
+Nint OS_TICK_HOOK_GetSize(void);
+Nint OS_RSEMA_GetSize(void);
+Nint OS_CSEMA_GetSize(void);
+Nint OS_MAILBOX_GetSize(void);
+Nint OS_Q_GetSize(void);
+Nint OS_MEMF_GetSize(void);
+Nint OS_EVENT_GetSize(void);
+Nint OS_TRACE_ENTRY_GetSize(void);
+N
+N/*********************************************************************
+N*
+N*       Critical regions (OsKern.c)
+N*
+N**********************************************************************
+N*/
+N
+N#define OS_EnterRegion() {OS_RegionCnt++; }
+Nvoid OS_LeaveRegion(void);
+N
+N/* Macro for OS_Leaveregion.
+N   Main purposes:
+N   - Used in OS-Kernel
+N   - Offers the high speed variant (macro) instead of the function call
+N*/
+N
+N#define OS_LEAVEREGION_STD()        \
+N  if (--OS_RegionCnt == 0) {        \
+N    OS_DI();                        \
+N    if (OS_Pending) {               \
+N      OS_RegionCnt = 1;             \
+N      OS_Switch();                  \
+N      OS_RegionCnt = 0;             \
+N    }                               \
+N    OS_RESTORE_I();                 \
+N  }
+X#define OS_LEAVEREGION_STD()          if (--OS_RegionCnt == 0) {            OS_DI();                            if (OS_Pending) {                     OS_RegionCnt = 1;                   OS_Switch();                        OS_RegionCnt = 0;                 }                                   OS_RESTORE_I();                   }
+N
+N#if OS_DEBUG
+X#if 0
+S #define OS_LEAVEREGION() \
+S   if (!OS_RegionCnt) OS_Error(OS_ERR_LEAVEREGION_BEFORE_ENTERREGION); \
+S   OS_LEAVEREGION_STD()
+X #define OS_LEAVEREGION()    if (!OS_RegionCnt) OS_Error(OS_ERR_LEAVEREGION_BEFORE_ENTERREGION);    OS_LEAVEREGION_STD()
+N#else
+N  #define OS_LEAVEREGION()  OS_LEAVEREGION_STD()
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Interrupt save/disable/restore macros
+N*
+N**********************************************************************
+N*/
+N#define OS_IncDI()       { OS_ASSERT_DICnt(); OS_DI(); OS_DICnt++; }
+N#define OS_DecRI()       { OS_ASSERT_DICnt(); if (--OS_DICnt==0) OS_EI(); }
+N#define OS_RESTORE_I()   { OS_ASSERT_DICnt(); if (OS_DICnt==0)   OS_EI(); }
+N
+Nvoid OS_RestoreI(void);  /* OS_Kern.c */
+N
+N/*********************************************************************
+N*
+N*       ISR (Interrupt service routine) support
+N*
+N**********************************************************************
+N*/
+N
+N#define RTOS_PPENDING           (1)     /*      Preemption  pending */
+N#define RTOS_TSPENDING          (2)     /*      Task switch pending */
+N#define RTOS_RRPENDING          (4)     /*      Round robin pending */
+N
+N
+N#ifndef   OS_SUPPORT_INT_PRIORITY
+S  #define OS_SUPPORT_INT_PRIORITY (1)
+N#endif
+N
+N#if OS_SUPPORT_INT_PRIORITY
+X#if (0)
+S  #ifndef   OS_IPL_EI_DEFAULT
+S    #error "Please define OS_IPL_EI_DEFAULT (OSChip.h)"
+S  #endif
+S
+S  #ifndef   OS_IPL_DI_DEFAULT
+S    #error "Please define OS_IPL_DI_DEFAULT (OSChip.h)"
+S  #endif
+S
+S  #if OS_COMPILER_STORAGE_MODIFIER_LEFT
+S    OS_EXTERN OS_SADDR unsigned int  OS_EXTERN_INIT(OS_Ipl_EI, OS_IPL_EI_DEFAULT);
+S    OS_EXTERN OS_SADDR unsigned int  OS_EXTERN_INIT(OS_Ipl_DI, OS_IPL_DI_DEFAULT);
+S  #else
+S    OS_EXTERN unsigned int OS_SADDR  OS_EXTERN_INIT(OS_Ipl_EI, OS_IPL_EI_DEFAULT);
+S    OS_EXTERN unsigned int OS_SADDR  OS_EXTERN_INIT(OS_Ipl_DI, OS_IPL_DI_DEFAULT);
+S  #endif
+N#endif
+N
+N#if OS_DEBUG
+X#if 0
+S  #define OS_MARK_IN_ISR()         {OS_InInt++;}
+S  #define OS_MARK_OUTOF_ISR()      {if (!OS_InInt--) OS_Error(OS_ERR_LEAVEINT);}
+N#else
+N  #define OS_MARK_IN_ISR()
+N  #define OS_MARK_OUTOF_ISR()
+N#endif
+N
+N#if OS_SUPPORT_CALL_ISR            // Not allowed for some CPUs
+X#if (1)            
+Nvoid OS_CallISR        (void (*pRoutine)(void));
+Nvoid OS_CallNestableISR(void (*pRoutine)(void));
+N#endif
+N
+N#if (OS_SWITCH_FROM_INT_MODIFIES_STACK == 0) && (OS_INTERRUPTS_ARE_NESTABLE_ON_ENTRY != 0) && (OS_SCHEDULER_ACTIVATED_BY_EXCEPTION == 0)
+X#if ((1) == 0) && ((0) != 0) && ((0) == 0)
+S  //
+S  // FOR CPUs without separate interrupt stack which do not disable interrupts on entry,
+S  // OS_Enter- / Leave- Interrupt() is not defined.
+S  // OS_CallISR() has to be used
+S  //
+N#else
+N
+N  #ifndef   OS_ENABLE_INTS_SAVE_IPL
+N    #define OS_ENABLE_INTS_SAVE_IPL() OS_EI()
+N  #endif
+N
+N  #ifndef   OS_RESTORE_IPL
+N    #define OS_RESTORE_IPL()
+N  #endif
+N
+N  #ifndef   OS_EI_ON_LEAVE
+N    #define OS_EI_ON_LEAVE()        // Required for CPUs with do not restore DI-flag by RETI. Currently only CM3.
+N  #endif
+N
+N  #if OS_INTERRUPTS_ARE_NESTABLE_ON_ENTRY
+X  #if (0)
+S    #define OS_DI_ON_ENTRY() OS_DI()
+N  #else
+N    #define OS_DI_ON_ENTRY()
+N  #endif
+N
+N  #if OS_SWITCH_FROM_INT_MODIFIES_STACK
+X  #if (1)
+N    #define OS_HANDLE_REGION_CNT_ON_LI()                                          \
+N      else {                                                                      \
+N        OS_RegionCnt--;                                                           \
+N      }
+X    #define OS_HANDLE_REGION_CNT_ON_LI()                                                else {                                                                              OS_RegionCnt--;                                                                 }
+N  #else
+S    #define OS_HANDLE_REGION_CNT_ON_LI()                                          \
+S      OS_RegionCnt--;
+X    #define OS_HANDLE_REGION_CNT_ON_LI()                                                OS_RegionCnt--;
+N  #endif
+N
+N
+N  #define OS_SWITCH_FROM_INT_IF_REQUIRED()                                      \
+N    if ((OS_RegionCnt == 1) && OS_Pending) {                                    \
+N      OS_SwitchFromInt();                                                       \
+N    }
+X  #define OS_SWITCH_FROM_INT_IF_REQUIRED()                                          if ((OS_RegionCnt == 1) && OS_Pending) {                                          OS_SwitchFromInt();                                                           }
+N
+N  #define OS_EnterInterrupt() { \
+N    OS_DI_ON_ENTRY();           \
+N    OS_MARK_IN_ISR();           \
+N    OS_RegionCnt++;             \
+N    OS_DICnt++;                 \
+N  }
+X  #define OS_EnterInterrupt() {     OS_DI_ON_ENTRY();               OS_MARK_IN_ISR();               OS_RegionCnt++;                 OS_DICnt++;                   }
+N
+N  #define OS_LeaveInterrupt() {                                                 \
+N    OS_MARK_OUTOF_ISR();                                                        \
+N    OS_DICnt--; /* Must have been zero initially ! (We could put =0 instead) */ \
+N    OS_SWITCH_FROM_INT_IF_REQUIRED()                                            \
+N    OS_HANDLE_REGION_CNT_ON_LI();                                               \
+N    OS_EI_ON_LEAVE();                                                           \
+N  }
+X  #define OS_LeaveInterrupt() {                                                     OS_MARK_OUTOF_ISR();                                                            OS_DICnt--;       OS_SWITCH_FROM_INT_IF_REQUIRED()                                                OS_HANDLE_REGION_CNT_ON_LI();                                                   OS_EI_ON_LEAVE();                                                             }
+N
+N  #define OS_LeaveInterruptNoSwitch() { \
+N    OS_MARK_OUTOF_ISR();                \
+N    OS_DICnt--;                         \
+N    OS_RegionCnt--;                     \
+N    OS_EI_ON_LEAVE();                   \
+N  }
+X  #define OS_LeaveInterruptNoSwitch() {     OS_MARK_OUTOF_ISR();                    OS_DICnt--;                             OS_RegionCnt--;                         OS_EI_ON_LEAVE();                     }
+N
+N  #define OS_EnterNestableInterrupt() { \
+N    OS_MARK_IN_ISR();                   \
+N    OS_RegionCnt++;                     \
+N    OS_ENABLE_INTS_SAVE_IPL();          \
+N  }
+X  #define OS_EnterNestableInterrupt() {     OS_MARK_IN_ISR();                       OS_RegionCnt++;                         OS_ENABLE_INTS_SAVE_IPL();            }
+N
+N  #define OS_LeaveNestableInterrupt() {                                         \
+N    OS_DI();                                                                    \
+N    OS_MARK_OUTOF_ISR();                                                        \
+N    OS_SWITCH_FROM_INT_IF_REQUIRED()                                            \
+N    OS_HANDLE_REGION_CNT_ON_LI();                                               \
+N    OS_RESTORE_IPL();                                                           \
+N    OS_EI_ON_LEAVE();                                                           \
+N  }
+X  #define OS_LeaveNestableInterrupt() {                                             OS_DI();                                                                        OS_MARK_OUTOF_ISR();                                                            OS_SWITCH_FROM_INT_IF_REQUIRED()                                                OS_HANDLE_REGION_CNT_ON_LI();                                                   OS_RESTORE_IPL();                                                               OS_EI_ON_LEAVE();                                                             }
+N
+N  #define OS_LeaveNestableInterruptNoSwitch() { \
+N    OS_DI();                                    \
+N    OS_MARK_OUTOF_ISR();                        \
+N    OS_RegionCnt--;                             \
+N    OS_RESTORE_IPL();                           \
+N    OS_EI_ON_LEAVE();                           \
+N  }
+X  #define OS_LeaveNestableInterruptNoSwitch() {     OS_DI();                                        OS_MARK_OUTOF_ISR();                            OS_RegionCnt--;                                 OS_RESTORE_IPL();                               OS_EI_ON_LEAVE();                             }
+N#endif
+N
+N#ifndef OS_EnterIntStack
+S  void OS__EnterIntStack(void);
+S  #define OS_EnterIntStack() {OS_DI(); OS__EnterIntStack(); OS_RESTORE_I(); }
+N#endif
+N
+N#ifndef OS_LeaveIntStack
+S  void OS__LeaveIntStack(void);
+S  #define OS_LeaveIntStack() {OS_DI(); OS__LeaveIntStack(); }
+N#endif
+N
+Nvoid OS_SetFastIntPriorityLimit(OS_UINT Priority);
+Xvoid OS_SetFastIntPriorityLimit(unsigned int Priority);
+N
+N/*********************************************************************
+N*
+N*       Resource semaphores
+N*
+N**********************************************************************
+N*/
+N
+Nint      OS_Use             (OS_RSEMA * pRSema); /* OSRsem.c   */
+Nvoid     OS_Unuse           (OS_RSEMA * pRSema); /* OSRsem.c   */
+Nchar     OS_Request         (OS_RSEMA * pRSema); /* OSRsemRQ.c */
+Nint      OS_GetSemaValue    (OS_RSEMA * pRSema); /* OSRSemGV.c */
+NOS_TASK* OS_GetResourceOwner(OS_RSEMA * pRSema); /* OSRsemGO.c */
+N
+Nvoid     OS_CreateRSema     (OS_RSEMA * pRSema); /* OSRsem.c   */
+Nvoid     OS_DeleteRSema     (OS_RSEMA * pRSema); /* OSDelRS.c  */
+N
+N#define  OS_CREATERSEMA(ps) OS_CreateRSema(ps)
+N
+N/*********************************************************************
+N*
+N*       Counting semaphores
+N*
+N**********************************************************************
+N*/
+N
+Nvoid  OS_CreateCSema    (OS_CSEMA * pCSema, OS_UINT InitValue);  /* OSCSEM.c             */
+Xvoid  OS_CreateCSema    (OS_CSEMA * pCSema, unsigned int InitValue);   
+Nvoid  OS_DeleteCSema    (OS_CSEMA * pCSema);                     /* OSDELCS.c            */
+Nint   OS_GetCSemaValue  (OS_CSEMA * pCSema);                     /* OSCSEMGV.c           */
+NOS_U8 OS_SetCSemaValue  (OS_CSEMA * pCSema, OS_UINT value);      /* OS_SetCSemaValue.c   */
+Xunsigned char OS_SetCSemaValue  (OS_CSEMA * pCSema, unsigned int value);       
+Nvoid  OS_SignalCSema    (OS_CSEMA * pCSema);                     /* OSCSEM.c             */
+Nvoid  OS_SignalCSemaMax (OS_CSEMA * pCSema, OS_UINT MaxValue);   /* OS_CSEMA_SignalMax.c */
+Xvoid  OS_SignalCSemaMax (OS_CSEMA * pCSema, unsigned int MaxValue);    
+Nvoid  OS_WaitCSema      (OS_CSEMA * pCSema);                     /* OSCSEM.c             */
+Nint   OS_WaitCSemaTimed (OS_CSEMA * pCSema, OS_TIME TimeOut);    /* OSCSEMT.c            */
+Xint   OS_WaitCSemaTimed (OS_CSEMA * pCSema, int TimeOut);     
+Nchar  OS_CSemaRequest   (OS_CSEMA * pCSema);                     /* OSCSEMRQ.c           */
+N
+N#define OS_CREATECSEMA(ps) OS_CreateCSema(ps,0)
+N
+N/*********************************************************************
+N*
+N*       Mailboxes
+N*
+N**********************************************************************
+N*/
+N#define CREATEMB(MAILBOX, size, max, Buffer) OS_CreateMB(MAILBOX,size, max, Buffer);
+Nvoid OS_CreateMB          (OS_MAILBOX * pMB, OS_U8 sizeofMsg, OS_UINT maxnofMsg, void* Buffer);    /* initialize mailbox */
+Xvoid OS_CreateMB          (OS_MAILBOX * pMB, unsigned char sizeofMsg, unsigned int maxnofMsg, void* Buffer);     
+Nvoid OS_ClearMB           (OS_MAILBOX * pMB);
+Nvoid OS_PutMail           (OS_MAILBOX * pMB, void* pMail);
+Nchar OS_PutMailCond       (OS_MAILBOX * pMB, void* pMail);
+Nvoid OS_PutMailFront      (OS_MAILBOX * pMB, void* pMail);
+Nchar OS_PutMailFrontCond  (OS_MAILBOX * pMB, void* pMail);
+Nvoid OS_GetMail           (OS_MAILBOX * pMB, void* pDest);
+Nchar OS_GetMailCond       (OS_MAILBOX * pMB, void* pDest);
+Nvoid OS_PutMail1          (OS_MAILBOX * pMB, const char* pMail);
+Nchar OS_PutMailCond1      (OS_MAILBOX * pMB, const char* pMail);
+Nvoid OS_PutMailFront1     (OS_MAILBOX * pMB, const char* pMail);
+Nchar OS_PutMailFrontCond1 (OS_MAILBOX * pMB, const char* pMail);
+Nvoid OS_GetMail1          (OS_MAILBOX * pMB, char* pDest);
+Nchar OS_GetMailCond1      (OS_MAILBOX * pMB, char* pDest);
+Nchar OS_GetMailTimed      (OS_MAILBOX * pMB, void* pDest, OS_TIME Timeout);
+Xchar OS_GetMailTimed      (OS_MAILBOX * pMB, void* pDest, int Timeout);
+Nvoid OS_DeleteMB          (OS_MAILBOX * pMB);
+Nvoid OS_WaitMail          (OS_MAILBOX * pMB);
+N
+N#if OS_DEBUG == 0
+X#if 0 == 0
+N  #define OS_GetMessageCnt(pMB) (*pMB).nofMsg
+N#else
+S  OS_UINT OS_GetMessageCnt(OS_MAILBOX * pMB);   /* get no. of available Messages */
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Message Queues (OSQ.c)
+N*
+N**********************************************************************
+N*/
+N
+Nvoid    OS_Q_Create       (OS_Q* pQ, void*pData, OS_UINT Size);
+Xvoid    OS_Q_Create       (OS_Q* pQ, void*pData, unsigned int Size);
+Nvoid    OS_Q_Clear        (OS_Q* pQ);                                /* OSQCL.c  */
+Nint     OS_Q_GetMessageCnt(OS_Q* pQ);                                /* OSQGMC.c */
+Nint     OS_Q_Put          (OS_Q* pQ, const void* pSrc, OS_UINT Size);
+Xint     OS_Q_Put          (OS_Q* pQ, const void* pSrc, unsigned int Size);
+Nint     OS_Q_GetPtr       (OS_Q* pQ, void**ppData);
+Nint     OS_Q_GetPtrCond   (OS_Q* pQ, void**ppData);                  /* OSQGPC.c */
+Nint     OS_Q_GetPtrTimed  (OS_Q* pQ, void**ppData, OS_TIME Timeout); /* OSQGPT.c */
+Xint     OS_Q_GetPtrTimed  (OS_Q* pQ, void**ppData, int Timeout);  
+Nvoid    OS_Q_Purge        (OS_Q* pQ);
+N
+N/*********************************************************************
+N*
+N*       Events
+N*
+N**********************************************************************
+N*/
+N
+Nchar OS_ClearEvents          (OS_TASK * pTask);                 /* OSEVENCL.c  */
+Nchar OS_GetEventsOccured     (OS_TASK * pTask);                 /* OSEVENGE.c  */
+Nvoid OS_SignalEvent          (char Event, OS_TASK * pTask);     /* OSENENS.c   */
+Nchar OS_WaitEvent            (char EventMask);                  /* OSEVENW.c   */
+Nchar OS_WaitEventTimed       (char EventMask, OS_TIME TimeOut); /* OSEVENT.c   */
+Xchar OS_WaitEventTimed       (char EventMask, int TimeOut);  
+Nchar OS_WaitSingleEvent      (char EventMask);                  /* OSEVENWS.c  */
+Nchar OS_WaitSingleEventTimed (char EventMask, OS_TIME TimeOut); /* OSEVENWST.c */
+Xchar OS_WaitSingleEventTimed (char EventMask, int TimeOut);  
+N
+N/*********************************************************************
+N*
+N*       Timers(OSTIME.c)
+N*
+N**********************************************************************
+N*/
+N
+N#ifdef OS_SIZEOF_INT
+N  #if OS_SIZEOF_INT == 2
+X  #if (4) == 2
+S    #define OS_TIMER_MAX_TIME 0x7F00
+N  #elif OS_SIZEOF_INT == 4
+X  #elif (4) == 4
+N    #define OS_TIMER_MAX_TIME 0x7FFFFF00
+N  #else
+S    #error "OS_SIZEOF_INT not correctly defined"
+N  #endif
+N#endif
+N
+Nvoid    OS_CreateTimer    (OS_TIMER * pTimer, OS_TIMERROUTINE* Callback, OS_TIME Timeout);
+Xvoid    OS_CreateTimer    (OS_TIMER * pTimer, OS_TIMERROUTINE* Callback, int Timeout);
+Nvoid    OS_RetriggerTimer (OS_TIMER * pTimer);
+Nvoid    OS_StartTimer     (OS_TIMER * pTimer);
+Nvoid    OS_StopTimer      (OS_TIMER * pTimer);
+Nvoid    OS_DeleteTimer    (OS_TIMER * pTimer);                  /* OSTIMED.c  */
+NOS_TIME OS_GetTimerPeriod (OS_TIMER * pTimer);                  /* OSTIMEGP.c */
+Xint OS_GetTimerPeriod (OS_TIMER * pTimer);                   
+NOS_U8   OS_GetTimerStatus (OS_TIMER * pTimer);                  /* OSTIMEGS.c */
+Xunsigned char   OS_GetTimerStatus (OS_TIMER * pTimer);                   
+NOS_TIME OS_GetTimerValue  (OS_TIMER * pTimer);                  /* OSTIMEGV.c */
+Xint OS_GetTimerValue  (OS_TIMER * pTimer);                   
+Nvoid    OS_SetTimerPeriod (OS_TIMER * pTimer, OS_TIME Period);  /* OSTIMES.c  */
+Xvoid    OS_SetTimerPeriod (OS_TIMER * pTimer, int Period);   
+N
+N#define OS_CREATETIMER(pTimer,c,d)  \
+N        OS_CreateTimer(pTimer,c,d); \
+N        OS_StartTimer(pTimer);
+X#define OS_CREATETIMER(pTimer,c,d)          OS_CreateTimer(pTimer,c,d);         OS_StartTimer(pTimer);
+N
+N/*********************************************************************
+N*
+N*       Extended timers (OSTIMERX.c)
+N*
+N**********************************************************************
+N*/
+Nvoid    OS_CreateTimerEx (OS_TIMER_EX * pTimerEx, OS_TIMER_EX_ROUTINE* Callback, OS_TIME Timeout, void * pData);
+Xvoid    OS_CreateTimerEx (OS_TIMER_EX * pTimerEx, OS_TIMER_EX_ROUTINE* Callback, int Timeout, void * pData);
+N
+N#define OS_RetriggerTimerEx(pTimerEx)         OS_RetriggerTimer(&(pTimerEx)->Timer)
+N#define OS_StartTimerEx(pTimerEx)             OS_StartTimer(&(pTimerEx)->Timer)
+N#define OS_StopTimerEx(pTimerEx)              OS_StopTimer(&(pTimerEx)->Timer)
+N#define OS_DeleteTimerEx(pTimerEx)            OS_DeleteTimer(&(pTimerEx)->Timer)
+N#define OS_GetTimerPeriodEx(pTimerEx)         OS_GetTimerPeriod(&(pTimerEx)->Timer)
+N#define OS_GetTimerStatusEx(pTimerEx)         OS_GetTimerStatus(&(pTimerEx)->Timer)
+N#define OS_GetTimerValueEx(pTimerEx)          OS_GetTimerValue(&(pTimerEx)->Timer)
+N#define OS_SetTimerPeriodEx(pTimerEx,Period)  OS_SetTimerPeriod(&(pTimerEx)->Timer, Period)
+N
+N#define OS_CREATETIMER_EX(pTimerEx,cb,Timeout,pData) \
+N        OS_CreateTimerEx(pTimerEx,cb,Timeout,pData); \
+N        OS_StartTimerEx(pTimerEx)
+X#define OS_CREATETIMER_EX(pTimerEx,cb,Timeout,pData)         OS_CreateTimerEx(pTimerEx,cb,Timeout,pData);         OS_StartTimerEx(pTimerEx)
+N
+N/*********************************************************************
+N*
+N*       Heap type memory management (OS_Alloc.c)
+N*
+N**********************************************************************
+N
+N  This functions might not be implemented in all OS ports.
+N  Therefore declaration depends on condition OS_SUPPORT_OS_ALLOC
+N  which has to be defined in CPU specific part
+N
+N*/
+N
+N#if OS_SUPPORT_OS_ALLOC
+X#if (1)
+N  void* OS_malloc(unsigned int);
+N  void  OS_free  (void* pMemBlock);
+N  void* OS_realloc  (void* pMemBlock, unsigned NewSize);
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Fixed Block memory management
+N*
+N**********************************************************************
+N*/
+N
+Nvoid  OS_MEMF_Create(OS_MEMF* pMEMF, void* pPool, OS_U16 NumBlocks, OS_U16 BlockSize);
+Xvoid  OS_MEMF_Create(OS_MEMF* pMEMF, void* pPool, unsigned short NumBlocks, unsigned short BlockSize);
+Nvoid  OS_MEMF_Delete(OS_MEMF* pMEMF);
+Nvoid* OS_MEMF_Alloc(OS_MEMF* pMEMF, int Purpose);
+Nvoid* OS_MEMF_AllocTimed(OS_MEMF* pMEMF, OS_TIME Timeout, int Purpose);
+Xvoid* OS_MEMF_AllocTimed(OS_MEMF* pMEMF, int Timeout, int Purpose);
+Nvoid* OS_MEMF_Request(OS_MEMF* pMEMF, int Purpose);
+Nvoid  OS_MEMF_Release(OS_MEMF* pMEMF, void* pMemBlock);
+Nvoid  OS_MEMF_FreeBlock(void* pMemBlock);
+Nint   OS_MEMF_GetNumFreeBlocks(OS_MEMF* pMEMF);
+Nchar  OS_MEMF_IsInPool(OS_MEMF* pMEMF, void* pMemBlock);
+Nint   OS_MEMF_GetMaxUsed(OS_MEMF* pMEMF);
+Nint   OS_MEMF_GetNumBlocks(OS_MEMF* pMEMF);
+Nint   OS_MEMF_GetBlockSize(OS_MEMF* pMEMF);
+N
+N/*********************************************************************
+N*
+N*       Event object module
+N*
+N**********************************************************************
+N*/
+N
+N/****** Simple OS_EVENT functions ************************************/
+N
+Nvoid  OS_EVENT_Create    (OS_EVENT* pEvent);
+Nvoid  OS_EVENT_Delete    (OS_EVENT* pEvent);
+N
+NOS_U8 OS_EVENT_Get       (OS_EVENT* pEvent);
+Xunsigned char OS_EVENT_Get       (OS_EVENT* pEvent);
+Nvoid  OS_EVENT_Pulse     (OS_EVENT* pEvent);
+Nvoid  OS_EVENT_Reset     (OS_EVENT* pEvent);
+Nvoid  OS_EVENT_Set       (OS_EVENT* pEvent);
+Nvoid  OS_EVENT_Wait      (OS_EVENT* pEvent);
+Nchar  OS_EVENT_WaitTimed (OS_EVENT* pEvent, OS_TIME Timeout);
+Xchar  OS_EVENT_WaitTimed (OS_EVENT* pEvent, int Timeout);
+N
+N/*********************************************************************
+N*
+N*       Timing support (OSTiming.c)
+N*
+N**********************************************************************
+N
+N New in V3.04, but not yet documented to the end user. Great for
+N run-time measurement.
+N*/
+N
+N#define OS_TIMING OS_U32
+Nvoid    OS_Timing_Start(OS_TIMING* pCycle);
+Xvoid    OS_Timing_Start(unsigned int* pCycle);
+Nvoid    OS_Timing_End(OS_TIMING* pCycle);
+Xvoid    OS_Timing_End(unsigned int* pCycle);
+NOS_U32  OS_Timing_Getus(OS_TIMING* pCycle);
+Xunsigned int  OS_Timing_Getus(unsigned int* pCycle);
+N#define OS_Timing_GetCycles(pPara) (*pPara)
+N
+N
+N/*********************************************************************
+N*
+N*       OS Power control module OS_Power.c
+N*
+N**********************************************************************
+N*/
+N#if OS_SUPPORT_POWER
+X#if (1)
+N#define OS_POWER_LEVEL0  (0x0001)
+N#define OS_POWER_LEVEL1  (0x0002)
+N#define OS_POWER_LEVEL2  (0x0004)
+N#define OS_POWER_LEVEL3  (0x0008)
+N#define OS_POWER_LEVEL4  (0x0010)
+N#define OS_POWER_LEVEL5  (0x0020)
+N#define OS_POWER_LEVEL6  (0x0040)
+N#define OS_POWER_LEVEL8  (0x0080)
+N
+Nvoid    OS_POWER_UsageInc(OS_UINT Level);
+Xvoid    OS_POWER_UsageInc(unsigned int Level);
+Nvoid    OS_POWER_UsageDec(OS_UINT Level);
+Xvoid    OS_POWER_UsageDec(unsigned int Level);
+NOS_UINT OS_POWER_GetMask(void);
+Xunsigned int OS_POWER_GetMask(void);
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Advanced profiling support (Module OsKern.c)
+N*
+N**********************************************************************
+N*/
+N#if OS_PROFILE >= 1
+X#if 0 >= 1
+S  void OS_EnableProfiling(int Period);
+S  #define OS_DisableProfiling() { OS_ProfilingOn=0; }
+N#else
+N  #define OS_EnableProfiling(Period);
+N  #define OS_DisableProfiling()
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Configuration
+N*
+N**********************************************************************
+N*/
+N
+N#define OS_CONFIG_FRACT(f, div)                    \
+N  OS_TicksPerMS  = f/1000;                         \
+N  OS_IntMSInc    = div*1000L/f;                    \
+N  OS_IntTicksInc = div-(f/1000)*(div*1000L/f);
+X#define OS_CONFIG_FRACT(f, div)                      OS_TicksPerMS  = f/1000;                           OS_IntMSInc    = div*1000L/f;                      OS_IntTicksInc = div-(f/1000)*(div*1000L/f);
+N
+N#define OS_CONFIG(f, div)     \
+N  OS_IntMSInc    = div*1000L/f;
+X#define OS_CONFIG(f, div)       OS_IntMSInc    = div*1000L/f;
+N
+N
+N/*********************************************************************
+N*
+N*       Trace support (OSTrace.c)
+N*
+N**********************************************************************
+N
+NTrace support is enabled by defining OS_TRACE 1.
+NThis is automatically done, when OS_LIBMODE_T is defined.
+N
+N*/
+N
+N#if OS_TRACE
+X#if 0
+S  /* Declare trace function prototypes */
+S  void OS_TraceVoid (OS_U8 id);
+S  void OS_TracePtr  (OS_U8 id, void* p);
+S  void OS_TraceData (OS_U8 id, int v);
+S  void OS_TraceDataPtr (OS_U8 id, int v, void*p);
+S  void OS_TraceU32Ptr  (OS_U8 id, OS_U32 p0, void*p1);
+S  void OS_TraceEnable(void);
+S  void OS_TraceDisable(void);
+S  void OS_TraceEnableAll(void);                              /* OSTrace1.c */
+S  void OS_TraceDisableAll(void);                             /* OSTrace1.c */
+S  void OS_TraceEnableId(OS_U8 id);                           /* OSTrace1.c */
+S  void OS_TraceDisableId(OS_U8 id);                          /* OSTrace1.c */
+S  void OS_TraceEnableFilterId(OS_U8 FilterIndex, OS_U8 id);  /* OSTrace1.c */
+S  void OS_TraceDisableFilterId(OS_U8 FilterIndex, OS_U8 id); /* OSTrace1.c */
+S
+S  /* Trace function macros, used in API functions */
+S  #define OS_TRACE_VOID(id)            OS_TraceVoid(id)
+S  #define OS_TRACE_PTR(id, p)          OS_TracePtr(id, p)
+S  #define OS_TRACE_DATA(id, v)         OS_TraceData(id, v)
+S  #define OS_TRACE_DATA_PTR(id, v, p)  OS_TraceDataPtr(id, v, p)
+S  #define OS_TRACE_U32_PTR(id, p0, p1) OS_TraceU32Ptr(id, p0, p1)
+S
+S  #define OS_TRACE_START()                    { OS_EnterRegion();                                }
+S  #define OS_TRACE_START_VOID(id)             { OS_EnterRegion(); OS_TraceVoid(id);              }
+S  #define OS_TRACE_START_PTR(id, p)           { OS_EnterRegion(); OS_TracePtr(id, p);            }
+S  #define OS_TRACE_START_DATA(id, v)          { OS_EnterRegion(); OS_TraceData(id, v);           }
+S  #define OS_TRACE_START_DATA_PTR(id, v, p)   { OS_EnterRegion(); OS_TraceDataPtr(id, v, p);     }
+S  #define OS_TRACE_START_U32_PTR(id, p0, p1)  { OS_EnterRegion(); OS_TraceU32Ptr(id, u, p);      }
+S  #define OS_TRACE_END()                      { OS_LeaveRegion();                                }
+S
+N#else
+N  /* Replace trace functions by empty macros if trace is not enabled */
+N  #define OS_TraceVoid(id)
+N  #define OS_TracePtr(id, p)
+N  #define OS_TraceData(id, v)
+N  #define OS_TraceDataPtr(id, v, p)
+N  #define OS_TraceU32Ptr(id, p0, p1)
+N  #define OS_TraceEnable()
+N  #define OS_TraceDisable()
+N  #define OS_TraceEnableAll()
+N  #define OS_TraceDisableAll()
+N  #define OS_TraceEnableId(id)
+N  #define OS_TraceDisableId(id)
+N  #define OS_TraceEnableFilterId(FilterIndex, id)
+N  #define OS_TraceDisableFilterId(FilterIndex, id)
+N  /* Trace function macros, used in API functions. */
+N  /* Expand to nothing if trace is disabled       */
+N  #define OS_TRACE_VOID(id)
+N  #define OS_TRACE_PTR(id, p)
+N  #define OS_TRACE_DATA(id, v)
+N  #define OS_TRACE_DATA_PTR(id, v, p)
+N  #define OS_TRACE_U32_PTR(id, p0, p1)
+N
+N  #define OS_TRACE_START()
+N  #define OS_TRACE_START_VOID(id)
+N  #define OS_TRACE_START_PTR(id, p)
+N  #define OS_TRACE_START_DATA(id, v)
+N  #define OS_TRACE_START_DATA_PTR(id, v, p)
+N  #define OS_TRACE_START_U32_PTR(id, p0, p1)
+N  #define OS_TRACE_END()
+N#endif
+N
+N/*********************************************************************
+N*
+N*        RTOSInit and misc.
+N*
+N**********************************************************************
+N
+NThe routines declared below are available on all targets.
+N
+N*/
+N
+N/* Routines in RTOSInit.c */
+Nvoid   OS_InitHW(void);
+Nvoid   OS_Idle(void);
+NOS_U32 OS_ConvertCycles2us(OS_U32 Cycles);
+Xunsigned int OS_ConvertCycles2us(unsigned int Cycles);
+NOS_U32 OS_GetTime_Cycles(void);
+Xunsigned int OS_GetTime_Cycles(void);
+Nvoid   OS_COM_Init(void);
+Nvoid   OS_COM_Send1(unsigned char c);
+N
+N/* Routines in OS_Error.c, delivered as source file */
+Nvoid   OS_Error(int code);
+N
+NOS_INTERWORK void  OS_Start(void);                  /* RTOS ASM part   */
+X void  OS_Start(void);                   
+NOS_INTERWORK void  OS_Switch(void);                 /* RTOS ASM part   */
+X void  OS_Switch(void);                  
+NOS_INTERWORK int   OS_SwitchFromInt(void);          /* RTOS ASM part   */
+X int   OS_SwitchFromInt(void);           
+N
+Nvoid  OS_InitKern(void);             /* OSKern.c        */
+NOS_U8 OS_OnTx(void);                 /* OSComRxTx1.c, Returns 1 on last byte */
+Xunsigned char OS_OnTx(void);                  
+Nvoid  OS_OnRx(unsigned char c);      /* OSComRxTx1.c    */
+Nvoid  OS_Send1(OS_U8 c);             /* not implemented */
+Xvoid  OS_Send1(unsigned char c);              
+Nvoid  OS_SendString(const char* s);  /* OSSend.c        */
+NOS_RX_CALLBACK* OS_SetRxCallback(OS_RX_CALLBACK* cb);
+NOS_U8 OS_EvaPacketEx(const OS_U8 * pSrc, OS_U16 SrcLen, OS_U8** pReturn);  /* OS_EvaPacketEx.c */
+Xunsigned char OS_EvaPacketEx(const unsigned char * pSrc, unsigned short SrcLen, unsigned char** pReturn);   
+N
+Nvoid  OS_COM_ClearTxActive(void);    /* OSCom2.c */
+N
+N/*********************************************************************
+N*
+N*        RTOS misc. optional
+N*
+N**********************************************************************
+N
+NThe routines declared below are available on some targets
+Nonly. (Because they do not make much sense on others)
+N*/
+N
+N/* Timing routines. Their existance depends on the CPU. In general,
+N  8-bit CPUs require both routines, where 16-bit CPUs require one
+N  and 32-bit CPUs require none of these.
+N*/
+N#ifndef OS_GetTime
+S  OS_TIME OS_GetTime(void);
+N#endif
+N#ifndef OS_GetTime32
+S  #if (OS_SIZEOF_INT == 4)
+S    #define OS_GetTime32() (OS_Time)
+S  #else
+S    OS_I32 OS_GetTime32(void);
+S  #endif
+N#endif
+N
+Nvoid OS__di(void);
+Nvoid OS__ei(void);
+Nvoid OS__SaveIPL(void);
+Nvoid OS__RestIPL(void);
+Nvoid OS_SIM_Init(void);
+N
+N/* Standard tick handler which increment OS time variable by one on each interrupt */
+Nvoid OS_HandleTick(void);       /* New version of OS_TickHandler() without Enter- Leave-Interrupt    */
+Nvoid OS_HandleTickDI(void);     /* OSTickDI.c */
+N
+N/* Non standard tick handler which increment the OS time variable by OS_IntMsInc once on each interrupt */
+N/* One of these handler has to be used when OS_CONFIG() is used to set a tick increment unequal to 0    */
+Nvoid OS_HandleTick_Ex(void);    /* OS_HandleTick_Ex.c */
+Nvoid OS_HandleTickDI_Ex(void);  /* OSTickDI_Ex.c      */
+N
+Nvoid OS_AddTickHook(OS_TICK_HOOK* pHook, OS_TICK_HOOK_ROUTINE * pfUser);
+Nvoid OS_RemoveTickHook(OS_TICK_HOOK* pHook);
+N
+N/* Routines for the PC-version running in native mode (non-windows) */
+Nvoid OS_SetIntFreq(OS_UINT f);
+Xvoid OS_SetIntFreq(unsigned int f);
+Nvoid OS_Exit(int code);
+Nvoid OS_UseDos(void);
+Nvoid OS_UnuseDos(void);
+Nint  OS_GetKey(void);
+Nint  OS_WaitKey(void);
+N
+N/* Compatibility with manual */
+N#define OS_CREATEMB          OS_CreateMB
+N#define OS_GetUseCnt         OS_GetSemaValue
+N#define OS_WaitCSema_Timed   OS_WaitCSemaTimed
+N#define OS_WaitEvent_Timed   OS_WaitEventTimed
+N
+N/********************************************************************/
+N
+N#ifdef __cplusplus
+S  }
+N#endif
+N
+N#endif /* RTOS_H_INCLUDED */
+N
+N/*****  EOF  ********************************************************/
+N
+L 40 "Setup\RTOSInit.c" 2
+N
+N/*********************************************************************
+N*
+N*       Configuration
+N*
+N*********************************************************************/
+N
+N#define   SDRAM_BASE_ADDR  (0xA0000000)
+N
+N#ifndef   DATABUS_32BIT
+N  #define DATABUS_32BIT    (1)
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Clock frequency settings
+N*/
+N#ifndef   OS_USE_INTERNAL_RC
+N  #define OS_USE_INTERNAL_RC  0
+N#endif
+N
+N#ifndef   OS_FSYS                        /* CPU main clock freqeuncy     */
+N  #define OS_FSYS (57600000uL)           /* may depend on PLL            */
+N#endif
+N
+N#ifndef   OS_PCLK_TIMER                  /* Peripheral clock for timer   */
+N  #define OS_PCLK_TIMER (OS_FSYS/2)      /* defaults to CPU clock / 2    */
+N#endif
+N
+N#ifndef   OS_PCLK_UART                   /* Peripheral clock for UART    */
+N  #define OS_PCLK_UART (OS_FSYS/2)       /* defaults to CPU clock / 2    */
+N#endif
+N
+N#ifndef   OS_INIT_PLL                    /* PLL may be initialized       */
+N  #define OS_INIT_PLL         (1)        /* during __low_level_init      */
+N#endif
+N
+N#if (OS_USE_INTERNAL_RC)
+X#if (0)
+S  #ifndef   OS_PLL_MULTIPLIER            /* PLL multiplier may be        */
+S    #define OS_PLL_MULTIPLIER  (36)      /* defined by project settings  */
+S  #endif
+N#else
+N  #ifndef   OS_PLL_MULTIPLIER            /* PLL multiplier may be        */
+N    #define OS_PLL_MULTIPLIER  (12)      /* defined by project settings  */
+N  #endif
+N#endif
+N
+N#ifndef   OS_INIT_MAM                    /* Memory accelerator           */
+N  #define OS_INIT_MAM              (1)   /* initialized per default      */
+N#endif
+N
+N/****** OS internal timing settings ******************************/
+N
+N#define _OS_TIMER_INTERVAL (OS_PCLK_TIMER / 1000)
+N
+N
+N#if OS_INIT_MAM                     /* Define timer value for MAM   */
+X#if (1)                      
+N  #if   (OS_FSYS < 2000000)
+X  #if   ((57600000uL) < 2000000)
+S    #define _OS_MAMTIM_VALUE    (2)
+S  #elif (OS_FSYS < 4000000)
+X  #elif ((57600000uL) < 4000000)
+S    #define _OS_MAMTIM_VALUE    (3)
+N  #else
+N    #define _OS_MAMTIM_VALUE    (5)
+N  #endif
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Configuration of communication to OSView
+N*/
+N#ifndef   OS_VIEW_ENABLE            // Global enable of communication
+S  #define OS_VIEW_ENABLE    (1)     // Default: on
+N#endif
+N
+N#ifndef   OS_VIEW_USE_UART          // If set, UART will be used
+N  #define OS_VIEW_USE_UART  (0)     // Default: 0 => DCC is used
+N#endif                              // if OS_VIEW_ENABLE is on
+N
+N/*********************************************************************
+N*
+N*       UART settings for OSView
+N*       If you do not want (or can not due to hardware limitations)
+N*       to dedicate a UART to OSView, please define it to be -1
+N*       Currently UART0 and UART1 are supported and the standard
+N*       setup enables UART 0 per default
+N*       When using DCC for communiction, the UART is not used for embOSView,
+N*       regardless the OS_UART settings
+N*/
+N#ifndef   OS_UART
+N  #define OS_UART (0)
+N#endif
+N
+N#ifndef   OS_BAUDRATE
+N  #define OS_BAUDRATE (38400)
+N#endif
+N
+N/****** Define behavior of undefined interrupt handling *************/
+N
+N#ifndef   OS_IGNORE_UNDEFINED_INTERRUPT
+N  #define OS_IGNORE_UNDEFINED_INTERRUPT 0
+N#endif
+N
+N/****** End of configuration settings *******************************/
+N
+N/****** Configuration check  ****************************************/
+N
+N#if OS_FSYS  > 60000000
+X#if (57600000uL)  > 60000000
+S  #error "Undefined behavior of the CPU, see errata sheet for NXP LPC2468"
+N#endif
+N
+N#if   (OS_FSYS == OS_PCLK_TIMER)
+X#if   ((57600000uL) == ((57600000uL)/2))
+S  #define _PCLKSEL_VALUE   (0x55555555)
+N#elif ((OS_FSYS/OS_PCLK_TIMER) == 2)
+X#elif (((57600000uL)/((57600000uL)/2)) == 2)
+N  #define _PCLKSEL_VALUE   (0xAAAAAAAA)
+N#elif ((OS_FSYS/OS_PCLK_TIMER) == 4)
+S  #define _PCLKSEL_VALUE   (0x00000000)
+S#else
+S  #error "Unsupported peripheral clock divider, code has to be modified"
+N#endif
+N
+N#if (OS_PCLK_TIMER != OS_PCLK_UART)
+X#if (((57600000uL)/2) != ((57600000uL)/2))
+S  #error "Different peripheral clocks for UART and timer, code has to be modified"
+N#endif
+N
+N/*********************************************************************
+N*
+N*       DCC and UART settings for OSView
+N*
+N*       Automatically generated from configuration settings
+N*/
+N#define OS_USE_DCC     (OS_VIEW_ENABLE && (OS_VIEW_USE_UART == 0))
+N
+N#define OS_UART_USED   (OS_VIEW_ENABLE && (OS_VIEW_USE_UART != 0)) && ((OS_UART == 0) || (OS_UART == 1) || (OS_UART == 2))
+N
+N/********************************************************************/
+N
+N#if (DEBUG || OS_USE_DCC)
+X#if (0 || (0 && ((0) == 0)))
+S  #include "JLINKDCC.h"
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Local defines (sfrs used in RTOSInit.c)
+N*
+N**********************************************************************
+N*/
+N
+N/****** Port, port mode settings ************************************/
+N
+N#define _PINSEL_BASE_ADDR (0xE002C000)
+N
+N#define _PINSEL0          *(volatile OS_U32*)(_PINSEL_BASE_ADDR + 0x00)
+N#define _PINSEL4          *(volatile OS_U32*)(_PINSEL_BASE_ADDR + 0x10)
+N#define _PINSEL5          *(volatile OS_U32*)(_PINSEL_BASE_ADDR + 0x14)
+N#define _PINSEL6          *(volatile OS_U32*)(_PINSEL_BASE_ADDR + 0x18)
+N#define _PINSEL7          *(volatile OS_U32*)(_PINSEL_BASE_ADDR + 0x1C)
+N#define _PINSEL8          *(volatile OS_U32*)(_PINSEL_BASE_ADDR + 0x20)
+N#define _PINSEL9          *(volatile OS_U32*)(_PINSEL_BASE_ADDR + 0x24)
+N
+N#define _SCS              *(volatile OS_U32*)0xE01FC1A0
+N
+N
+N/****** External memory controller **********************************/
+N
+N#define _EMC_BASE_ADDR          (0xFFE08000)
+N
+N#define _EMCCONTROL             *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0000)
+N#define _EMCDYNAMIC_CONTROL     *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0020)
+N#define _EMCDYNAMIC_REFRESH     *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0024)
+N#define _EMCDYNAMIC_READCONFIG  *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0028)
+N#define _EMCDYNAMIC_RP          *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0030)
+N#define _EMCDYNAMIC_RAS         *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0034)
+N#define _EMCDYNAMIC_SREX        *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0038)
+N#define _EMCDYNAMIC_APR         *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x003C)
+N#define _EMCDYNAMIC_DAL         *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0040)
+N#define _EMCDYNAMIC_WR          *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0044)
+N#define _EMCDYNAMIC_RC          *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0048)
+N#define _EMCDYNAMIC_RFC         *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x004C)
+N#define _EMCDYNAMIC_XSR         *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0050)
+N#define _EMCDYNAMIC_RRD         *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0054)
+N#define _EMCDYNAMIC_MRD         *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0058)
+N#define _EMCDYNAMIC_CONFIG0     *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0100)
+N#define _EMCDYNAMIC_RASCAS0     *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0104)
+N
+N#define _EMCSTATIC_CONFIG0      *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0200)
+N#define _EMCSTATIC_WAITWEN0     *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0204)
+N#define _EMCSTATIC_WAITOEN0     *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0208)
+N#define _EMCSTATIC_WAITRD0      *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x020C)
+N#define _EMCSTATIC_WAITPAGE0    *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0210)
+N#define _EMCSTATIC_WAITWR0      *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0214)
+N#define _EMCSTATIC_WAITTURN0    *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0218)
+N#define _EMCSTATIC_CONFIG1      *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0220)
+N#define _EMCSTATIC_WAITWEN1     *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0224)
+N#define _EMCSTATIC_WAITOEN1     *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0228)
+N#define _EMCSTATIC_WAITRD1      *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x022C)
+N#define _EMCSTATIC_WAITPAGE1    *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0230)
+N#define _EMCSTATIC_WAITWR1      *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0234)
+N#define _EMCSTATIC_WAITTURN1    *(volatile unsigned long *)(_EMC_BASE_ADDR + 0x0238)
+N
+N/****** Power, reset clock control unit register ********************/
+N
+N#define _PLLCON       *(volatile OS_U32*)0xE01FC080
+N#define _PLLCFG       *(volatile OS_U32*)0xE01FC084
+N#define _PLLSTAT      *(volatile OS_U32*)0xE01FC088
+N#define _PLLFEED      *(volatile OS_U32*)0xE01FC08C
+N#define _PCON         *(volatile OS_U32*)0xE01FC0C0
+N#define _PCONP        *(volatile OS_U32*)0xE01FC0C4
+N#define _CPUCLKCFG    *(volatile OS_U32*)0xE01FC104
+N#define _USBCLKCFG    *(volatile OS_U32*)0xE01FC108
+N#define _CLKSRCSEL    *(volatile OS_U32*)0xE01FC10C
+N#define _PCLKSEL0     *(volatile OS_U32*)0xE01FC1A8
+N#define _PCLKSEL1     *(volatile OS_U32*)0xE01FC1AC
+N
+N/****** PLL and memeory timing **************************************/
+N
+N#define _MAMCR       *(volatile OS_U32*)(0xE01FC000)
+N#define _MAMTIM      *(volatile OS_U32*)(0xE01FC004)
+N
+N/****** Timer sfr definition ****************************************/
+N
+N#define _TIM0_BASE_ADDR   0xE0004000
+N#define _TIM1_BASE_ADDR   0xE0008000
+N
+N#define _TIM_IR_OFFS      0x00
+N#define _TIM_TCR_OFFS     0x04
+N#define _TIM_TC_OFFS      0x08
+N#define _TIM_PR_OFFS      0x0C
+N#define _TIM_MCR_OFFS     0x14
+N#define _TIM_MR0_OFFS     0x18
+N
+N/****** Assign timer sfrs used for OS timer **********************/
+N/****** initially, we use timer 0        ****************************/
+N
+N#define _OS_TIM_BASE_ADDR       _TIM0_BASE_ADDR
+N#define _OS_TIM_IR_BIT          0  // Used to reset timer interrupt (Timer IR register), Match channel 0
+N#define _TIMER_PCONP_BIT        1
+N
+N#define _OS_TIMER_INT_INDEX     4 // Timer 0 interrupt
+N
+N#define _OS_TIM_IR       *(volatile OS_U32*)(_OS_TIM_BASE_ADDR + _TIM_IR_OFFS)
+N#define _OS_TIM_TCR      *(volatile OS_U32*)(_OS_TIM_BASE_ADDR + _TIM_TCR_OFFS)
+N#define _OS_TIM_TC       *(volatile OS_U32*)(_OS_TIM_BASE_ADDR + _TIM_TC_OFFS)
+N#define _OS_TIM_PR       *(volatile OS_U32*)(_OS_TIM_BASE_ADDR + _TIM_PR_OFFS)
+N#define _OS_TIM_MCR      *(volatile OS_U32*)(_OS_TIM_BASE_ADDR + _TIM_MCR_OFFS)
+N#define _OS_TIM_MR0      *(volatile OS_U32*)(_OS_TIM_BASE_ADDR + _TIM_MR0_OFFS)
+N
+N/****** UART sfdr definition ****************************************/
+N/****** UARTx *******************************************************/
+N
+N#define _UART0_BASE_ADDR   0xE000C000
+N#define _UART1_BASE_ADDR   0xE0010000
+N
+N#define _UART_RBR_OFFS     0x00
+N#define _UART_THR_OFFS     0x00
+N#define _UART_IER_OFFS     0x04
+N#define _UART_IIR_OFFS     0x08
+N#define _UART_FCR_OFFS     0x08
+N#define _UART_LCR_OFFS     0x0C
+N#define _UART_LSR_OFFS     0x14
+N#define _UART_SCR_OFFS     0x1C
+N#define _UART_DLL_OFFS     0x00
+N#define _UART_DLM_OFFS     0x04
+N
+N/****** Assign UART sfrs used for OSView communication ***********/
+N
+N#if OS_UART_USED
+X#if (0 && ((0) != 0)) && (((0) == 0) || ((0) == 1) || ((0) == 2))
+S  #if   (OS_UART == 0)
+S    #define _OS_UART_BASE_ADDR     (_UART0_BASE_ADDR)
+S    #define _OS_UART_INT_INDEX     (6)
+S    #define _UART_PCONP_BIT        (3)
+S    #define _OS_UART_PINSEL_RX     _PINSEL0
+S    #define _OS_UART_PINSEL_TX     _PINSEL0
+S    #define _PINSEL_UART_MODE_RX_POS (6)
+S    #define _PINSEL_UART_MODE_TX_POS (4)
+S    #define _PINSEL_UART_MODE_RX_VAL (1)
+S    #define _PINSEL_UART_MODE_TX_VAL (1)
+S
+S  #elif (OS_UART == 1)
+S    #define _OS_UART_BASE_ADDR     (_UART1_BASE_ADDR)
+S    #define _OS_UART_INT_INDEX     (7)
+S    #define _UART_PCONP_BIT        (4)
+S    #define _OS_UART_PINSEL_RX     _PINSEL1
+S    #define _OS_UART_PINSEL_TX     _PINSEL0
+S    #define _PINSEL_UART_MODE_RX_POS (0)
+S    #define _PINSEL_UART_MODE_TX_POS (30)
+S    #define _PINSEL_UART_MODE_RX_VAL (1)
+S    #define _PINSEL_UART_MODE_TX_VAL (1)
+S#endif
+S
+S  #define _OS_UART_RBR   *(volatile OS_U8*)(_OS_UART_BASE_ADDR + _UART_RBR_OFFS)
+S  #define _OS_UART_THR   *(volatile OS_U8*)(_OS_UART_BASE_ADDR + _UART_THR_OFFS)
+S  #define _OS_UART_IER   *(volatile OS_U8*)(_OS_UART_BASE_ADDR + _UART_IER_OFFS)
+S  #define _OS_UART_IIR   *(volatile OS_U8*)(_OS_UART_BASE_ADDR + _UART_IIR_OFFS)
+S  #define _OS_UART_FCR   *(volatile OS_U8*)(_OS_UART_BASE_ADDR + _UART_FCR_OFFS)
+S  #define _OS_UART_LCR   *(volatile OS_U8*)(_OS_UART_BASE_ADDR + _UART_LCR_OFFS)
+S  #define _OS_UART_LSR   *(volatile OS_U8*)(_OS_UART_BASE_ADDR + _UART_LSR_OFFS)
+S  #define _OS_UART_SCR   *(volatile OS_U8*)(_OS_UART_BASE_ADDR + _UART_SCR_OFFS)
+S  #define _OS_UART_DLL   *(volatile OS_U8*)(_OS_UART_BASE_ADDR + _UART_DLL_OFFS)
+S  #define _OS_UART_DLM   *(volatile OS_U8*)(_OS_UART_BASE_ADDR + _UART_DLM_OFFS)
+S
+S  #define _RX_FULL_INT_ENABLE_BIT  0
+S  #define _TX_EMPTY_INT_ENABLE_BIT 1
+S  #define _RX_ERROR_INT_ENABLE_BIT 2
+S  #define _INT_PENDING_BIT         0
+S
+S  #define _UART_INT_MASK         0x0E
+S  #define _UART_ERROR_INT_STATUS 0x06
+S  #define _UART_RX_INT_STATUS    0x04
+S  #define _UART_TX_INT_STATUS    0x02
+N#endif    /* OS_UART_USED  */
+N
+N/****** Vectored interrupt controller (VIC) *************************/
+N
+N#define _VIC_BASE_ADDR  0xFFFFF000
+N
+N#define _VIC_IRQSTATUS       *(volatile OS_U32*)(_VIC_BASE_ADDR + 0x000)
+N#define _VIC_FIQSTATUS       *(volatile OS_U32*)(_VIC_BASE_ADDR + 0x004)
+N#define _VIC_RAWINTERRUPT    *(volatile OS_U32*)(_VIC_BASE_ADDR + 0x008)
+N#define _VIC_INTSELECT       *(volatile OS_U32*)(_VIC_BASE_ADDR + 0x00C)
+N#define _VIC_INTENABLE       *(volatile OS_U32*)(_VIC_BASE_ADDR + 0x010)
+N#define _VIC_INTENABLECLEAR  *(volatile OS_U32*)(_VIC_BASE_ADDR + 0x014)
+N#define _VIC_SOFTINT         *(volatile OS_U32*)(_VIC_BASE_ADDR + 0x018)
+N#define _VIC_SOFTINTCLEAR    *(volatile OS_U32*)(_VIC_BASE_ADDR + 0x01C)
+N
+N#define _VIC_PRIO_0          *(volatile OS_U32*)(_VIC_BASE_ADDR + 0x200)
+N#define _VIC_VECTORADDR      *(volatile OS_U32*)(_VIC_BASE_ADDR + 0xF00)
+N
+N#define _VIC_VECT_0          *(volatile OS_U32*)(_VIC_BASE_ADDR + 0x100)
+N#define _VIC_VECT_BASE_ADDR  (_VIC_BASE_ADDR + 0x100)
+N#define _VIC_PRIO_BASE_ADDR  (_VIC_BASE_ADDR + 0x200)
+N
+N#ifndef   _NUM_INT_VECTORS
+N  #define _NUM_INT_VECTORS     32
+N#endif
+N
+N#define _NUM_INT_PRIORITIES   (16)
+N#define _INT_PRIORITY_MASK    (_NUM_INT_PRIORITIES - 1)
+N
+N/*********************************************************************
+N*
+N*       Static data
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       Local functions
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       _InitPLL
+N*
+N* Function description
+N*   Initialize PLL
+N*   WARNING: Improper settings may lock CPU
+N*   Please examine whether init sequence fits your harware configuration
+N*   We assume a CPU running with internal oscillator.
+N*/
+Nstatic void _InitPLL(void) {
+N  if (_PLLSTAT & (1 << 25)) {
+X  if (*(volatile unsigned int*)0xE01FC088 & (1 << 25)) {
+N    _PLLCON  |= (1 << 1);
+X    *(volatile unsigned int*)0xE01FC080  |= (1 << 1);
+N    _PLLFEED  = 0xAA;
+X    *(volatile unsigned int*)0xE01FC08C  = 0xAA;
+N    _PLLFEED  = 0x55;
+X    *(volatile unsigned int*)0xE01FC08C  = 0x55;
+N  }
+N  _PLLCON     = 0;                         // Set PLL disabled and disconnected
+X  *(volatile unsigned int*)0xE01FC080     = 0;                         
+N  _PLLFEED    = 0xAA;
+X  *(volatile unsigned int*)0xE01FC08C    = 0xAA;
+N  _PLLFEED    = 0x55;
+X  *(volatile unsigned int*)0xE01FC08C    = 0x55;
+N#if (OS_USE_INTERNAL_RC)
+X#if (0)
+S  _CLKSRCSEL  = 0;                         // Select internal RC oscillator 4 MHz as clock source
+N#else
+N  _SCS        &= ~(1 << 4);                // The frequency range of the main oscillator is 1 MHz to 20 MHz.
+X  *(volatile unsigned int*)0xE01FC1A0        &= ~(1 << 4);                
+N  _SCS        |=  (1 << 5);                // Main oscillator enable.
+X  *(volatile unsigned int*)0xE01FC1A0        |=  (1 << 5);                
+N  _CLKSRCSEL  = 1;                         // Select main oscillator 12 MHz as clock source
+X  *(volatile unsigned int*)0xE01FC10C  = 1;                         
+N#endif
+N  _PLLCFG     = (OS_PLL_MULTIPLIER - 1);   // MSEL: Multiplier - 1
+X  *(volatile unsigned int*)0xE01FC084     = ((12) - 1);   
+N  _PLLFEED    = 0xAA;
+X  *(volatile unsigned int*)0xE01FC08C    = 0xAA;
+N  _PLLFEED    = 0x55;
+X  *(volatile unsigned int*)0xE01FC08C    = 0x55;
+N  _PLLCON     = 1;                         // Enable PLL, Disconnect
+X  *(volatile unsigned int*)0xE01FC080     = 1;                         
+N  _PLLFEED    = 0xAA;
+X  *(volatile unsigned int*)0xE01FC08C    = 0xAA;
+N  _PLLFEED    = 0x55;
+X  *(volatile unsigned int*)0xE01FC08C    = 0x55;
+N  do {
+N  } while ((_PLLSTAT & (1 << 26)) == 0);   // Check PLOCK bit	
+X  } while ((*(volatile unsigned int*)0xE01FC088 & (1 << 26)) == 0);   
+N  _CPUCLKCFG  = 4;                         // Set CPU clock divider, value = Division ratio - 1)
+X  *(volatile unsigned int*)0xE01FC104  = 4;                         
+N  _USBCLKCFG  = 5;                         // Set USB clock divider, value = Division ratio - 1)
+X  *(volatile unsigned int*)0xE01FC108  = 5;                         
+N
+N  _PCLKSEL0   = _PCLKSEL_VALUE;
+X  *(volatile unsigned int*)0xE01FC1A8   = (0xAAAAAAAA);
+N  _PCLKSEL1   = _PCLKSEL_VALUE;
+X  *(volatile unsigned int*)0xE01FC1AC   = (0xAAAAAAAA);
+N
+N  _PLLCON     = (1 << 0) | (1 << 1);       // Enable PLL and select as clock source
+X  *(volatile unsigned int*)0xE01FC080     = (1 << 0) | (1 << 1);       
+N  _PLLFEED    =  0xAA;
+X  *(volatile unsigned int*)0xE01FC08C    =  0xAA;
+N  _PLLFEED    =  0x55;
+X  *(volatile unsigned int*)0xE01FC08C    =  0x55;
+N}
+N
+N/*********************************************************************
+N*
+N*       _Init_VIC()
+N*
+N* Function description
+N*   Clears and disables all interrut vectors in VIC.
+N*/
+Nstatic void _Init_VIC(void) {
+N  int Index;
+N
+N  _VIC_INTENABLECLEAR = 0xFFFFFFFF;            // Disable all source interrupts
+X  *(volatile unsigned int*)(0xFFFFF000 + 0x014) = 0xFFFFFFFF;            
+N  _VIC_VECTORADDR     = 0;                     // Write to vector, reset VIC
+X  *(volatile unsigned int*)(0xFFFFF000 + 0xF00)     = 0;                     
+N  for (Index = 0; Index < _NUM_INT_VECTORS; Index++) {
+X  for (Index = 0; Index < 32; Index++) {
+N    OS_ARM_InstallISRHandler(Index, NULL);      // Set vector to 0;
+X    OS_ARM_InstallISRHandler(Index, 0);      
+N  }
+N  _VIC_SOFTINTCLEAR   = 0xFFFFFFFF;            // Disable all soft interrupts
+X  *(volatile unsigned int*)(0xFFFFF000 + 0x01C)   = 0xFFFFFFFF;            
+N  _VIC_INTSELECT      = 0;                     // Set all channels to generate IRQ
+X  *(volatile unsigned int*)(0xFFFFF000 + 0x00C)      = 0;                     
+N}
+N
+N/*********************************************************************
+N*
+N*       OS_ISR_Tick() interrupt Handler
+N*/
+Nstatic void _OS_ISR_Tick(void) {
+N  _OS_TIM_IR = (1 << _OS_TIM_IR_BIT);  // Clear OS timer interrupt flag
+X  *(volatile unsigned int*)(0xE0004000 + 0x00) = (1 << 0);  
+N  OS_HandleTick();                     // Call OS tick handler
+N#if DEBUG
+X#if 0
+S  DCC_Process();
+N#endif
+N}
+N
+N/*********************************************************************
+N*
+N*       _EMC_Init()
+N*
+N*  Purpose:
+N*    Initializes external memory controller for SDRAM, NAND- and NOR-flash
+N*/
+Nstatic void _EMC_Init(void) {
+N  volatile unsigned long i;
+N  volatile unsigned long Dummy;
+N
+N  _EMCCONTROL  = (1 << 0);    // EMC enable
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0000)  = (1 << 0);    
+N  _PCONP      |= (1 << 11);   // Turn on EMC peripheral clock
+X  *(volatile unsigned int*)0xE01FC0C4      |= (1 << 11);   
+N  _PINSEL4     = 0
+X  *(volatile unsigned int*)((0xE002C000) + 0x10)     = 0
+N                 | (1 << 28)  // Reserved
+N                 | (1 << 30)  // Reserved
+N                 ;
+N#if DATABUS_32BIT
+X#if (1)
+N  _PINSEL5     = 0
+X  *(volatile unsigned int*)((0xE002C000) + 0x14)     = 0
+N                 | (1 <<  0)  // CAS
+N                 | (1 <<  2)  // RAS
+N                 | (1 <<  4)  // CLKOUT0
+N                 | (1 <<  8)  // DYCS0
+N                 | (1 << 16)  // CKEOUT0
+N                 | (1 << 24)  // DQMOUT0
+N                 | (1 << 26)  // DQMOUT1
+N                 | (1 << 28)  // DQMOUT2
+N                 | (1 << 30)  // DQMOUT3
+N                 ;
+N  _PINSEL7     = 0
+X  *(volatile unsigned int*)((0xE002C000) + 0x1C)     = 0
+N                 | (1 <<  0)  // D16
+N                 | (1 <<  2)  // D17
+N                 | (1 <<  4)  // D18
+N                 | (1 <<  6)  // D19
+N                 | (1 <<  8)  // D20
+N                 | (1 << 10)  // D21
+N                 | (1 << 12)  // D22
+N                 | (1 << 14)  // D23
+N                 | (1 << 16)  // D24
+N                 | (1 << 18)  // D25
+N                 | (1 << 20)  // D26
+N                 | (1 << 22)  // D27
+N                 | (1 << 24)  // D28
+N                 | (1 << 26)  // D29
+N                 | (1 << 28)  // D30
+N                 | (1 << 30)  // D31
+N                 ;
+N#else
+S  _PINSEL5     = 0
+S                 | (1 <<  0)  // CAS
+S                 | (1 <<  2)  // RAS
+S                 | (1 <<  4)  // CLKOUT0
+S                 | (1 <<  6)  // CLKOUT1
+S                 | (1 <<  8)  // DYCS0
+S                 | (1 << 10)  // DYCS1
+S                 | (1 << 16)  // CKEOUT0
+S                 | (1 << 18)  // CKEOUT1
+S                 | (1 << 24)  // DQMOUT0
+S                 | (1 << 26)  // DQMOUT1
+S                 ;
+N#endif
+N  _PINSEL6     = 0
+X  *(volatile unsigned int*)((0xE002C000) + 0x18)     = 0
+N                 | (1 <<  0)  // D0
+N                 | (1 <<  2)  // D1
+N                 | (1 <<  4)  // D2
+N                 | (1 <<  6)  // D3
+N                 | (1 <<  8)  // D4
+N                 | (1 << 10)  // D5
+N                 | (1 << 12)  // D6
+N                 | (1 << 14)  // D7
+N                 | (1 << 16)  // D8
+N                 | (1 << 18)  // D9
+N                 | (1 << 20)  // D10
+N                 | (1 << 22)  // D11
+N                 | (1 << 24)  // D12
+N                 | (1 << 26)  // D13
+N                 | (1 << 28)  // D14
+N                 | (1 << 30)  // D15
+N                 ;
+N  _PINSEL8     = 0
+X  *(volatile unsigned int*)((0xE002C000) + 0x20)     = 0
+N                 | (1 <<  0)  // A0
+N                 | (1 <<  2)  // A1
+N                 | (1 <<  4)  // A2
+N                 | (1 <<  6)  // A3
+N                 | (1 <<  8)  // A4
+N                 | (1 << 10)  // A5
+N                 | (1 << 12)  // A6
+N                 | (1 << 14)  // A7
+N                 | (1 << 16)  // A8
+N                 | (1 << 18)  // A9
+N                 | (1 << 20)  // A10
+N                 | (1 << 22)  // A11
+N                 | (1 << 24)  // A12
+N                 | (1 << 26)  // A13
+N                 | (1 << 28)  // A14
+N                 | (1 << 30)  // A15
+N                 ;
+N  _PINSEL9     = 0
+X  *(volatile unsigned int*)((0xE002C000) + 0x24)     = 0
+N                 | (1 <<  0)  // A16
+N                 | (1 <<  2)  // A17
+N                 | (1 <<  4)  // A18
+N                 | (1 <<  6)  // A19
+N                 | (1 <<  8)  // A20
+N                 | (1 << 10)  // A21
+N                 | (1 << 12)  // A22
+N                 | (1 << 14)  // A23
+N                 | (1 << 16)  // OE
+N                 | (1 << 18)  // WE
+N                 | (1 << 20)  // BLS0
+N                 | (1 << 22)  // BLS1
+N                 | (1 << 28)  // CS0
+N                 | (1 << 30)  // P4.31 (NAND CE)
+N                 ;
+N#if DATABUS_32BIT
+X#if (1)
+N  //
+N  // Set memory cycles
+N  //
+N  _EMCDYNAMIC_RP         = 1;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0030)         = 1;
+N  _EMCDYNAMIC_RAS        = 3;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0034)        = 3;
+N  _EMCDYNAMIC_SREX       = 5;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0038)       = 5;
+N  _EMCDYNAMIC_APR        = 1;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x003C)        = 1;
+N  _EMCDYNAMIC_DAL        = 5;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0040)        = 5;
+N  _EMCDYNAMIC_WR         = 1;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0044)         = 1;
+N  _EMCDYNAMIC_RC         = 5;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0048)         = 5;
+N  _EMCDYNAMIC_RFC        = 5;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x004C)        = 5;
+N  _EMCDYNAMIC_XSR        = 5;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0050)        = 5;
+N  _EMCDYNAMIC_RRD        = 1;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0054)        = 1;
+N  _EMCDYNAMIC_MRD        = 1;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0058)        = 1;
+N  _EMCDYNAMIC_READCONFIG = 1;
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0028) = 1;
+N
+N  _EMCDYNAMIC_RASCAS0 = 0
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0104) = 0
+N                        | (0x2 << 0)  // RAS latency, two CCLK cycles
+N                        | (0x2 << 8)  // CAS latency, two CCLK cycles
+N                        ;
+N  _EMCDYNAMIC_CONFIG0 = 0x5488;       // 128MB (8Mx16), 4 banks, row length = 12, column length = 9
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0100) = 0x5488;       
+N#else
+S  //
+S  // Set memory cycles
+S  //
+S  _EMCDYNAMIC_RP         = 2;
+S  _EMCDYNAMIC_RAS        = 3;
+S  _EMCDYNAMIC_SREX       = 7;
+S  _EMCDYNAMIC_APR        = 2;
+S  _EMCDYNAMIC_DAL        = 5;
+S  _EMCDYNAMIC_WR         = 1;
+S  _EMCDYNAMIC_RC         = 5;
+S  _EMCDYNAMIC_RFC        = 5;
+S  _EMCDYNAMIC_XSR        = 7;
+S  _EMCDYNAMIC_RRD        = 1;
+S  _EMCDYNAMIC_MRD        = 2;
+S  _EMCDYNAMIC_READCONFIG = 1;
+S
+S  _EMCDYNAMIC_RASCAS0 = 0
+S                        | (0x3 << 0)  // RAS latency, three CCLK cycles
+S                        | (0x3 << 8)  // CAS latency, three CCLK cycles
+S                        ;
+S  _EMCDYNAMIC_CONFIG0 = 0x0680;       // 256MB (16Mx16), 4 banks, row length = 13, column length = 9
+N#endif
+N  //
+N  // Delay at least 100 us
+N  //
+N  for (i = 0; i < 5000; i++) {        // Delay
+N  }
+N  _EMCDYNAMIC_CONTROL = 0
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0020) = 0
+N                        | (1   << 0)  // Dynamic memory clock enable (CE), all clock enables are driven high continuously
+N                        | (1   << 1)  // Dynamic memory clock control (CS), CLKOUT runs continuously
+N                        | (0x3 << 7)  // Issue SDRAM NOP command
+N                        ;
+N  //
+N  // Delay at least 200 us
+N  //
+N  for (i = 0; i < 10000; i++) {       // Delay
+N  }
+N  _EMCDYNAMIC_CONTROL = 0
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0020) = 0
+N                        | (1 << 0)    // Dynamic memory clock enable (CE), all clock enables are driven high continuously
+N                        | (1 << 1)    // Dynamic memory clock control (CS), CLKOUT runs continuously
+N                        | (1 << 8)    // Issue SDRAM PALL (precharge all) command
+N                        ;
+N  _EMCDYNAMIC_REFRESH = 0x02;         // n x 16 CCLKs between SDRAM refresh cycles
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0024) = 0x02;         
+N  //
+N  // Delay at least 100 us
+N  //
+N  for (i = 0; i < 5000; i++) {        // Delay
+N  }
+N  _EMCDYNAMIC_REFRESH = 0x1C;         // Set correct refresh period, n x 16 CCLKs between SDRAM refresh cycles
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0024) = 0x1C;         
+N  _EMCDYNAMIC_CONTROL = 0
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0020) = 0
+N                        | (1 << 0)    // Dynamic memory clock enable (CE), all clock enables are driven high continuously
+N                        | (1 << 1)    // Dynamic memory clock control (CS), CLKOUT runs continuously
+N                        | (1 << 7)    // Issue SDRAM MODE command
+N                        ;
+N#if DATABUS_32BIT
+X#if (1)
+N  Dummy = *((volatile unsigned long*)(SDRAM_BASE_ADDR | (0x22 << 11)));  //Set mode register in SDRAM
+X  Dummy = *((volatile unsigned long*)((0xA0000000) | (0x22 << 11)));  
+N#else
+S  Dummy = *((volatile unsigned long*)(SDRAM_BASE_ADDR | (0x33 << 12)));  //Set mode register in SDRAM
+N#endif
+N  _EMCDYNAMIC_CONTROL  = 0x00;        // Issue SDRAM NORMAL operation command
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0020)  = 0x00;        
+N  _EMCDYNAMIC_CONFIG0 |= (1 << 19);   // Enable buffer
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0100) |= (1 << 19);   
+N  //
+N  // Initial system delay, at least 100 us
+N  //
+N  for (i = 0; i < (50 * 100); i++) { // Delay
+N  }
+N  _EMCSTATIC_WAITWEN0  = 0x02;       // n + 1 CCLK cycle delay between assertion of chip select and write enable
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0204)  = 0x02;       
+N  _EMCSTATIC_WAITOEN0  = 0x02;       // n cycle delay.
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0208)  = 0x02;       
+N  _EMCSTATIC_WAITRD0   = 0x1F;       // 32 CCLK cycles for read accesses
+X  *(volatile unsigned long *)((0xFFE08000) + 0x020C)   = 0x1F;       
+N  _EMCSTATIC_WAITPAGE0 = 0x1F;       // 32 CCLK cycle read access time
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0210) = 0x1F;       
+N  _EMCSTATIC_WAITWR0   = 0x1F;       // 33 CCLK cycle write access time
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0214)   = 0x1F;       
+N  _EMCSTATIC_WAITTURN0 = 0x0F;       // 16 CCLK turnaround cycles
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0218) = 0x0F;       
+N  _EMCSTATIC_CONFIG0   = 0
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0200)   = 0
+N                         | (1 << 0)  // 16bit memory width
+N                         | (1 << 7)  // Bit lane state
+N                         ;
+N  _EMCSTATIC_WAITWEN1  = 0x02;       // n + 1 CCLK cycle delay between assertion of chip select and write enable
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0224)  = 0x02;       
+N  _EMCSTATIC_WAITOEN1  = 0x02;       // n cycle delay.
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0228)  = 0x02;       
+N  _EMCSTATIC_WAITRD1   = 0x08;       // n + 1 CCLK cycle delay
+X  *(volatile unsigned long *)((0xFFE08000) + 0x022C)   = 0x08;       
+N  _EMCSTATIC_WAITPAGE1 = 0x1F;       // 32 CCLK cycle read access time
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0230) = 0x1F;       
+N  _EMCSTATIC_WAITWR1   = 0x08;       // n + 2 CCLK cycle write access time
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0234)   = 0x08;       
+N  _EMCSTATIC_WAITTURN1 = 0x0F;       // 16 CCLK turnaround cycles
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0238) = 0x0F;       
+N  _EMCSTATIC_CONFIG1   = (1 << 7);   // Bit lane state
+X  *(volatile unsigned long *)((0xFFE08000) + 0x0220)   = (1 << 7);   
+N  //
+N  // Delay, at least 10 us
+N  //
+N  for (i = 0; i < (50 * 10); i++) {  // Delay
+N  }
+N}
+N
+N/*********************************************************************
+N*
+N*       Global functions
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       OS_InitHW()
+N*
+N*       Initialize the hardware (timer) required for the OS to run.
+N*       May be modified, if an other timer should be used
+N*       Also enables memory accelerator module
+N*/
+Nvoid OS_InitHW(void) {
+N  OS_DI();
+X  __disable_irq();
+N  _Init_VIC();                   // Initialize VIC, clear and disable all interrupts
+N  // Initialize timer for OS
+N  _PCONP      |=  (1 << _TIMER_PCONP_BIT);   // Enable Clock for OS timer
+X  *(volatile unsigned int*)0xE01FC0C4      |=  (1 << 1);   
+N  _OS_TIM_TCR &= ~(1 << 0);                  // Disable timer
+X  *(volatile unsigned int*)(0xE0004000 + 0x04) &= ~(1 << 0);                  
+N  _OS_TIM_IR   =  (1 << _OS_TIM_IR_BIT);     // Clear OS timer interrupt flag
+X  *(volatile unsigned int*)(0xE0004000 + 0x00)   =  (1 << 0);     
+N  _OS_TIM_PR   = 0;                          // Count on every pclk
+X  *(volatile unsigned int*)(0xE0004000 + 0x0C)   = 0;                          
+N  _OS_TIM_MR0  = _OS_TIMER_INTERVAL - 1;     // Initialize match register 1
+X  *(volatile unsigned int*)(0xE0004000 + 0x18)  = (((57600000uL)/2) / 1000) - 1;     
+N  _OS_TIM_MCR  =  (1 << 0)                   // Interrupt on match channel 0
+X  *(volatile unsigned int*)(0xE0004000 + 0x14)  =  (1 << 0)                   
+N                | (1 << 1);                  // Counter reset on match channel 0
+N  _OS_TIM_TC   =  0;                         // Clear counter
+X  *(volatile unsigned int*)(0xE0004000 + 0x08)   =  0;                         
+N  _OS_TIM_TCR |=  (1 << 0);                  // Enable timer
+X  *(volatile unsigned int*)(0xE0004000 + 0x04) |=  (1 << 0);                  
+N  // Setup interrupt controller
+N  OS_ARM_InstallISRHandler(_OS_TIMER_INT_INDEX, &_OS_ISR_Tick); // Timer/counter interrupt vector.
+X  OS_ARM_InstallISRHandler(4, &_OS_ISR_Tick); 
+N  OS_ARM_EnableISR(_OS_TIMER_INT_INDEX);                        // Enable timer/counter 0 interrupt.
+X  OS_ARM_EnableISR(4);                        
+N  OS_ARM_ISRSetPrio(_OS_TIMER_INT_INDEX, 15);                   // lowest priority
+X  OS_ARM_ISRSetPrio(4, 15);                   
+N  // optionally initialize UART for OSView
+N  OS_COM_Init();
+N  OS_RestoreI();
+N}
+N
+N/*********************************************************************
+N*
+N*       Idle loop  (OS_Idle)
+N*
+N*       Please note:
+N*       This is basically the "core" of the idle loop.
+N*       This core loop can be changed, but:
+N*       The idle loop does not have a stack of its own, therefore no
+N*       functionality should be implemented that relies on the stack
+N*       to be preserved. However, a simple program loop can be programmed
+N*       (like toggeling an output or incrementing a counter)
+N*/
+Nvoid OS_Idle(void) {     // Idle loop: No task is ready to exec
+N  while (1) {
+N  }
+N}
+N
+N/*********************************************************************
+N*
+N*       Get time [cycles]
+N*
+N*       This routine is required for task-info via OSView or high
+N*       resolution time measurement functions.
+N*       It returns the system time in timer clock cycles.
+N*/
+NOS_U32 OS_GetTime_Cycles(void) {
+Xunsigned int OS_GetTime_Cycles(void) {
+N  OS_U32 time;
+X  unsigned int time;
+N  OS_U32 count;
+X  unsigned int count;
+N
+N  count = _OS_TIM_TC;                               // Read current timer value
+X  count = *(volatile unsigned int*)(0xE0004000 + 0x08);                               
+N  time  = OS_GetTime32();                           // Read current OS time
+X  time  = (OS_Time);                           
+N  if ((_OS_TIM_IR & (1 << _OS_TIM_IR_BIT)) != 0) {  // Timer Interrupt pending ?
+X  if ((*(volatile unsigned int*)(0xE0004000 + 0x00) & (1 << 0)) != 0) {  
+N    time++;                                         // Adjust result, read timer again
+N    count = _OS_TIM_TC;                             // Read again
+X    count = *(volatile unsigned int*)(0xE0004000 + 0x08);                             
+N  }
+N  return (_OS_TIMER_INTERVAL) * time + count;
+X  return ((((57600000uL)/2) / 1000)) * time + count;
+N}
+N
+N/*********************************************************************
+N*
+N*       OS_ConvertCycles2us
+N*
+N*       Convert Cycles into micro seconds.
+N*
+N*       If your clock frequency is not a multiple of 1 MHz,
+N*       you may have to modify this routine in order to get proper
+N*       diagonstics.
+N*
+N*       This routine is required for profiling or high resolution time
+N*       measurement only. It does not affect operation of the OS.
+N*/
+NOS_U32 OS_ConvertCycles2us(OS_U32 Cycles) {
+Xunsigned int OS_ConvertCycles2us(unsigned int Cycles) {
+N  return Cycles/(OS_PCLK_TIMER/1000000);
+X  return Cycles/(((57600000uL)/2)/1000000);
+N}
+N
+N/*********************************************************************
+N*
+N*       Communication for OSView via UART (optional)
+N*
+N**********************************************************************
+N*/
+N
+N#if OS_UART_USED
+X#if (0 && ((0) != 0)) && (((0) == 0) || ((0) == 1) || ((0) == 2))
+S
+S/*********************************************************************
+S*
+S*       OS_COM_ISR_Usart() embOS USART interrupt handler
+S*       handles both, Rx and Tx interrupt
+S*/
+Sstatic void _OS_COM_ISR(void) {
+S  int UartStatus;
+S  volatile OS_U32 Dummy;
+S
+S  UartStatus = _OS_UART_IIR;                                          // Examine interrupt identification register
+S  if ((UartStatus & _UART_INT_MASK) == _UART_ERROR_INT_STATUS) {      // Error pending ?
+S    Dummy = _OS_UART_RBR;                                             // Discard data
+S    Dummy = _OS_UART_LSR;                                             // reset error
+S  } else if ((UartStatus & _UART_INT_MASK) == _UART_RX_INT_STATUS) {  // Data received?
+S    OS_OnRx(_OS_UART_RBR);                                            // Process actual byte
+S  } else if ((UartStatus & _UART_INT_MASK) == _UART_TX_INT_STATUS) {  // Tx interrupt pending?
+S    if (OS_OnTx() != 0) {                                             // No more character sent?
+S      _OS_UART_IER &= ~(1 << _TX_EMPTY_INT_ENABLE_BIT);               // Disable Tx interrupts
+S    }
+S  }
+S}
+S
+S/*********************************************************************
+S*
+S*       OS_COM_Send1()
+S*       Never call this function directly from your application
+S*/
+Svoid OS_COM_Send1(OS_U8 c) {
+S  _OS_UART_THR  = c;                                 // Send character
+S  _OS_UART_IER |= (1 << _TX_EMPTY_INT_ENABLE_BIT);   // Enable Tx interrupts
+S}
+S
+S/*********************************************************************
+S*
+S*       OS_COM_Init()
+S*       Initialize UART for OSView
+S*/
+S#define _BAUDDIVIDE ((OS_PCLK_UART+OS_BAUDRATE*8L)/(OS_BAUDRATE*16L))
+S
+Svoid OS_COM_Init(void) {
+S  OS_DI();
+S  // Setup Port-Mode to alternate function
+S  _OS_UART_PINSEL_RX &= ~(0x03 << _PINSEL_UART_MODE_RX_POS);
+S  _OS_UART_PINSEL_TX &= ~(0x03 << _PINSEL_UART_MODE_TX_POS);
+S  _OS_UART_PINSEL_RX |=  (_PINSEL_UART_MODE_RX_VAL << _PINSEL_UART_MODE_RX_POS);
+S  _OS_UART_PINSEL_TX |=  (_PINSEL_UART_MODE_TX_VAL << _PINSEL_UART_MODE_TX_POS);
+S
+S  _PCONP       |= (1 << _UART_PCONP_BIT);  // Enable UART unit
+S  _OS_UART_IER  = 0x00;                    // Initially disable all interrupts
+S  _OS_UART_LCR  = 0x80;                    // Set DLAB to initialize Baudrate generator
+S  _OS_UART_DLL  = (_BAUDDIVIDE & 0xFF);
+S  _OS_UART_DLM  = ((_BAUDDIVIDE >> 8) & 0xFF);
+S  _OS_UART_LCR &= ~0x80;                   // reset DLAB to lock baudrate generator access
+S  _OS_UART_LCR  = 0x03                     // 8 data bits
+S                 |(0 << 2)                 // 1 stop bit
+S                 |(0 << 3)                 // NO parity
+S                 |(0 << 4)                 // Parity setting (bit 5:4) does not care
+S                 |(0 << 6)                 // Disable Break transmission
+S                 |(0 << 7);                // Clear DLAB
+S  _OS_UART_FCR  = (1 << 0)                 // Enable FIFO (according to documentation)
+S                | (1 << 1)                 // Reset RxFIFO
+S                | (1 << 2)                 // Reset TxFIFO
+S                | (0 << 6)                 // Set trigger-level for RxFIFO
+S                ;
+S  /*  Install OS UART interrupt handler */
+S  OS_ARM_InstallISRHandler(_OS_UART_INT_INDEX, &_OS_COM_ISR);  // OS UART interrupt vector.
+S  OS_ARM_EnableISR(_OS_UART_INT_INDEX);                        // Enable UART interrupt vector.
+S  OS_ARM_ISRSetPrio(_OS_UART_INT_INDEX, 15);                   // lowest priority
+S  _OS_UART_IER |= (1 << _RX_FULL_INT_ENABLE_BIT);              // Enable Rx interrupts
+S  OS_RestoreI();
+S}
+S
+S#elif OS_USE_DCC
+X#elif (0 && ((0) == 0))
+S
+S/*********************************************************************
+S*
+S*       _DCC_OnRx()
+S*/
+Sstatic void _DCC_OnRx(unsigned Channel, OS_U8 Data) {
+S  OS_OnRx(Data);
+S}
+S
+S/*********************************************************************
+S*
+S*       _DCC_OnTx()
+S*/
+Sstatic void _DCC_OnTx(unsigned Channel) {
+S  OS_OnTx();
+S}
+S
+S/*********************************************************************
+S*
+S*       OS_COM_Init()
+S*       Initialize DCC for OSView
+S*/
+Svoid OS_COM_Init(void) {
+S  JLINKDCC_SetpfOnRx(1, _DCC_OnRx);
+S  JLINKDCC_SetpfOnTx(1, _DCC_OnTx);
+S}
+S
+S/*********************************************************************
+S*
+S*       OS_COM_Send1()
+S*       Send 1 character via DCC
+S*/
+Svoid OS_COM_Send1(OS_U8 c) {
+S  JLINKDCC_SendCharOnChannelNB(1, c);
+S}
+S
+N#else  /* DCC not selected, selected UART not supported, using dummies */
+N
+Nvoid OS_COM_Init(void) {}
+Nvoid OS_COM_Send1(OS_U8 c) {
+Xvoid OS_COM_Send1(unsigned char c) {
+N  OS_USEPARA(c);           // avoid compiler warning
+X  c=c;           
+N  OS_COM_ClearTxActive();  // let the OS know that Tx is not busy
+N}
+N
+N#endif /*  OS_UART_USED  */
+N
+N/****** Final check of configuration ********************************/
+N#ifndef OS_UART_USED
+S  #error "OS_UART_USED has to be defined"
+N#endif
+N
+N/*********************************************************************
+N*
+N*       OS interrupt handler and ISR specific functions
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       _OS_ISR_Undefined
+N*
+N*       Is called when an uninstalled interrupt was detected
+N*       As interrupt pending condition of peripherals has to be reset,
+N*       program will not continue when interrupt is ignored.
+N*/
+Nstatic void _OS_ISR_Undefined(void) {
+N  #if (OS_IGNORE_UNDEFINED_INTERRUPT == 0)
+X  #if (0 == 0)
+N    volatile OS_U32 Dummy;
+X    volatile unsigned int Dummy;
+N
+N    Dummy = 1;
+N    /* You may set a breakpoint here to detect undefined interrupts */
+N    while (Dummy > 0) {
+N    }
+N  #endif
+N}
+N
+N/*********************************************************************
+N*
+N*       OS_irq_handler
+N*
+N*       Detect reason for IRQ and call correspondig service routine.
+N*       OS_irq_handler is called from OS_IRQ_SERVICE function
+N*       found in RTOSVect.asm
+N*/
+NOS_INTERWORK void OS_irq_handler(void) {
+X void OS_irq_handler(void) {
+N  OS_ISR_HANDLER* pISR;
+N  pISR = (OS_ISR_HANDLER*) _VIC_VECTORADDR;   // Get current interrupt handler
+X  pISR = (OS_ISR_HANDLER*) *(volatile unsigned int*)(0xFFFFF000 + 0xF00);   
+N  OS_EnterNestableInterrupt();                // Now interrupts may be reenabled. If nesting should be allowed
+X  { ; OS_Counters . Cnt . Region++; __enable_irq(); };                
+N  if (pISR != NULL) {
+X  if (pISR != 0) {
+N    pISR();                                   // Call installed interrupt service routine
+N  } else {
+N    _OS_ISR_Undefined();
+N  }
+N  OS_DI();                                    // Disable interrupts and unlock
+X  __disable_irq();                                    
+N  _VIC_VECTORADDR = 0;                        // Clear current interrupt pending condition, reset VIC
+X  *(volatile unsigned int*)(0xFFFFF000 + 0xF00) = 0;                        
+N  OS_LeaveNestableInterrupt();                // Replace by OS_LeaveInterrupt(), when nesting was disabled
+X  { __disable_irq(); ; if ((OS_Counters . Cnt . Region == 1) && OS_Pending) { OS_SwitchFromInt(); } else { OS_Counters . Cnt . Region--; }; ; ; };                
+N}
+N
+N/*********************************************************************
+N*
+N*       OS_ARM_InstallISRHandler
+N*/
+NOS_ISR_HANDLER* OS_ARM_InstallISRHandler (int ISRIndex, OS_ISR_HANDLER* pISRHandler) {
+N  OS_ISR_HANDLER*  pOldHandler;
+N  OS_ISR_HANDLER** papISR;
+N
+N#if DEBUG
+X#if 0
+S  if ((unsigned)ISRIndex >= _NUM_INT_VECTORS) {
+S    OS_Error(OS_ERR_ISR_INDEX);
+S    return NULL;
+S  }
+N#endif
+N  OS_DI();
+X  __disable_irq();
+N  papISR = (OS_ISR_HANDLER**) &_VIC_VECT_0;
+X  papISR = (OS_ISR_HANDLER**) & *(volatile unsigned int*)(0xFFFFF000 + 0x100);
+N  pOldHandler          = *(papISR + ISRIndex);
+N  *(papISR + ISRIndex) = pISRHandler;
+N  OS_RestoreI();
+N  return pOldHandler;
+N}
+N
+N/*********************************************************************
+N*
+N*       OS_ARM_EnableISR
+N*/
+Nvoid OS_ARM_EnableISR(int ISRIndex) {
+N#if DEBUG
+X#if 0
+S  if ((unsigned)ISRIndex >= _NUM_INT_VECTORS) {
+S    OS_Error(OS_ERR_ISR_INDEX);
+S    return;
+S  }
+N#endif
+N  OS_DI();
+X  __disable_irq();
+N  _VIC_INTENABLE = (1UL << ISRIndex);
+X  *(volatile unsigned int*)(0xFFFFF000 + 0x010) = (1UL << ISRIndex);
+N  OS_RestoreI();
+N}
+N
+N/*********************************************************************
+N*
+N*       OS_ARM_DisableISR
+N*/
+Nvoid OS_ARM_DisableISR(int ISRIndex) {
+N#if DEBUG
+X#if 0
+S  if ((unsigned)ISRIndex >= _NUM_INT_VECTORS) {
+S    OS_Error(OS_ERR_ISR_INDEX);
+S    return;
+S  }
+N#endif
+N  OS_DI();
+X  __disable_irq();
+N  _VIC_INTENABLECLEAR = (1UL << ISRIndex);
+X  *(volatile unsigned int*)(0xFFFFF000 + 0x014) = (1UL << ISRIndex);
+N  OS_RestoreI();
+N}
+N
+N/*********************************************************************
+N*
+N*       OS_ARM_ISRSetPrio
+N*/
+Nint OS_ARM_ISRSetPrio(int ISRIndex, int Prio) {
+N  OS_U32* pPrio;
+X  unsigned int* pPrio;
+N  int     OldPrio;
+N#if DEBUG
+X#if 0
+S  if ((unsigned)ISRIndex >= _NUM_INT_VECTORS) {
+S    OS_Error(OS_ERR_ISR_INDEX);
+S    return 0;
+S  }
+N#endif
+N  OS_DI();
+X  __disable_irq();
+N  pPrio = (OS_U32*) _VIC_PRIO_BASE_ADDR;
+X  pPrio = (unsigned int*) (0xFFFFF000 + 0x200);
+N  OldPrio = pPrio[ISRIndex];
+N  pPrio[ISRIndex] = (OldPrio & ~_INT_PRIORITY_MASK) | (Prio & _INT_PRIORITY_MASK);
+X  pPrio[ISRIndex] = (OldPrio & ~((16) - 1)) | (Prio & ((16) - 1));
+N  OS_RestoreI();
+N  return OldPrio & _INT_PRIORITY_MASK;
+X  return OldPrio & ((16) - 1);
+N}
+N
+N/*********************************************************************
+N*
+N*       __low_level_init()
+N*
+N* Function description
+N*   Called from startup code.
+N*   Used to initialize PLL and memory accelerator as early as possible
+N*/
+NOS_INTERWORK int __low_level_init(void);       /* Avoid "No prototype" warning */
+X int __low_level_init(void);        
+NOS_INTERWORK int __low_level_init(void) {
+X int __low_level_init(void) {
+N  #if OS_INIT_PLL
+X  #if (1)
+N    _InitPLL();
+N  #endif
+N  #if OS_INIT_MAM                // Speedup CPU
+X  #if (1)                
+N    _MAMCR  = 0x00;              // Disable Memory accelerator module
+X    *(volatile unsigned int*)(0xE01FC000)  = 0x00;              
+N    _MAMTIM = _OS_MAMTIM_VALUE;  // Depends on OS_FSYS
+X    *(volatile unsigned int*)(0xE01FC004) = (5);  
+N    _MAMCR  = 0x01;              // Enable Memory accelerator module partially , refer to [1], MAM.1 operation
+X    *(volatile unsigned int*)(0xE01FC000)  = 0x01;              
+N  #endif
+N  //
+N  // Init SDRAM, NAND- and NOR-flash
+N  //
+N  _EMC_Init();
+N
+N  return 1;                      // Always initialize segments !
+N};
+N
+N/*****  EOF  ********************************************************/
+N

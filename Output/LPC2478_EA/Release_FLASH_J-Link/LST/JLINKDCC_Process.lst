@@ -1,0 +1,639 @@
+L 1 "Util\JLINKDCC_Process.c"
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : DCC_Process.c
+NPurpose : Data handler for ARM J-Link type communication via DCC (IAR version, using intrinsics)
+NChanges : 08-10-08
+N          Support for "channels"added, where
+N          channel 0 is reserved for terminal
+N          channel 1 is reserved for OS communication such as embOSView
+N
+NNotes   : (1) How to use
+N              In order to use the DCC communication to read / write memory, the
+N                following needs to be done:
+N              * Add this file to the project / make-file
+N              * Make sure this data handler is called regularly
+N              * Add the JLINKDCC data abort handler (optional)
+N                For details, refer to the documentation or see file JLINKDCC_HandleDataAbort.s79.
+N          (2) Compatibility
+N              The J-Link ARM DCC handler is compatible to the DCC communication
+N              protocol used by IAR in the embedded workbench for ARM and allows
+N              using the live data window in C-Spy
+N
+NProtocol
+N  Following response packets from target will be possible:
+N  00 00 00 XX - reading a byte XX
+N  00 00 XX XX - reading a half word XXXX
+N  XX XX XX XX - reading a word, except words starting with 93zX XXXX (10010011-1xxxxxxx-xxxxxxx-xxxxxxx)
+N
+N  93 8z 00 XX - terminal I/O one byte XX to channel z=0-15
+N  93 9z 00 XX - terminal I/O one byte XX to channel z=16-31
+N  93 Az XX XX - terminal I/O two bytes XX XX to channel z=0-15
+N  93 Bz XX XX - terminal I/O two bytes XX XX to channel z=16-31
+N
+N  93 C0 XX XX - escape sequence for words starting with 93XX, the lower 16-bit part is in XX XX
+N  93 C1 XX XX - escape sequence for words starting with 93XX, the upper 16-bit part is in XX XX
+N  93 C2 XX XX - data abort for reading
+N  91 CA XX XX - signature (same as before)
+N
+N  There is a new capability flag. C-SPY will use the new protocol when this is set.
+N  #define DCC_CAP_TERM_OUT   0x80
+N
+NSequence for U8 write:
+N  H->T    Addr & 0xFFFFFFFE
+N  H->T    ((Addr & 1) << 31) | (Data << 2) | 0x40000001
+N
+NSequence for U16 write:
+N  H->T    Addr & 0xFFFFFFFE
+N  H->T    ((Addr & 1) << 31) | (Data << 2) | 0x20000001
+N
+NSequence for U32 write:
+N  H->T    Addr & 0xFFFFFFFE
+N  H->T    (Data & 0xFFFF) << 2
+N  H->T    ((Addr & 1) << 31) | ((Data >> 14) & 0xFFFF) | 0x10000001
+N
+NSequence for U8 Read:
+N  H->T    Addr & 0xFFFFFFFE
+N  H->T    ((Addr & 1) << 31) | (NumItems << 2) | 0x04000001
+N  if (Aborted) {
+N    T->H    0x93c20000
+N  } else {
+N    T->H    Data
+N  }
+N
+NSequence for U16 Read:
+N  H->T    Addr & 0xFFFFFFFE
+N  H->T    ((Addr & 1) << 31) | (NumItems << 2) | 0x02000001
+N  if (Aborted) {
+N    T->H    0x93c20000
+N  } else {
+N    T->H    Data
+N  }
+N
+NSequence for U32 Read:
+N  H->T    Addr & 0xFFFFFFFE
+N  H->T    ((Addr & 1) << 31) | (NumItems << 2) | 0x01000001
+N  if (Aborted) {
+N    T->H    0x93c20000
+N  } else if ((Data >> 24) != 0x93) {
+N    T->H    Data
+N  } else {
+N    T->H    0x93c0.0000 | (Data & 0xFFFF)
+N    T->H    0x93c1.0000 | (Data >> 16)
+N  }
+N
+NTerminal IN:  (target receives data)
+NH->T   0x93000000 + (Channel << 19) + (Data8 << 1) + DCC_OP_COMMAND
+N
+NTerminal OUT: (target sends data)
+NT->H   0x93800000 + (Channel << 16) + (Data8)
+N
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#include "JLINKDCC.h"
+L 1 "Inc\JLINKDCC.h" 1
+N/*********************************************************************
+N*                SEGGER MICROCONTROLLER GmbH & Co. KG                *
+N*        Solutions for real time microcontroller applications        *
+N**********************************************************************
+N*                                                                    *
+N*        (c) 2003-2010     SEGGER Microcontroller GmbH & Co KG       *
+N*                                                                    *
+N*        Internet: www.segger.com    Support:  support@segger.com    *
+N*                                                                    *
+N**********************************************************************
+N
+N----------------------------------------------------------------------
+NFile    : JLINKDCC.h
+NPurpose : Header file for J-Link ARM type DCC communication
+N---------------------------END-OF-HEADER------------------------------
+N*/
+N
+N#ifndef JLINKDCC_H
+N#define JLINKDCC_H             // Avoid multiple inclusion
+N
+N#define DCC_Process JLINKDCC_Process       // for compatibility
+N
+Nvoid JLINKDCC_Process(void);
+Nvoid JLINKDCC_HandleDataAbort(void);
+Nvoid JLINKDCC_SendString(const char * s);
+Nvoid JLINKDCC_SendChar(char c);
+Nvoid JLINKDCC_SendOnChannel      (unsigned Channel, unsigned char* pData, int NumItems);
+Nvoid JLINKDCC_SetpfOnRx          (unsigned Channel, void          (* pf)(unsigned Channel, unsigned char c));
+Nvoid JLINKDCC_SetpfOnTx          (unsigned Channel, void          (* pf)(unsigned Channel));
+Nvoid JLINKDCC_SendCharOnChannelNB(unsigned Channel, unsigned char Data);
+N
+N#endif                         // Avoid multiple inclusion
+N
+N/*************************** end of file ****************************/
+N
+L 104 "Util\JLINKDCC_Process.c" 2
+N
+N#ifdef __ICCARM__
+S  /* With IAR workbench we use intrinsics for CP14 communication */
+S  #include <intrinsics.h>
+N#else
+N  /* We use external functions from assembly module JLINKDCC_Process_ASM.s */
+N  extern unsigned long CP14_ReadDCCStat(void);
+N  extern unsigned long CP14_ReadDCC(void);
+N  extern void CP14_WriteDCC(unsigned long Data);
+N#endif
+N
+N/*********************************************************************
+N*
+N*       Defines, configurable
+N*
+N**********************************************************************
+N*/
+N
+N#define BUFFER_SIZE         1024          // Used for channel 0 (terminal out buffer)
+N#define NUM_CHANNELS           2
+N
+N/*********************************************************************
+N*
+N*       Defines, non- configurable
+N*
+N**********************************************************************
+N*/
+N
+N#define U8  unsigned char
+N#define U16 unsigned short
+N#define U32 unsigned int
+N
+N#define DCC_OP_READ_U32   0x01000000
+N#define DCC_OP_READ_U16   0x02000000
+N#define DCC_OP_READ_U8    0x04000000
+N#define DCC_OP_GET_CAPS   0x08000000
+N#define DCC_OP_WRITE_U32  0x10000000
+N#define DCC_OP_WRITE_U16  0x20000000
+N#define DCC_OP_WRITE_U8   0x40000000
+N#define DCC_OP_ODD_ADDR   0x80000000
+N#define DCC_OP_COMMAND    0x00000001
+N
+N#define DCC_SIGNATURE     0x91CA0000
+N#define DCC_CONFIG        0xFF       // All features are supported
+N
+N#define DCC_CHANNEL_TERMINAL  0
+N#define DCC_CHANNEL_OS        1
+N
+N/*********************************************************************
+N*
+N*       Global data
+N*
+N**********************************************************************
+N*/
+N
+NU8 JLINKDCC_IsInHandler;
+Xunsigned char JLINKDCC_IsInHandler;
+NU8 JLINKDCC_AbortOccurred;
+Xunsigned char JLINKDCC_AbortOccurred;
+N
+N/*********************************************************************
+N*
+N*       Static data
+N*
+N**********************************************************************
+N*/
+N
+Nvoid (* _pfOnRx[2]) (unsigned Channel, U8 Data);
+Xvoid (* _pfOnRx[2]) (unsigned Channel, unsigned char Data);
+Nvoid (* _pfOnTx[2]) (unsigned Channel);
+N
+N
+Nstatic U16 _NumReadItems;
+Xstatic unsigned short _NumReadItems;
+Nstatic U32 _Command;
+Xstatic unsigned int _Command;
+Nstatic U32 _Addr;
+Xstatic unsigned int _Addr;
+N
+Nstatic char _acBuffer[BUFFER_SIZE];
+Xstatic char _acBuffer[1024];
+Nstatic int  _RdPos;
+Nstatic int  _WrPos;
+N
+Nstatic int _ActiveChannel    = 0;
+N
+Nstatic char _WritePendingNB  = 0;
+Nstatic U32  _PendingPacketNB = 0;
+Xstatic unsigned int  _PendingPacketNB = 0;
+N
+Nstatic char _WritePending;
+Nstatic U32  _Data;
+Xstatic unsigned int  _Data;
+N
+N/*********************************************************************
+N*
+N*       Static code
+N*
+N**********************************************************************
+N*/
+N
+N#ifdef __ICCARM__
+S
+S/****** Use intrinsics for CP14 communication ***********************/
+S
+S/*********************************************************************
+S*
+S*       _ReadDCCStat
+S*/
+Sstatic __interwork __arm int _ReadDCCStat(void) {
+S  return __MRC( 14, 0, 0, 0, 0 );       // __asm("mrc P14,0,R0,C0,C0,0");
+S}
+S
+S/*********************************************************************
+S*
+S*       _ReadDCC
+S*/
+Sstatic __interwork __arm U32 _ReadDCC(void) {
+S  return __MRC( 14, 0, 1, 0, 0 );       // __asm("mrc P14,0,R0,C1,C0,0");
+S}
+S
+S/*********************************************************************
+S*
+S*       _WriteDCC
+S*/
+Sstatic __interwork __arm void _WriteDCC(U32 Data) {
+S  __MCR( 14, 0, Data, 1, 0, 0 );        // __asm("mcr P14,0,R0,C1,C0,0");
+S}
+S
+N#else
+N
+N/****** Map externel CP14 communication routines ********************/
+N#define _ReadDCCStat     CP14_ReadDCCStat
+N#define _ReadDCC         CP14_ReadDCC
+N#define _WriteDCC(Data)  CP14_WriteDCC(Data)
+N
+N#endif /* __ICCARM__ */
+N
+N/*********************************************************************
+N*
+N*       _HandleRead
+N*
+N*  Function description
+N*    Performs Command / data read from host
+N*/
+Nstatic void _HandleRead(void) {
+N  U32 Data;
+X  unsigned int Data;
+N
+N  if ((_ReadDCCStat() & 1) == 0) {       // Data or command received ?
+X  if ((CP14_ReadDCCStat() & 1) == 0) {       
+N    return;      // Nothing received
+N  }
+N
+N  Data = _ReadDCC();
+X  Data = CP14_ReadDCC();
+N  //
+N  // If item received does not have the command-flag set, it is the new addr.
+N  //
+N  if ((Data & DCC_OP_COMMAND) == 0) {
+X  if ((Data & 0x00000001) == 0) {
+N    _Addr = Data;
+N    return;
+N  }
+N  //
+N  // If item received is a terminal out command,
+N  //
+N  if ((Data & 0xFF000000) == 0x93000000) {
+N    unsigned Channel;
+N    Channel = (Data >> 19) & 0x1F;
+N    if (_pfOnRx[Channel]) {
+N      _pfOnRx[Channel](Channel, (Data >> 1) & 0xFF);
+N    }
+N    return;
+N  }
+N  //
+N  // We received a new command.
+N  //
+N  _Command = Data;
+N  if (_Command & DCC_OP_ODD_ADDR) {
+X  if (_Command & 0x80000000) {
+N    _Addr |= 1;
+N  }
+N  if (_Command & (DCC_OP_READ_U32 | DCC_OP_READ_U16 | DCC_OP_READ_U8 | DCC_OP_GET_CAPS)) {
+X  if (_Command & (0x01000000 | 0x02000000 | 0x04000000 | 0x08000000)) {
+N    _NumReadItems = (_Command >> 2) & 0xffff;
+N  } else {
+N    // Clear before write
+N    JLINKDCC_AbortOccurred = 0;
+N
+N    if (_Command & DCC_OP_WRITE_U32) {
+X    if (_Command & 0x10000000) {
+N      _Data |= (_Command << 14) & 0xffff0000;
+N    } else {
+N      _Data = (_Command >> 2) & 0xffff;
+N    }
+N    if (_Command & DCC_OP_WRITE_U8) {
+X    if (_Command & 0x40000000) {
+N      *(U8*)_Addr = _Data;
+X      *(unsigned char*)_Addr = _Data;
+N      _Addr += 1;
+N    }
+N    if (_Command & DCC_OP_WRITE_U16) {
+X    if (_Command & 0x20000000) {
+N      *(U16*)_Addr = _Data;
+X      *(unsigned short*)_Addr = _Data;
+N      _Addr += 2;
+N    }
+N    if (_Command & DCC_OP_WRITE_U32) {
+X    if (_Command & 0x10000000) {
+N      *(U32*)_Addr =_Data;
+X      *(unsigned int*)_Addr =_Data;
+N      _Addr += 4;
+N    }
+N  }
+N}
+N
+N/*********************************************************************
+N*
+N*       _HandleWrite
+N*
+N*  Function description
+N*    Sends data back to host if there is space in DCC buffer and data to be send.
+N*/
+Nstatic void _HandleWrite(void) {
+N  U32 Data;
+X  unsigned int Data;
+N  int DCCBusy;
+N  int NumBytes;
+N
+N  Data = 0;
+N  DCCBusy = _ReadDCCStat() & 2;
+X  DCCBusy = CP14_ReadDCCStat() & 2;
+N  if (DCCBusy) {                  // Can we send data ?
+N    return;                       // If not, we are done.
+N  }
+N
+N  if (_ActiveChannel) {
+N    U32 Channel;
+X    unsigned int Channel;
+N
+N    Channel = _ActiveChannel;
+N    _ActiveChannel = 0;
+N    if (_WritePendingNB) {
+N      _WriteDCC(_PendingPacketNB);
+X      CP14_WriteDCC(_PendingPacketNB);
+N      _WritePendingNB = 0;
+N    }
+N    if (_pfOnTx[Channel]) {
+N      _pfOnTx[Channel](Channel);
+N    }
+N    return;
+N  }
+N
+N  //
+N  // Check if a data item is pending
+N  //
+N  if (_WritePending) {
+N    _WriteDCC(_Data);
+X    CP14_WriteDCC(_Data);
+N    _WritePending = 0;
+N    return;
+N  }
+N  //
+N  // Check if a read command is pending
+N  //
+N  if (_NumReadItems) {
+N    if (_Command & DCC_OP_GET_CAPS) {
+X    if (_Command & 0x08000000) {
+N      Data = (DCC_CONFIG | DCC_SIGNATURE);
+X      Data = (0xFF | 0x91CA0000);
+N      Data |= (JLINKDCC_AbortOccurred << 8);  // write abort status
+N      JLINKDCC_AbortOccurred = 0;
+N    } else {
+N
+N      // Clear before next read
+N      JLINKDCC_AbortOccurred = 0;
+N
+N      if (_Command & DCC_OP_READ_U8) {
+X      if (_Command & 0x04000000) {
+N        Data = *(U8*)_Addr;
+X        Data = *(unsigned char*)_Addr;
+N        _Addr += 1;
+N      } else if (_Command & DCC_OP_READ_U16) {
+X      } else if (_Command & 0x02000000) {
+N        Data = *(U16*)_Addr;
+X        Data = *(unsigned short*)_Addr;
+N        _Addr += 2;
+N      } else if (_Command & DCC_OP_READ_U32) {
+X      } else if (_Command & 0x01000000) {
+N        Data = *(U32*)_Addr;
+X        Data = *(unsigned int*)_Addr;
+N        _Addr += 4;
+N        if ((Data & 0xFF800000) == 0x93800000) {    // Do we need to use the escape sequence and split it up into 2 transfers ?
+N          _Data = 0x93c10000 | (Data >> 16);
+N          Data  = 0x93c00000 | (Data & 0xFFFF);
+N          _WritePending = 1;
+N        }
+N      }
+N      if (JLINKDCC_AbortOccurred) {
+N        Data = 0x93c20000;          // read abort status
+N        _WritePending = 0;
+N        JLINKDCC_AbortOccurred = 0; // clear it
+N      }
+N    }
+N
+N    _WriteDCC(Data);
+X    CP14_WriteDCC(Data);
+N    _NumReadItems--;
+N    return;
+N  }
+N  //
+N  // Handle terminal out. Up to 2 bytes in one 32-bit unit
+N  //
+N  NumBytes = _WrPos - _RdPos;
+N  if (NumBytes < 0) {
+N    NumBytes += sizeof(_acBuffer);
+N  }
+N  if (NumBytes) {
+N    int i;
+N    if (NumBytes > 2) {
+N      NumBytes = 2;
+N    }
+N    if (NumBytes == 2) {
+N      Data = 0x93A00000;
+N    } else {
+N      Data = 0x93800000;
+N    }
+N    for (i = 0; i < NumBytes; i++) {
+N      Data |= _acBuffer[_RdPos] << (8*i);
+N      _RdPos++;
+N      if (_RdPos == sizeof(_acBuffer)) {
+N        _RdPos = 0;
+N      }
+N    }
+N    _WriteDCC(Data);
+X    CP14_WriteDCC(Data);
+N  }
+N}
+N
+N
+N/*********************************************************************
+N*
+N*       Public code
+N*
+N**********************************************************************
+N*/
+N
+N/*********************************************************************
+N*
+N*       JLINKDCC_Process
+N*
+N*  Function description
+N*    This function should be called more or less regularily to allow
+N*    memory reads while the application progam is running.
+N*    The more often it is called, the higher the transfer speed.
+N*/
+Nvoid JLINKDCC_Process(void) {
+N  //
+N  // Avoid problems if this code is called from multiple threads or interrupts
+N  //
+N  if (JLINKDCC_IsInHandler) {
+N    return;
+N  }
+N  JLINKDCC_IsInHandler = 1;
+N  _HandleRead();
+N  _HandleWrite();
+N   JLINKDCC_IsInHandler = 0;
+N}
+N
+N/*********************************************************************
+N*
+N*       JLINKDCC_SendChar
+N*
+N*  Function description
+N*   Sends a single char to terminal out.
+N*/
+Nvoid JLINKDCC_SendChar(char c) {
+N  int Pos;
+N
+N  Pos = _WrPos + 1;
+N  if (Pos == sizeof(_acBuffer)) {
+N    Pos = 0;
+N  }
+N  if (Pos == _RdPos) {
+N    return;
+N  }
+N  _acBuffer[_WrPos] = c;
+N  _WrPos = Pos;
+N}
+N
+N/*********************************************************************
+N*
+N*       JLINKDCC_SendString
+N*
+N*  Function description
+N*   Sends a NUL- terminated string to terminal out.
+N*/
+Nvoid JLINKDCC_SendString(const char * s) {
+N  char c;
+N  while (1) {
+N    c = *s++;
+N    if (c == 0) {
+N      break;
+N    }
+N    JLINKDCC_SendChar(c);
+N  }
+N}
+N
+N/*********************************************************************
+N*
+N*       JLINKDCC_SendCharOnChannelNB
+N*
+N*  Function description
+N*    Send data to the host on selected channel.
+N*    This function is non-blocking.
+N*    If data can not be send it is stored in a buffer
+N*    and sent later, when the DCC Handler is called.
+N*/
+Nvoid JLINKDCC_SendCharOnChannelNB(unsigned Channel, U8 Data) {
+Xvoid JLINKDCC_SendCharOnChannelNB(unsigned Channel, unsigned char Data) {
+N  U32 DCCPacket;
+X  unsigned int DCCPacket;
+N  int DCCBusy;
+N
+N  DCCPacket = 0x93800000 | (Channel << 16);
+N  DCCPacket |= Data;
+N  DCCBusy = _ReadDCCStat() & 2;
+X  DCCBusy = CP14_ReadDCCStat() & 2;
+N  if (DCCBusy == 0) {
+N    _WriteDCC(DCCPacket);
+X    CP14_WriteDCC(DCCPacket);
+N  } else {
+N    _WritePendingNB = 1;
+N    _PendingPacketNB = DCCPacket;
+N  }
+N  _ActiveChannel = Channel;
+N}
+N
+N/*********************************************************************
+N*
+N*       JLINKDCC_SendOnChannel
+N*
+N*  Function description
+N*    Send data to the host.
+N*    32 channels are available, channel 0 is used for terminal output and is buffered,
+N*    all other channels are unbuffered.
+N*/
+Nvoid JLINKDCC_SendOnChannel(unsigned Channel, U8 * pData, int NumItems) {
+Xvoid JLINKDCC_SendOnChannel(unsigned Channel, unsigned char * pData, int NumItems) {
+N  U32 Data;
+X  unsigned int Data;
+N
+N  if (Channel == DCC_CHANNEL_TERMINAL)  {
+X  if (Channel == 0)  {
+N    while (NumItems-- > 0) {
+N      Data = *pData++;
+N      JLINKDCC_SendChar(Data);
+N    }
+N  } else {
+N    while (NumItems-- > 0) {
+N      Data = *pData++;
+N      if  (NumItems > 0) {
+N        Data |= *pData++ << 8;
+N        NumItems--;
+N        Data |= 0x200000;
+N      }
+N      Data |= 0x93800000;
+N      Data |= Channel << 16;
+N      while (_ReadDCCStat() & 2);       // Wait until we can send data
+X      while (CP14_ReadDCCStat() & 2);       
+N      _WriteDCC(Data);
+X      CP14_WriteDCC(Data);
+N    }
+N  }
+N}
+N
+N/*********************************************************************
+N*
+N*       JLINKDCC_SetpfOnRx
+N*
+N*/
+Nvoid JLINKDCC_SetpfOnRx(unsigned Channel, void (* pf)(unsigned Channel, U8 Data)) {
+Xvoid JLINKDCC_SetpfOnRx(unsigned Channel, void (* pf)(unsigned Channel, unsigned char Data)) {
+N  _pfOnRx[Channel] = pf;
+N}
+N
+N/*********************************************************************
+N*
+N*       JLINKDCC_SetpfOnTx
+N*
+N*/
+Nvoid JLINKDCC_SetpfOnTx(unsigned Channel, void (* pf)(unsigned Channel)) {
+N  _pfOnTx[Channel] = pf;
+N}
+N
+N
+N/*************************** end of file ****************************/

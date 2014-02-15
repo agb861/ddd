@@ -1,0 +1,143 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; ******************************************************
+                       **************
+    2 00000000         ; *                SEGGER MICROCONTROLLER GmbH & Co. KG 
+                                    *
+    3 00000000         ; *        Solutions for real time microcontroller appli
+                       cations      *
+    4 00000000         ; ******************************************************
+                       **************
+    5 00000000         ; *                                                     
+                                    *
+    6 00000000         ; *      (C) 1996-2008    SEGGER Microcontroller Systeme
+                        GmbH        *
+    7 00000000         ; *                                                     
+                                    *
+    8 00000000         ; *        Internet: www.segger.com    Support:  support
+                       @segger.com  *
+    9 00000000         ; *                                                     
+                                    *
+   10 00000000         ; ******************************************************
+                       **************
+   11 00000000         ;
+   12 00000000         ; ------------------------------------------------------
+                       --------------
+   13 00000000         ; File    : JLINKDCC_Process_ASM.s
+   14 00000000         ; Purpose : Routines for setting and writing co-processo
+                       r register CP14 
+   15 00000000         ;           (DCC-communication)
+   16 00000000         ; ---------------------------END-OF-HEADER--------------
+                       --------------
+   17 00000000         
+   18 00000000         ; /*****************************************************
+                       ****************
+   19 00000000         ; *
+   20 00000000         ; *       MDK ARM
+   21 00000000         ; *
+   22 00000000         ; */
+   23 00000000                 AREA             |C$$code|, CODE, READONLY
+   24 00000000                 PRESERVE8
+   25 00000000         
+   26 00000000                 EXPORT           CP14_ReadDCCStat
+   27 00000000                 EXPORT           CP14_ReadDCC
+   28 00000000                 EXPORT           CP14_WriteDCC
+   29 00000000                 CODE32
+   30 00000000         
+   31 00000000         ; /*****************************************************
+                       ****************
+   32 00000000         ; *
+   33 00000000         ; *       Public code
+   34 00000000         ; *
+   35 00000000         ; ******************************************************
+                       ****************
+   36 00000000         ; */
+   37 00000000         
+   38 00000000         ; /*****************************************************
+                       ****************
+   39 00000000         ; *
+   40 00000000         ; *       CP14_ReadDCCStat
+   41 00000000         ; */
+   42 00000000         CP14_ReadDCCStat
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   43 00000000 EE100E10        mrc              p14,0,R0,c0,c0
+   44 00000004 E12FFF1E        bx               lr
+   45 00000008         
+   46 00000008         
+   47 00000008         ; /*****************************************************
+                       ****************
+   48 00000008         ; *
+   49 00000008         ; *       CP14_ReadDCC
+   50 00000008         ; */
+   51 00000008         CP14_ReadDCC
+   52 00000008 EE110E10        mrc              p14,0,R0,c1,c0
+   53 0000000C E12FFF1E        bx               lr
+   54 00000010         
+   55 00000010         ; /*****************************************************
+                       ****************
+   56 00000010         ; *
+   57 00000010         ; *       CP14_WriteDCC
+   58 00000010         ; */
+   59 00000010         CP14_WriteDCC
+   60 00000010 EE010E10        mcr              p14,0,R0,c1,c0
+   61 00000014 E12FFF1E        bx               lr
+   62 00000018         
+   63 00000018         ; ******************************************************
+                       **************
+   64 00000018         
+   65 00000018                 END
+Command Line: --xref --apcs=interwork --depend=.\output\lpc2478_ea\release_flas
+h_j-link\obj\jlinkdcc_process_asm.d -o.\output\lpc2478_ea\release_flash_j-link\
+obj\jlinkdcc_process_asm.o -I"C:\Program Files (x86)\Keil\V473\ARM\RV31\INC" -I
+"C:\Program Files (x86)\Keil\V473\ARM\CMSIS\Include" -I"C:\Program Files (x86)\
+Keil\V473\ARM\Inc\Philips" --list=.\output\lpc2478_ea\release_flash_j-link\lst\
+jlinkdcc_process_asm.lst Util\JLINKDCC_Process_ASM.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+C$$code 00000000
+
+Symbol: C$$code
+   Definitions
+      At line 23 in file Util\JLINKDCC_Process_ASM.s
+   Uses
+      None
+Comment: C$$code unused
+CP14_ReadDCC 00000008
+
+Symbol: CP14_ReadDCC
+   Definitions
+      At line 51 in file Util\JLINKDCC_Process_ASM.s
+   Uses
+      At line 27 in file Util\JLINKDCC_Process_ASM.s
+Comment: CP14_ReadDCC used once
+CP14_ReadDCCStat 00000000
+
+Symbol: CP14_ReadDCCStat
+   Definitions
+      At line 42 in file Util\JLINKDCC_Process_ASM.s
+   Uses
+      At line 26 in file Util\JLINKDCC_Process_ASM.s
+Comment: CP14_ReadDCCStat used once
+CP14_WriteDCC 00000010
+
+Symbol: CP14_WriteDCC
+   Definitions
+      At line 59 in file Util\JLINKDCC_Process_ASM.s
+   Uses
+      At line 28 in file Util\JLINKDCC_Process_ASM.s
+Comment: CP14_WriteDCC used once
+4 symbols
+334 symbols in table

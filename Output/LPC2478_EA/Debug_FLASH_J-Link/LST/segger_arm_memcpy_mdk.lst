@@ -1,0 +1,413 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; ******************************************************
+                       **************
+    2 00000000         ; *                SEGGER MICROCONTROLLER GmbH & Co. KG 
+                                    *
+    3 00000000         ; *        Solutions for real time microcontroller appli
+                       cations      *
+    4 00000000         ; ******************************************************
+                       **************
+    5 00000000         ; *                                                     
+                                    *
+    6 00000000         ; *      (C) 1996-2008    SEGGER Microcontroller Systeme
+                        GmbH        *
+    7 00000000         ; *                                                     
+                                    *
+    8 00000000         ; *        Internet: www.segger.com    Support:  support
+                       @segger.com  *
+    9 00000000         ; *                                                     
+                                    *
+   10 00000000         ; ******************************************************
+                       **************
+   11 00000000         ;
+   12 00000000         ; ------------------------------------------------------
+                       --------------
+   13 00000000         ; File        : MDK_ARM_memcpy.s
+   14 00000000         ; Purpose     : Efficient implementation of some time cr
+                       itical routines
+   15 00000000         ; ---------------------------END-OF-HEADER--------------
+                       --------------
+   16 00000000         
+   17 00000000         ; /*****************************************************
+                       ****************
+   18 00000000         ; *
+   19 00000000         ; *       MDK ARM
+   20 00000000         ; *
+   21 00000000         ; */
+   22 00000000                 AREA             |C$$code|, CODE, READONLY
+   23 00000000                 PRESERVE8
+   24 00000000         
+   25 00000000                 EXPORT           ARM_memcpy
+   26 00000000                 CODE32
+   27 00000000         
+   28 00000000         ; /*****************************************************
+                       ****************
+   29 00000000         ; *
+   30 00000000         ; *       Public code
+   31 00000000         ; *
+   32 00000000         ; ******************************************************
+                       ****************
+   33 00000000         ; */
+   34 00000000         ; /*****************************************************
+                       ****************
+   35 00000000         ; *
+   36 00000000         ; *       ARM_memcpy
+   37 00000000         ; *
+   38 00000000         ; * Function description
+   39 00000000         ; *   Copy data in memory from source address to destina
+                       tion address.
+   40 00000000         ; *
+   41 00000000         ; * Register usage:
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   42 00000000         ; *   R0    pDest
+   43 00000000         ; *   R1    pSrc
+   44 00000000         ; *   R2    NumBytes
+   45 00000000         ; *   R3    Used for data transfers
+   46 00000000         ; *   R4    Used for data transfers
+   47 00000000         ; *   R12   Used for data transfers
+   48 00000000         ; *   R13   SP
+   49 00000000         ; *   R14   LR (contains return address)
+   50 00000000         ; *   R15   PC
+   51 00000000         ; */
+   52 00000000         
+   53 00000000         ; __arm int ARM_memcpy(void* pDest, void* pSrc, U32 NumB
+                       ytes)
+   54 00000000         ARM_memcpy
+   55 00000000 E3520003        cmp              R2, #+3
+   56 00000004 9A00003D        bls              HandleTrailingBytes ; If we hav
+                                                            e less than one com
+                                                            plete word, use sin
+                                                            gle byte transfer
+   57 00000008 E210C003        ands             R12, R0, #+3
+   58 0000000C 0A000008        beq              DestIsAligned ; Is destination 
+                                                            address already wor
+                                                            d aligned ?
+   59 00000010         
+   60 00000010         ;
+   61 00000010         ; Handle as much bytes as necessary to align destination
+                        address
+   62 00000010         ;
+   63 00000010 E4D13001        ldrb             R3,  [R1], #+1 ; We need at lea
+                                                            st one byte to the 
+                                                            next word alignment
+                                                            , so we read one.
+   64 00000014 E35C0002        cmp              R12, #+2    ; Set condition cod
+                                                            es according to the
+                                                             mis-alignment
+   65 00000018 E082200C        add              R2,  R2, R12 ; Adjust NumBytes
+   66 0000001C 94D1C001        ldrbls           R12, [R1], #+1 ; Lower or same 
+                                                            (LS)? -> We need on
+                                                            e or two bytes to t
+                                                            he next word aligne
+                                                            d address
+   67 00000020 E4C03001        strb             R3,  [R0], #+1
+   68 00000024 34D13001        ldrbcc           R3,  [R1], #+1 ; Carry clear (C
+                                                            C)? -> We need one 
+                                                            more byte
+   69 00000028 94C0C001        strbls           R12, [R0], #+1
+   70 0000002C E2422004        sub              R2,  R2, #+4 ; Adjust NumBytes
+   71 00000030 34C03001        strbcc           R3,  [R0], #+1
+   72 00000034         
+   73 00000034         ;
+   74 00000034         ; Choose best way to transfer data
+   75 00000034         ;
+   76 00000034         DestIsAligned
+   77 00000034 E2113003        ands             R3,  R1, #+3
+   78 00000038 0A00001D        beq              HandleBulkWordData ; If source 
+                                                            and destination are
+                                                             aligned, use bulk 
+                                                            word transfer
+   79 0000003C E2522004        subs             R2,  R2, #+4
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   80 00000040 3A00002E        bcc              HandleTrailingBytes ; If we hav
+                                                            e less than one com
+                                                            plete word left, us
+                                                            e single byte trans
+                                                            fer
+   81 00000044 E731C003        ldr              R12, [R1, -R3]! ; Read first mi
+                                                            s-aligned data word
+                                                             and word align sou
+                                                            rce address
+   82 00000048 E3530002        cmp              R3,  #+2
+   83 0000004C 0A000008        beq              Loop16BitShift
+   84 00000050 8A00000F        bhi              Loop24BitShift
+   85 00000054         
+   86 00000054         ;
+   87 00000054         ; Handle data in units of word
+   88 00000054         ;
+   89 00000054         ; This is done by reading mis-aligned words from source 
+                       address and
+   90 00000054         ; shift them into the right alignment. After this the ne
+                       xt data word
+   91 00000054         ; will be read to complete the missing data part.
+   92 00000054         ;
+   93 00000054         Loop8BitShift
+   94 00000054 E1A0342C        mov              R3,  R12, LSR #+8 ; Shift data 
+                                                            word into right pos
+                                                            ition
+   95 00000058 E5B1C004        ldr              R12, [R1, #+4]! ; Load next mis
+                                                            -aligned data word
+   96 0000005C E2522004        subs             R2,  R2, #+4 ; Decrement NumByt
+                                                            es
+   97 00000060 E1833C0C        orr              R3,  R3, R12, LSL #+24 ; Combin
+                                                            e missing part of d
+                                                            ata to build full d
+                                                            ata word
+   98 00000064 E4803004        str              R3,  [R0], #+4 ; Store complete
+                                                             word
+   99 00000068 2AFFFFF9        bcs              Loop8BitShift
+  100 0000006C E2811001        add              R1,  R1, #+1 ; Adjust source ad
+                                                            dress
+  101 00000070 EA000022        b                HandleTrailingBytes ; Handle tr
+                                                            ailing bytes
+  102 00000074         Loop16BitShift
+  103 00000074 E1A0382C        mov              R3,  R12, LSR #+16 ; Shift data
+                                                             word into right po
+                                                            sition
+  104 00000078 E5B1C004        ldr              R12, [R1,#+4]! ; Load next mis-
+                                                            aligned data word
+  105 0000007C E2522004        subs             R2,  R2, #+4 ; Decrement NumByt
+                                                            es
+  106 00000080 E183380C        orr              R3,  R3, R12, LSL #+16 ; Combin
+                                                            e missing part of d
+                                                            ata to build full d
+                                                            ata word
+  107 00000084 E4803004        str              R3,  [R0], #+4 ; Store complete
+                                                             word
+  108 00000088 2AFFFFF9        bcs              Loop16BitShift
+  109 0000008C E2811002        add              R1,  R1, #+2 ; Adjust source ad
+                                                            dress
+  110 00000090 EA00001A        b                HandleTrailingBytes ; Handle tr
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+                                                            ailing bytes
+  111 00000094         Loop24BitShift
+  112 00000094 E1A03C2C        mov              R3,  R12, LSR #+24 ; Shift data
+                                                             word into right po
+                                                            sition
+  113 00000098 E5B1C004        ldr              R12, [R1, #+4]! ; Load next mis
+                                                            -aligned data word
+  114 0000009C E2522004        subs             R2,  R2, #+4 ; Decrement NumByt
+                                                            es
+  115 000000A0 E183340C        orr              R3,  R3, R12, LSL #+8 ; Combine
+                                                             missing part of da
+                                                            ta to build full da
+                                                            ta word
+  116 000000A4 E4803004        str              R3,  [R0], #+4 ; Store complete
+                                                             word
+  117 000000A8 2AFFFFF9        bcs              Loop24BitShift
+  118 000000AC E2811003        add              R1,  R1, #+3 ; Adjust source ad
+                                                            dress
+  119 000000B0 EA000012        b                HandleTrailingBytes ; Handle tr
+                                                            ailing bytes
+  120 000000B4         
+  121 000000B4         ;
+  122 000000B4         ; Handle large bulk data in blocks of 8 words (32 bytes)
+                       
+  123 000000B4         ;
+  124 000000B4         HandleBulkWordData
+  125 000000B4 E2522020        subs             R2,  R2, #+0x20
+  126 000000B8 E92D4010        stmdb            SP!, {R4,LR}
+  127 000000BC 3A000005        bcc              HandleTrailingWords
+  128 000000C0         LoopHandleBulkWord
+  129 000000C0 E8B15018        ldm              R1!, {R3,R4,R12,LR} ; Transfer 
+                                                            16 bytes at once
+  130 000000C4 E8A05018        stm              R0!, {R3,R4,R12,LR}
+  131 000000C8 E8B15018        ldm              R1!, {R3,R4,R12,LR} ; Transfer 
+                                                            16 bytes at once
+  132 000000CC E8A05018        stm              R0!, {R3,R4,R12,LR}
+  133 000000D0 E2522020        subs             R2,  R2, #+0x20
+  134 000000D4 2AFFFFF9        bcs              LoopHandleBulkWord
+  135 000000D8         
+  136 000000D8         ;
+  137 000000D8         ; Handle trailing 7 words
+  138 000000D8         ;
+  139 000000D8         HandleTrailingWords
+  140 000000D8 E1B0CE02        movs             R12, R2, LSL #28 ; Shift NumByt
+                                                            es left to use C an
+                                                            d N flag of CPSR to
+                                                             conditional load/s
+                                                            tore data
+  141 000000DC 28B15018        ldmcs            R1!, {R3,R4,R12,LR} ; C flag co
+                                                            ntain bit 4 of NumB
+                                                            ytes (transfer 16 b
+                                                            ytes if it is set)
+  142 000000E0 28A05018        stmcs            R0!, {R3,R4,R12,LR}
+  143 000000E4 48B10018        ldmmi            R1!, {R3,R4} ; N flag contain b
+                                                            it 3 of NumBytes (t
+                                                            ransfer 8 bytes if 
+                                                            it is set)
+  144 000000E8 48A00018        stmmi            R0!, {R3,R4}
+  145 000000EC E1B0CF02        movs             R12, R2, LSL #+30 ; Shift NumBy
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+                                                            tes left to use C a
+                                                            nd N flag of CPSR t
+                                                            o conditional load/
+                                                            store data
+  146 000000F0 E8BD4010        ldmia            SP!, {R4,LR}
+  147 000000F4 24913004        ldrcs            R3,  [R1], #+4 ; C flag contain
+                                                             bit 2 of NumBytes 
+                                                            (transfer 4 bytes i
+                                                            f it is set)
+  148 000000F8 24803004        strcs            R3,  [R0], #+4
+  149 000000FC 012FFF1E        bxeq             LR
+  150 00000100         
+  151 00000100         ;
+  152 00000100         ; Handle trailing 3 bytes
+  153 00000100         ;
+  154 00000100         HandleTrailingBytes
+  155 00000100 E1B02F82        movs             R2,  R2, LSL #+31 ; Shift NumBy
+                                                            tes left to use C a
+                                                            nd N flag of CPSR t
+                                                            o conditional load/
+                                                            store data
+  156 00000104 44D12001        ldrbmi           R2,  [R1], #+1 ; N flag contain
+                                                             bit 0 of NumBytes 
+                                                            (transfer 1 byte if
+                                                             it is set)
+  157 00000108 24D13001        ldrbcs           R3,  [R1], #+1 ; C flag contain
+                                                             bit 1 of NumBytes 
+                                                            (transfer 2 bytes i
+                                                            f it is set)
+  158 0000010C 24D1C001        ldrbcs           R12, [R1], #+1
+  159 00000110 44C02001        strbmi           R2,  [R0], #+1
+  160 00000114 24C03001        strbcs           R3,  [R0], #+1
+  161 00000118 24C0C001        strbcs           R12, [R0], #+1
+  162 0000011C E12FFF1E        bx               LR
+  163 00000120         
+  164 00000120         
+  165 00000120         ; ******************************************************
+                       **************
+  166 00000120         
+  167 00000120                 END
+Command Line: --debug --xref --diag_suppress=A1788W,A1786W --apcs=interwork --d
+epend=.\output\lpc2478_ea\debug_flash_j-link\obj\segger_arm_memcpy_mdk.d -o.\ou
+tput\lpc2478_ea\debug_flash_j-link\obj\segger_arm_memcpy_mdk.o -I"C:\Program Fi
+les (x86)\Keil\V473\ARM\RV31\INC" -I"C:\Program Files (x86)\Keil\V473\ARM\CMSIS
+\Include" -I"C:\Program Files (x86)\Keil\V473\ARM\Inc\Philips" --list=.\output\
+lpc2478_ea\debug_flash_j-link\lst\segger_arm_memcpy_mdk.lst Util\SEGGER_ARM_mem
+cpy_MDK.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+ARM_memcpy 00000000
+
+Symbol: ARM_memcpy
+   Definitions
+      At line 54 in file Util\SEGGER_ARM_memcpy_MDK.s
+   Uses
+      At line 25 in file Util\SEGGER_ARM_memcpy_MDK.s
+Comment: ARM_memcpy used once
+C$$code 00000000
+
+Symbol: C$$code
+   Definitions
+      At line 22 in file Util\SEGGER_ARM_memcpy_MDK.s
+   Uses
+      None
+Comment: C$$code unused
+DestIsAligned 00000034
+
+Symbol: DestIsAligned
+   Definitions
+      At line 76 in file Util\SEGGER_ARM_memcpy_MDK.s
+   Uses
+      At line 58 in file Util\SEGGER_ARM_memcpy_MDK.s
+Comment: DestIsAligned used once
+HandleBulkWordData 000000B4
+
+Symbol: HandleBulkWordData
+   Definitions
+      At line 124 in file Util\SEGGER_ARM_memcpy_MDK.s
+   Uses
+      At line 78 in file Util\SEGGER_ARM_memcpy_MDK.s
+Comment: HandleBulkWordData used once
+HandleTrailingBytes 00000100
+
+Symbol: HandleTrailingBytes
+   Definitions
+      At line 154 in file Util\SEGGER_ARM_memcpy_MDK.s
+   Uses
+      At line 56 in file Util\SEGGER_ARM_memcpy_MDK.s
+      At line 80 in file Util\SEGGER_ARM_memcpy_MDK.s
+      At line 101 in file Util\SEGGER_ARM_memcpy_MDK.s
+      At line 110 in file Util\SEGGER_ARM_memcpy_MDK.s
+      At line 119 in file Util\SEGGER_ARM_memcpy_MDK.s
+
+HandleTrailingWords 000000D8
+
+Symbol: HandleTrailingWords
+   Definitions
+      At line 139 in file Util\SEGGER_ARM_memcpy_MDK.s
+   Uses
+      At line 127 in file Util\SEGGER_ARM_memcpy_MDK.s
+Comment: HandleTrailingWords used once
+Loop16BitShift 00000074
+
+Symbol: Loop16BitShift
+   Definitions
+      At line 102 in file Util\SEGGER_ARM_memcpy_MDK.s
+   Uses
+      At line 83 in file Util\SEGGER_ARM_memcpy_MDK.s
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 108 in file Util\SEGGER_ARM_memcpy_MDK.s
+
+Loop24BitShift 00000094
+
+Symbol: Loop24BitShift
+   Definitions
+      At line 111 in file Util\SEGGER_ARM_memcpy_MDK.s
+   Uses
+      At line 84 in file Util\SEGGER_ARM_memcpy_MDK.s
+      At line 117 in file Util\SEGGER_ARM_memcpy_MDK.s
+
+Loop8BitShift 00000054
+
+Symbol: Loop8BitShift
+   Definitions
+      At line 93 in file Util\SEGGER_ARM_memcpy_MDK.s
+   Uses
+      At line 99 in file Util\SEGGER_ARM_memcpy_MDK.s
+Comment: Loop8BitShift used once
+LoopHandleBulkWord 000000C0
+
+Symbol: LoopHandleBulkWord
+   Definitions
+      At line 128 in file Util\SEGGER_ARM_memcpy_MDK.s
+   Uses
+      At line 134 in file Util\SEGGER_ARM_memcpy_MDK.s
+Comment: LoopHandleBulkWord used once
+10 symbols
+340 symbols in table

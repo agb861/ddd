@@ -1,0 +1,50 @@
+<HTML>
+  <HEAD>
+    <TITLE>embOS/IP Webserver example</TITLE>
+  </HEAD>
+  <style type="text/css">
+    body{
+	padding:0px;
+	margin:0px;
+	text-align:center;
+	font-family:Verdana, Helvetica, sans-serif;
+    background:#6699CC url(bg.png) repeat-x;	
+	font-size:11px;
+    color:white
+    }
+
+    a:link { font-weight:bold; color:white; text-decoration:none; }
+    a:visited { font-weight:bold; color:silver; text-decoration:none; }
+    a:focus { font-weight:bold; color:white; text-decoration:underline; }
+    a:hover { font-weight:bold; color:silver; text-decoration:none; }
+    a:active { font-weight:bold; color:white; text-decoration:underline; }
+  </style>
+  <BODY>
+    <BR>
+    <IMG SRC="seggerlogo.gif" ALT="SEGGER logo"><H1>SEGGER Microcontroller GmbH &amp; Co. KG</H1>
+    <P>
+    <H2>embOS/IP Webserver demo</H2><BR>
+    <A HREF="stats.htm">Network statistics</A>.<br>
+    <A HREF="embos.htm">embOS statistics</A>.<br>
+    <A HREF="FormsGET.htm">Form samples ("GET")</A>.<br>
+    <A HREF="FormsPOST.htm">Form samples ("POST")</A>.<br>
+    <A HREF="CallVirtualFile.htm">Virtual file example</A>.<br>
+    <A HREF="/conf/Authen.htm">Webserver configuration</A>. <I>Requires authentication!</I><br>
+    <BR>
+    <A HREF="about.htm">About Segger</A><br>
+    <BR><BR><BR>
+    <CENTER>
+      <B>
+        <!--#exec cgi="Counter"-->
+      </B>
+    </CENTER>
+
+    <BR><BR><BR><BR><BR>
+
+    <B>Head office Germany</B><BR>
+    Phone: +49-2103-2878-0<BR>
+    Fax: +49-2103-2878-28<BR>
+    E-mail: <A href="mailto:info@segger.com">info@segger.com</A><BR>
+    <A href="http://www.segger.com">www.segger.com</A><BR> 
+  </BODY>
+</HTML>

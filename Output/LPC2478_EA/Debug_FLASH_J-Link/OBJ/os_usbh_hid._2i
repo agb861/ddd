@@ -1,0 +1,5 @@
+--thumb -c --cpu ARM7TDMI -g -O0 --apcs=interwork --asm --interleave --asm_dir ".\\Output\\LPC2478_EA\\Debug_FLASH_J-Link\\LST\\" -IApplication\SEGGERDEMO -IApplication\SEGGERDEMO\Src -ISetup -IInc -IConfig -IFS -IIP -IIP\IP_FS\FS_RO\Generated -IGUI -IOS -IUSB -IUSBH
+-I "C:\Program Files (x86)\Keil\V473\ARM\RV31\INC"
+-I "C:\Program Files (x86)\Keil\V473\ARM\CMSIS\Include"
+-I "C:\Program Files (x86)\Keil\V473\ARM\Inc\Philips"
+-DDEBUG="1" -o .\output\lpc2478_ea\debug_flash_j-link\obj\os_usbh_hid.o --list_dir ".\\Output\\LPC2478_EA\\Debug_FLASH_J-Link\\LST\\" --list --omf_browse .\output\lpc2478_ea\debug_flash_j-link\obj\os_usbh_hid.crf --depend .\output\lpc2478_ea\debug_flash_j-link\obj\os_usbh_hid.d --feedback ".\Output\LPC2478_EA\Debug_FLASH_J-Link\OBJ\Start_LPC2478_EA.fed" "Application\OS_USBH_HID.c"

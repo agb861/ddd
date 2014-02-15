@@ -1,0 +1,229 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; ******************************************************
+                       **************
+    2 00000000         ; *                SEGGER MICROCONTROLLER GmbH & Co. KG 
+                                    *
+    3 00000000         ; *        Solutions for real time microcontroller appli
+                       cations      *
+    4 00000000         ; ******************************************************
+                       **************
+    5 00000000         ; *                                                     
+                                    *
+    6 00000000         ; *      (C) 1996-2008    SEGGER Microcontroller Systeme
+                        GmbH        *
+    7 00000000         ; *                                                     
+                                    *
+    8 00000000         ; *        Internet: www.segger.com    Support:  support
+                       @segger.com  *
+    9 00000000         ; *                                                     
+                                    *
+   10 00000000         ; ******************************************************
+                       **************
+   11 00000000         ;
+   12 00000000         ; ------------------------------------------------------
+                       --------------
+   13 00000000         ; File        : JLINKDCC_HandleDataAbort.s
+   14 00000000         ; Purpose : Data abort handler for ARM J-Link type commu
+                       nication via DCC
+   15 00000000         ; Notes   : (1) How to use
+   16 00000000         ;               In order to use the DCC abort handler, 3
+                        things need to be done:
+   17 00000000         ;               * Place a branch to DCC_Abort at address
+                        0x10 ("vector" used for data aborts)
+   18 00000000         ;               * Initialize the Abort-mode stack pointe
+                       r to an area of at least 8 bytes of stack
+   19 00000000         ;                 memory required by the handler
+   20 00000000         ;               * Add the DCC abort handler assembly fil
+                       e to the application
+   21 00000000         ;           (2) Compatibility
+   22 00000000         ;               The J-Link ARM DCC handler is compatible
+                        to the DCC communication
+   23 00000000         ;               protocol used by IAR in the embedded wor
+                       kbench for ARM and allows
+   24 00000000         ;               using the live data window in C-Spy
+   25 00000000         ; ---------------------------END-OF-HEADER--------------
+                       --------------
+   26 00000000         
+   27 00000000         ; /*****************************************************
+                       ****************
+   28 00000000         ; *
+   29 00000000         ; *       MDK ARM
+   30 00000000         ; *
+   31 00000000         ; */
+   32 00000000                 AREA             |C$$code|, CODE, READONLY
+   33 00000000                 PRESERVE8
+   34 00000000         
+   35 00000000                 IMPORT           JLINKDCC_IsInHandler
+   36 00000000                 IMPORT           JLINKDCC_AbortOccurred
+   37 00000000                 EXPORT           JLINKDCC_HandleDataAbort
+   38 00000000                 CODE32
+   39 00000000         
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   40 00000000         ; *
+   41 00000000         ; *       Public code
+   42 00000000         ; *
+   43 00000000         ; ******************************************************
+                       ****************
+   44 00000000         ; */
+   45 00000000         
+   46 00000000         ; /*****************************************************
+                       ****************
+   47 00000000         ; *
+   48 00000000         ; *       JLINKDCC_HandleDataAbort
+   49 00000000         ; *
+   50 00000000         ; *  Function description
+   51 00000000         ; *    Data abort handler for J-Link ARM type DCC commun
+                       ication.
+   52 00000000         ; *
+   53 00000000         ; *  Notes
+   54 00000000         ; *    (1) Abort mode
+   55 00000000         ; *        This handler is supposed to be executed in ab
+                       ort mode by simply placing a
+   56 00000000         ; *        jump to the handler at address 0x10.
+   57 00000000         ; *        Just like an interrupt service routine, it ne
+                       eds to restore all registers
+   58 00000000         ; *        for other modes and may only permanently modi
+                       fy registers of abort mode (SPSR_ABT, R14_ABT)
+   59 00000000         ; */
+   60 00000000         JLINKDCC_HandleDataAbort
+   61 00000000         ;
+   62 00000000         ; Check if exception stemmed from JLINKARM DCC communica
+                       tion. Otherwise, user abort handler is called
+   63 00000000         ;
+   64 00000000 E92D0003        STMDB            SP!, {R0,R1} ; Save registers o
+                                                            n stack
+   65 00000004 E59F102C        LDR              R1, =JLINKDCC_IsInHandler
+   66 00000008 E5D10000        LDRB             R0, [R1, #0]
+   67 0000000C E1100000        TST              R0, R0      ; Check if abort oc
+                                                            curred during execu
+                                                            tion of DCC handler
+                                                            
+   68 00000010 08BD0003        LDMEQIA          SP!, {R0,R1} 
+                                                            ; Restore registers
+                                                            
+   69 00000014 0A000006        BEQ              UserAbortHandler
+   70 00000018         ;
+   71 00000018         ; Set JLINKDCC_AbortOccurred so PC (via J-Link) has a ch
+                       ance to find out that memory operation was aborted
+   72 00000018         ;
+   73 00000018 E59F101C        LDR              R1, =JLINKDCC_AbortOccurred
+   74 0000001C E5C10000        STRB             R0, [R1, #0] ; Set abort occurr
+                                                            ed state
+   75 00000020         ;
+   76 00000020         ; Continue code execution right after the instruction wh
+                       ich caused the abort.
+   77 00000020         ;
+   78 00000020 E14F0000        MRS              R0, SPSR
+   79 00000024 E3100020        TST              R0, #0x20   ; Check thumb bit
+   80 00000028 E8BD0003        LDMIA            SP!, {R0,R1} 
+                                                            ; Restore registers
+                                                            
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   81 0000002C 025EF004        SUBEQS           PC, R14, #4 ; Return after the 
+                                                            aborted instruction
+                                                             (ARM mode)
+   82 00000030 E25EF006        SUBS             PC, R14, #6 ; Return after the 
+                                                            aborted instruction
+                                                             (Thumb mode)
+   83 00000034         
+   84 00000034         ; /*****************************************************
+                       ****************
+   85 00000034         ; *
+   86 00000034         ; *       UserAbortHandler
+   87 00000034         ; *
+   88 00000034         ; *  Function description
+   89 00000034         ; *    User defined abort handler.
+   90 00000034         ; *    This function is called if a data abort occurs fo
+                       r other reasons than JLINK DCC comunication.
+   91 00000034         ; *    Feel free to modify and jump to your own handler 
+                       as required.
+   92 00000034         ; */
+   93 00000034         UserAbortHandler
+   94 00000034 EAFFFFFE        B                UserAbortHandler ; Modify this 
+                                                            line to jump to you
+                                                            r own handler if de
+                                                            sired
+   95 00000038         
+   96 00000038         ; ******************************************************
+                       **************
+   97 00000038         
+   98 00000038                 END
+              00000000 
+              00000000 
+Command Line: --xref --apcs=interwork --depend=.\output\lpc2478_ea\release_flas
+h_j-link\obj\jlinkdcc_handledataabort.d -o.\output\lpc2478_ea\release_flash_j-l
+ink\obj\jlinkdcc_handledataabort.o -I"C:\Program Files (x86)\Keil\V473\ARM\RV31
+\INC" -I"C:\Program Files (x86)\Keil\V473\ARM\CMSIS\Include" -I"C:\Program File
+s (x86)\Keil\V473\ARM\Inc\Philips" --list=.\output\lpc2478_ea\release_flash_j-l
+ink\lst\jlinkdcc_handledataabort.lst Util\JLINKDCC_HandleDataAbort.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+C$$code 00000000
+
+Symbol: C$$code
+   Definitions
+      At line 32 in file Util\JLINKDCC_HandleDataAbort.s
+   Uses
+      None
+Comment: C$$code unused
+JLINKDCC_HandleDataAbort 00000000
+
+Symbol: JLINKDCC_HandleDataAbort
+   Definitions
+      At line 60 in file Util\JLINKDCC_HandleDataAbort.s
+   Uses
+      At line 37 in file Util\JLINKDCC_HandleDataAbort.s
+Comment: JLINKDCC_HandleDataAbort used once
+UserAbortHandler 00000034
+
+Symbol: UserAbortHandler
+   Definitions
+      At line 93 in file Util\JLINKDCC_HandleDataAbort.s
+   Uses
+      At line 69 in file Util\JLINKDCC_HandleDataAbort.s
+      At line 94 in file Util\JLINKDCC_HandleDataAbort.s
+
+3 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+JLINKDCC_AbortOccurred 00000000
+
+Symbol: JLINKDCC_AbortOccurred
+   Definitions
+      At line 36 in file Util\JLINKDCC_HandleDataAbort.s
+   Uses
+      At line 73 in file Util\JLINKDCC_HandleDataAbort.s
+Comment: JLINKDCC_AbortOccurred used once
+JLINKDCC_IsInHandler 00000000
+
+Symbol: JLINKDCC_IsInHandler
+   Definitions
+      At line 35 in file Util\JLINKDCC_HandleDataAbort.s
+   Uses
+      At line 65 in file Util\JLINKDCC_HandleDataAbort.s
+Comment: JLINKDCC_IsInHandler used once
+2 symbols
+337 symbols in table
